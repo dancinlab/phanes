@@ -260,6 +260,49 @@ final transport stack is an open sub-gate revisited when P1b starts.
 - `bin/` gitignored (built artifact; source is the SSOT; reproducible
   via `service/build.sh`).
 
+### P2 execution — measured (2026-05-19)
+
+- **P2.1 ms wall meter — DONE measured.** perl `Time::HiRes` ms clock in
+  `service/job_runner.sh`; `job.json` carries `wall_ms` (billing) +
+  `wall_sec` (back-compat). Verified `wall_ms=1312` for 1-round kick.
+- **P2.2 concurrency — MEASURED, honest finding.**
+  `service/concurrency_test.sh` N=4: per-job sandbox **isolation HOLDS**
+  (4 distinct ids, each own `job.json` + `overlay.n6`) but service is
+  **fully serialized** (`concurrent/baseline ratio = 4.4/10`) — root
+  cause is `stdlib/net/http_server.hexa::server_serve` sequential
+  accept-loop. Path forward = port to
+  `stdlib/net/concurrent_serve.hexa` (`ConcurrentServer` +
+  `register_endpoint` + `run(workers)`); recorded as P2.x follow-up,
+  deferred this turn.
+- **P2.3 `HX_DATA_DIR` adoption — PENDING upstream binary promote.**
+  Probe: current `bin/hexa-absorbed-kick` (May 18) does NOT honor.
+  SSOT helper landed in hexa-lang same day; binary promote is the
+  standard separate deploy step. phanes keeps `$HOME`-jail until then,
+  swaps to `HX_DATA_DIR` + sandbox=DiD after promote. Already on
+  upstream lifecycle — no new inbox needed.
+- **P2.4 post-hoc tenant verifier hook — DONE measured.**
+  `job_runner.sh --verifier PATH` (+ `--verifier-timeout`). Sandbox =
+  `env -i HOME=$JAIL PATH=/usr/bin:/bin` + hard `timeout`. `jobctl
+  submit` auto-attaches per-tenant `verifier.sh` (admin-placed for P2;
+  tenant-upload endpoint = P3). `job.json.verifier_rc` is the sole
+  authority for "objective met" (`@D g_honest_scope.scope_b`).
+  Measured: example verifier (threshold-on-total) → `verifier_rc=0`
+  PASS. **Honest sandbox scope (g3)**: thin POSIX (env reset + timeout),
+  NOT container/firejail; P3 hardens with full containerization +
+  no-network etc. Recorded.
+- **P2.5 production Linux fleet routing — DEFERRED (P3-coupled).**
+  Path forward: `PHANES_ENGINE_HOST` env → ssh kick on remote +
+  capture. Sub-blocker: kick binary distribution to Linux x86_64
+  (ubu can't self-host arm). Not coded this turn.
+- **P2.6 pluggable-verifier-oracle upstream patch** — still pending
+  hexa-lang response. Post-hoc hook (P2.4) is the interim; in-loop
+  hook remains the authoritative goal once landed.
+- **Standing upstream-inbox policy (user 2026-05-19)**: file inbox
+  patches as upstream gaps are discovered. This turn: 0 new items
+  (HX_DATA_DIR is the existing patch's pending-promote lifecycle, not a
+  new gap; concurrent_serve port is a downstream phanes choice, not a
+  hexa-lang gap; sandbox hardening is phanes-side).
+
 ### Upstream win — `phanes-hx-data-dir-per-tenant-isolation` RESOLVED SSOT
 
 The first inbox/patches handoff (filed 2026-05-19) was **resolved SSOT

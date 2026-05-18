@@ -55,8 +55,15 @@ case "$CMD" in
     auth
     JID="job_$(date +%s)_$(head -c6 /dev/urandom | od -An -tx1 | tr -d ' \n')"
     JOBDIR="$TDIR/jobs/$JID"; mkdir -p "$JOBDIR"
+    # P2.4: auto-attach per-tenant verifier (sandboxed, post-hoc gate).
+    # Admin-placed for P2; tenant-upload endpoint = P3 (dashboard).
+    EXTRA_ARGS=()
+    if [ -r "$TDIR/verifier.sh" ]; then
+      EXTRA_ARGS+=(--verifier "$TDIR/verifier.sh")
+    fi
     set +e
-    "$HERE/job_runner.sh" --seed "$SEED" --rounds "$ROUNDS" --jobdir "$JOBDIR" >/dev/null
+    "$HERE/job_runner.sh" --seed "$SEED" --rounds "$ROUNDS" --jobdir "$JOBDIR" \
+      "${EXTRA_ARGS[@]}" >/dev/null
     RC=$?
     set -e
     echo "$JID"

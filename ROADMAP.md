@@ -79,7 +79,66 @@ all 4 call sites switched, parse-gate clean. Binary promote pending
 swaps to `HX_DATA_DIR` after promote with sandbox as defense-in-depth
 (@ P2).
 
-## P2 — Compute-plane hardening
+## P2 — Compute-plane hardening · P2.1 + P2.2 + P2.4 measured (2026-05-19)
+
+**P2.1 wall meter ms — DONE measured.** `job_runner.sh` adopts perl
+`Time::HiRes` ms clock (`phanes_now_ms`); `job.json` now carries both
+`wall_ms` (billing basis) and `wall_sec` (back-compat). Sub-second
+resolution verified: 1-round kick reports `wall_ms=1312`.
+
+**P2.2 concurrency — MEASURED, honest finding.**
+`service/concurrency_test.sh` fires N=4 parallel HTTP submits:
+- ✅ **Isolation HOLDS**: 4 distinct job ids, each with its own
+  `job.json` + `overlay.n6` (per-job `$HOME`-jail works under concurrent
+  load — Decision 6 (가) verified at N=4).
+- 🟡 **Service-layer serialization (predicted, measured)**: ratio
+  `concurrent/baseline = 4.4/10` ≈ fully serialized. Root cause:
+  `stdlib/net/http_server.hexa::server_serve` is a sequential accept-loop
+  (one connection processed before the next accept). NOT a per-job
+  isolation failure — execution layer.
+- Path forward = port `service/http_phanes.hexa` to
+  `stdlib/net/concurrent_serve.hexa` (different API: `ConcurrentServer`
+  struct + `register_endpoint` + `run(workers)`). Recorded as P2.x
+  follow-up, deferred this turn (non-trivial rewrite; measure-then-port).
+
+**P2.3 `HX_DATA_DIR` adoption — PENDING upstream binary promote.**
+Probe (2026-05-19): running `bin/hexa-absorbed-kick` (May 18 build) does
+NOT honor `HX_DATA_DIR`. SSOT helper landed in hexa-lang same day, but
+binary promote is the standard separate deploy step (per the upstream
+resolution comment, the 22c27a05 pattern). phanes keeps the `$HOME`-jail
+until promote; after promote, `job_runner.sh` will add
+`HX_DATA_DIR="$JAIL/.hx/data"` to its env line, drop the `$HOME` hijack,
+and keep the sandbox as defense-in-depth. No new inbox needed — already
+on upstream lifecycle.
+
+**P2.4 post-hoc tenant verifier hook — DONE measured.** `job_runner.sh`
+gains `--verifier PATH` (+ `--verifier-timeout` default 120s). Exec in
+the `$HOME`-jail with a tightened env (`env -i HOME=… PATH=/usr/bin:/bin`)
++ hard `timeout`. `jobctl.sh submit` auto-attaches per-tenant
+`verifier.sh` (admin-placed for P2; tenant-upload endpoint = P3).
+`job.json` carries `verifier_rc` (the tenant verifier's exit code —
+under `@D g_honest_scope.scope_b` this is the sole authority for
+"objective met"). Measured: example verifier (threshold-on-total) →
+`verifier_rc=0` PASS. **Sandbox honesty on record (g3)**: this is a thin
+POSIX sandbox (env reset + timeout), NOT container/firejail; P3
+production hardening adds true containerization + no-network etc.
+
+**P2.5 production Linux fleet routing — DEFERRED (P3-coupled).**
+hexa-lang Axis-D forbids Mac-native `hexa kick` for production routes;
+the engine must run on Linux fleet (ubu-2 / production hosts). Path
+forward: `job_runner.sh` honors `PHANES_ENGINE_HOST` env (ssh to
+`<host> "PHANES_HEXA_HOME=… HEXA_VAL_ARENA=0 timeout … bin/hexa-absorbed-
+kick --seed … --rounds N"`, capture stdout/stderr/overlay back via
+`rsync`/`scp`). Sub-blocker: kick binary distribution to Linux x86_64
+(ubu can't self-host arm). Recorded for P3 production hardening phase;
+not coded this turn.
+
+**P2.6 second upstream patch tracking.** `phanes-pluggable-verifier-
+oracle-for-drill-loop` still pending hexa-lang response (no resolution
+yet). phanes's post-hoc hook (P2.4) is the interim — the in-loop hook
+remains the authoritative goal once landed.
+
+
 
 Per-tenant sandbox confinement; round/wall metering (billing basis);
 **concurrency** — validate the `cmd_drill_batch` single-`$HOME`
@@ -131,3 +190,13 @@ authority).
   `=`; pivoted to JSON body via `json_parse`. **P1b DONE, measured.**
   Upstream win: `phanes-hx-data-dir-per-tenant-isolation` handoff
   RESOLVED SSOT same-day in hexa-lang (binary promote pending).
+- **2026-05-19** — "P2 go". Probe HX_DATA_DIR honor (NOT honored — old
+  binary, pending promote, no new inbox). Measured: P2.1 ms wall meter
+  (perl Time::HiRes, `wall_ms=1312` 1-round) · P2.4 post-hoc tenant
+  verifier hook in `$HOME`-jail sandbox (env -i + timeout, auto-attach
+  per-tenant verifier.sh, `verifier_rc=0` PASS) · P2.2 concurrency
+  (`service/concurrency_test.sh` N=4, **isolation HOLDS** but service
+  serialized 4.4/10 — `stdlib/net/http_server.hexa` sequential
+  accept-loop; concurrent_serve port deferred as P2.x). P2.3 documented
+  pending. P2.5 fleet routing documented deferred (P3-coupled).
+  **P2.1+P2.2+P2.4 DONE measured.** No new upstream inbox items found.

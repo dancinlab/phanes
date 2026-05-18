@@ -91,3 +91,11 @@ hexa kick (OUROBOROS goal→falsifier→saturation · hexa-lang upstream · cycl
   Upstream win: `phanes-hx-data-dir-per-tenant-isolation` RESOLVED SSOT
   same-day in hexa-lang (binary promote pending; phanes uses `$HOME`-
   jail until then).
+- **2026-05-19** — "P2 go". P2.1 ms wall meter (perl Time::HiRes,
+  `wall_ms=1312`), P2.4 post-hoc tenant verifier hook (env -i + timeout
+  sandbox, `verifier_rc=0` PASS), P2.2 concurrency N=4 measured —
+  **isolation HOLDS** but service serialized (4.4/10) by
+  `stdlib/net/http_server.hexa` accept-loop; concurrent_serve port
+  recorded as P2.x. P2.3 HX_DATA_DIR pending upstream binary promote;
+  P2.5 fleet routing deferred to P3. **P2.1+P2.2+P2.4 DONE measured.**
+  Standing upstream-inbox policy applied: 0 new items this turn.

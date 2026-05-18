@@ -84,7 +84,7 @@
 
 @D g_decision_gate := "step-by-step decision gate" :: governance [required]
   rule = "Product is built one decision at a time, never batched. Each lands in design.md as `### Decision N — <picked>` with picked + 3+ rationale bullets before the next is opened."
-  status = "ALL PRODUCT GATES CLOSED + EXECUTION P1 DONE (2026-05-19): Decisions 1-7 + B-surface CLOSED. P0+P1a+P1b measured (cheap oracle + full HTTP smoke 7/7 PASS incl seed-with-= intact). Upstream win: HX_DATA_DIR patch RESOLVED SSOT same-day in hexa-lang (binary promote pending). NEXT = P2 (compute hardening: ms wall meter · concurrency · HX_DATA_DIR adoption after binary promote · verifier sandbox). Pre-public-launch: trademark clearance · pluggable-verifier patch landing · honest-scope review."
+  status = "GATES CLOSED + EXECUTION P0+P1a+P1b+P2.1+P2.2+P2.4 DONE measured (2026-05-19): Decisions 1-7 + B-surface CLOSED. P2.1 wall_ms · P2.4 verifier hook (sandboxed, autoattach) · P2.2 concurrency MEASURED (isolation OK, service serialized 4.4/10 — concurrent_serve port recorded P2.x). P2.3 HX_DATA_DIR pending upstream binary promote; P2.5 fleet routing deferred P3. Standing upstream-inbox policy (user 2026-05-19): file as discovered, 0 new items in P2 turn. NEXT options: P2.x concurrent_serve port · P3 dashboard · pre-launch gates (trademark clearance · pluggable-verifier patch landing · honest-scope review)."
   @> AGENTS.md
 
 @D g_commit_trailer := "commit-trailer co-author" :: governance [recommended]
