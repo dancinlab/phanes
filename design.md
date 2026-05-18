@@ -14,7 +14,7 @@
 | 1 | Product scope (A Conjecture-Mine / B Generic cycle / C Echoes-as-a-Service) | **OPEN** |
 | 2 | Brand name | **DECIDED — Phanes** |
 | 3 | Deployment shape (public demo+paid backend / API-only / full dashboard) | queued (after #1) |
-| 4 | GitHub org + remote (dancinlab vs singularity rename) · private | queued |
+| 4 | GitHub org + remote · private | **DECIDED — dancinlab/phanes (private)** |
 | 5 | License (commercial SaaS — not auto-MIT) | queued |
 | 6 | Multi-tenant overlay isolation approach (per-job HX data dir vs upstream patch) | queued |
 
@@ -48,6 +48,27 @@ TMs, pharma). Clean fallbacks evidenced clean by web search: `Ouro` /
 narrative/lore; run formal USPTO class-42 clearance before any public
 launch or remote/org push; reconsider public-facing mark then.
 (Governance: `AGENTS.tape @D g_name_risk`.)
+
+---
+
+### Decision 4 — GitHub org + remote = dancinlab/phanes (private)
+
+**picked**: `github.com/dancinlab/phanes` — **private** repo; `origin`,
+`main` tracking `origin/main`, scaffold pushed (commit `38e5992`).
+
+**rationale**:
+- **User directive 2026-05-19 "github.com/dancinlab/phanes"** — explicit
+  org + name, after the assistant flagged the dancinlab→singularity rename
+  ambiguity rather than guessing an outward, hard-to-reverse action.
+- **Private, not public launch.** The `@D g_name_risk` clearance
+  obligation is scoped to *public launch*; a private repo defers (does not
+  void) it. Trademark clearance stays tracked, owed before going public.
+- **dancinlab org = upstream-consistent.** Matches hexa-lang AGENTS.tape
+  citations (`github.com/dancinlab/...`) and the shipped sibling
+  `dancinlab/echoes-experience` deployment pattern.
+- Auth: `gh` account `dancinlife`, scopes incl. `repo` — create+push
+  succeeded; no LICENSE committed yet (Decision 5, commercial — not
+  auto-MIT).
 
 ---
 

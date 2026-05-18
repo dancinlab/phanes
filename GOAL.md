@@ -47,8 +47,10 @@ GitHub org·라이선스·멀티테넌트 격리방식 = 결정 게이트 대기
 
 ## Log
 
-- **2026-05-19** — repo scaffold. `~/core/phanes` git init (main, local-only,
-  no remote yet). Decision 2 (name = Phanes) DECIDED with trademark-risk on
-  record; Decision 1 (product scope A/B/C) OPEN — next gate. North-star
-  fixed; IS clause to be concretized once scope is picked. SSOT for
-  progress/decisions = `design.md`.
+- **2026-05-19** — repo scaffold. `~/core/phanes` git init (main). Decision 2
+  (name = Phanes) DECIDED with trademark-risk on record; Decision 1 (product
+  scope A/B/C) OPEN — next gate. North-star fixed; IS clause to be
+  concretized once scope is picked. SSOT for progress/decisions = `design.md`.
+- **2026-05-19** — Decision 4 DECIDED: pushed to `github.com/dancinlab/phanes`
+  (**private**, `origin`/main). Trademark clearance deferred-but-owed before
+  any public launch (`@D g_name_risk`). Decision 1 (scope) still OPEN.
