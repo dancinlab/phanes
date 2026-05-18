@@ -188,6 +188,118 @@ fn html_escape(s) {
         .replace("\"", "&quot;").replace("'", "&#39;")
 }
 
+// ── session + cookie helpers (P3 real-auth) ──────────────────────
+// Server-side session store: filesystem-backed (.store/sessions/<sid>).
+// sid is 32 hex chars from /dev/urandom. session file = two lines:
+// tenant\ntoken\n. Lost on .store wipe; OK for v1.
+
+fn _store_root() {
+    let here = env("PHANES_HOME")
+    if len(here) == 0 { here = "." }
+    return here + "/service/.store"
+}
+
+fn _sessions_dir() {
+    let d = _store_root() + "/sessions"
+    mkdir(d)
+    return d
+}
+
+fn _new_session_id() {
+    let r = exec_with_status("head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \\n'")
+    return r[0].trim()
+}
+
+fn session_create(tenant, token) {
+    let sid = _new_session_id()
+    write_file(_sessions_dir() + "/" + sid, tenant + "\n" + token + "\n")
+    return sid
+}
+
+fn session_load(sid) {
+    if len(sid) == 0 { return nil }
+    let p = _sessions_dir() + "/" + sid
+    if !file_exists(p) { return nil }
+    let raw = read_file(p)
+    let lines = raw.split("\n")
+    if len(lines) < 2 { return nil }
+    let r = #{}
+    r["tenant"] = lines[0]
+    r["token"]  = lines[1]
+    return r
+}
+
+fn session_destroy(sid) {
+    if len(sid) == 0 { return }
+    let p = _sessions_dir() + "/" + sid
+    if file_exists(p) { delete_file(p) }
+}
+
+fn cookie_get(request, name) {
+    let cookie = header_get(request, "cookie")
+    if len(cookie) == 0 { return "" }
+    let pairs = cookie.split(";")
+    let mut i = 0
+    while i < len(pairs) {
+        let p = pairs[i].trim()
+        let eq = p.index_of("=")
+        if eq > 0 {
+            let k = p.substring(0, eq)
+            if k == name {
+                return p.substring(eq + 1, len(p))
+            }
+        }
+        i = i + 1
+    }
+    return ""
+}
+
+fn cookie_set_str(name, value, max_age_s) {
+    return name + "=" + value + "; HttpOnly; Path=/; SameSite=Lax; Max-Age=" + to_string(max_age_s)
+}
+
+fn cookie_clear_str(name) {
+    return name + "=; HttpOnly; Path=/; Max-Age=0"
+}
+
+fn current_session(request) {
+    return session_load(cookie_get(request, "phanes_session"))
+}
+
+fn redirect_resp(location) {
+    let resp = #{}
+    resp["status"] = 303
+    resp["content_type"] = "text/html; charset=utf-8"
+    let h = #{}
+    h["Location"] = location
+    resp["headers"] = h
+    resp["body"] = "<a href=\"" + html_escape(location) + "\">→</a>"
+    return resp
+}
+
+fn redirect_with_cookie(location, cookie_header) {
+    let resp = #{}
+    resp["status"] = 303
+    resp["content_type"] = "text/html; charset=utf-8"
+    let h = #{}
+    h["Location"] = location
+    h["Set-Cookie"] = cookie_header
+    resp["headers"] = h
+    resp["body"] = "<a href=\"" + html_escape(location) + "\">→</a>"
+    return resp
+}
+
+// list tenant's jobs (newest first, capped). Returns array of job ids.
+fn list_tenant_jobs(tenant, limit) {
+    let dir = _store_root() + "/tenants/" + tenant + "/jobs"
+    let cmd = "ls -t " + shquote(dir) + " 2>/dev/null | head -" + to_string(limit)
+    let r = exec_with_status(cmd)
+    if r[1] != 0 { return [] }
+    let raw = r[0].trim()
+    if len(raw) == 0 { return [] }
+    return raw.split("\n")
+}
+
 // ── HTML fragment helpers ────────────────────────────────────────
 
 fn _html_resp(status, content_type, body) {
@@ -204,16 +316,14 @@ fn _html_401(body)   { return _html_resp(401, "text/html; charset=utf-8", body) 
 fn _html_500(body)   { return _html_resp(500, "text/html; charset=utf-8", body) }
 
 // Render one <li> job row. If status ∈ {done, failed} no hx-trigger
-// (polling stops). Otherwise hx-trigger every 2s polls itself for swap.
-fn render_job_row(job_id, status, wall_ms, rounds, total, verifier_rc, tenant, token) {
+// (polling stops). Otherwise hx-trigger self-polls every 2s; auth comes
+// from the session cookie so the URL stays clean.
+fn render_job_row(job_id, status, wall_ms, rounds, total, verifier_rc) {
     let id_attr = "job-" + job_id
     let mut row = "<li id=\"" + id_attr + "\""
     if status == "queued" || status == "running" {
-        // Self-poll: HTMX GET /dashboard/jobs/<id> every 2s.
-        // tenant/token threaded via form-style query (auth done server-side).
         row = row
-            + " hx-get=\"/dashboard/jobs/" + job_id
-            + "?tenant=" + tenant + "&token=" + token + "\""
+            + " hx-get=\"/dashboard/jobs/" + job_id + "\""
             + " hx-trigger=\"load delay:2s\""
             + " hx-swap=\"outerHTML\""
     }
@@ -230,9 +340,523 @@ fn render_job_row(job_id, status, wall_ms, rounds, total, verifier_rc, tenant, t
     return row
 }
 
-// Render the full dashboard page. echoes-experience-tone CSS, HTMX
-// via unpkg (TODO P3.x: self-host at /static/htmx.min.js).
-fn render_dashboard_page() {
+// Render a single existing job's <li> from its job.json (used on
+// dashboard page-load to pre-populate the jobs list). Returns "" on
+// any failure so a single bad job doesn't break the whole page.
+fn render_existing_job_row(tenant, token, job_id) {
+    let cmd = jobctl_cmd() + " get --tenant " + shquote(tenant)
+        + " --token " + shquote(token) + " --job " + shquote(job_id)
+    let r = exec_with_status(cmd)
+    if r[1] != 0 { return "" }
+    let m = json_parse(r[0])
+    if m == nil { return "" }
+    let mut status = "?"
+    if m["status"] != nil { status = to_string(m["status"]) }
+    let mut wall_ms = "-"
+    if m["wall_ms"] != nil { wall_ms = to_string(m["wall_ms"]) }
+    let mut rounds = "-"
+    if m["rounds"] != nil { rounds = to_string(m["rounds"]) }
+    let mut total = "-"
+    let res = m["result"]
+    if res != nil {
+        if res["total"] != nil { total = to_string(res["total"]) }
+    }
+    let mut verifier_rc = ""
+    if m["verifier_rc"] != nil { verifier_rc = to_string(m["verifier_rc"]) }
+    return render_job_row(job_id, status, wall_ms, rounds, total, verifier_rc)
+}
+
+// ── i18n (5 langs: en · zh · ru · ja · ko) ───────────────────────
+// Marketing pages only. Login/dashboard stay EN for v1.
+// Query param ?lang=<code> selects. Default = en.
+
+fn _valid_lang(code) {
+    if code == "en" || code == "zh" || code == "ru" || code == "ja" || code == "ko" {
+        return true
+    }
+    return false
+}
+
+fn _detect_lang(request) {
+    // Priority: 1) explicit ?lang= query  2) phanes_lang cookie (user
+    // selection sticks)  3) Accept-Language header (browser preference)
+    // 4) default "en".
+    let query = request["query"]
+    if query != nil {
+        if len(to_string(query)) > 0 {
+            let q = parse_query(to_string(query))
+            let l = q["lang"]
+            if l != nil {
+                let ls = to_string(l)
+                if _valid_lang(ls) { return ls }
+            }
+        }
+    }
+    let c = cookie_get(request, "phanes_lang")
+    if _valid_lang(c) { return c }
+    // Accept-Language: "ko-KR,ko;q=0.9,en;q=0.8" — take first supported
+    // primary tag (first 2 chars, lowercased).
+    let al = header_get(request, "accept-language")
+    if len(al) > 0 {
+        let parts = al.split(",")
+        let mut i = 0
+        while i < len(parts) {
+            let mut p = parts[i].trim()
+            let semi = p.index_of(";")
+            if semi > 0 { p = p.substring(0, semi) }
+            if len(p) >= 2 {
+                let head = p.substring(0, 2).to_lower()
+                if _valid_lang(head) { return head }
+            }
+            i = i + 1
+        }
+    }
+    return "en"
+}
+
+fn _t(key, lang) {
+    // Brand names stay Latin (PHANES / DEMIURGE) in all langs — only
+    // the phonetic transliteration as a small subtitle changes per
+    // language. en = blank subtitle (the latin form IS english).
+    // Per user directive 2026-05-19: "이름은 그대로 발음그대로", "번역말고"
+    // — descriptions/roles NOT translated; only phonetic + UI strings.
+    if key == "phanes_role" {
+        if lang == "ko" { return "발견" }
+        if lang == "ja" { return "発見" }
+        if lang == "zh" { return "发现" }
+        if lang == "ru" { return "открытие" }
+        return "discovery"
+    }
+    if key == "demiurge_role" {
+        if lang == "ko" { return "설계" }
+        if lang == "ja" { return "設計" }
+        if lang == "zh" { return "设计" }
+        if lang == "ru" { return "проектирование" }
+        return "design"
+    }
+    if key == "phanes_phonetic" {
+        if lang == "ko" { return "파네스" }
+        if lang == "ja" { return "ファネス" }
+        if lang == "zh" { return "法尼斯" }
+        if lang == "ru" { return "Фанес" }
+        return ""
+    }
+    if key == "demiurge_phonetic" {
+        if lang == "ko" { return "데미우르지" }
+        if lang == "ja" { return "デミウルゴス" }
+        if lang == "zh" { return "德米乌尔格" }
+        if lang == "ru" { return "Демиург" }
+        return ""
+    }
+    // CTAs
+    if key == "enter" {
+        if lang == "ko" { return "진입" }
+        if lang == "ja" { return "進む" }
+        if lang == "zh" { return "进入" }
+        if lang == "ru" { return "войти" }
+        return "enter"
+    }
+    if key == "read_more" {
+        if lang == "ko" { return "더보기" }
+        if lang == "ja" { return "詳細" }
+        if lang == "zh" { return "了解更多" }
+        if lang == "ru" { return "подробнее" }
+        return "read more"
+    }
+    if key == "log_in" {
+        if lang == "ko" { return "로그인" }
+        if lang == "ja" { return "ログイン" }
+        if lang == "zh" { return "登录" }
+        if lang == "ru" { return "вход" }
+        return "log in"
+    }
+    if key == "back" {
+        if lang == "ko" { return "← 돌아가기" }
+        if lang == "ja" { return "← 戻る" }
+        if lang == "zh" { return "← 返回" }
+        if lang == "ru" { return "← назад" }
+        return "← back"
+    }
+    return key
+}
+
+fn _lang_path(current_path, lang) {
+    return current_path + "?lang=" + lang
+}
+
+// ── Reusable CTA component ───────────────────────────────────────
+// One funnel for every link/button-shaped action. `variant` selects
+// the .btn modifier; href starting with "http" auto-gets external
+// safety attrs. Specialized helper `render_github_cta(repo, label)`
+// composes the github.com URL from a dancinlab/<repo> path.
+
+fn render_cta(href, label, variant) {
+    // Unified outline style site-wide: white border, transparent interior.
+    // Filled `btn-cta` / `btn-primary` modifiers are intentionally retired —
+    // every button on every page now resolves to the base `.btn` look, with
+    // size as the only modifier. Variant names stay (legacy call sites) but
+    // map to size only.
+    let mut classes = "btn"
+    if variant == "primary-lg" || variant == "outline-lg" || variant == "ghost-lg" {
+        classes = classes + " btn-lg"
+    } else if variant == "sm" {
+        classes = classes + " btn-sm"
+    }
+    // ("primary" / "outline" / "ghost" / "" → base .btn, no size modifier)
+    let mut ext = ""
+    if len(href) >= 4 {
+        if href.substring(0, 4) == "http" {
+            ext = " target=\"_blank\" rel=\"noopener\""
+        }
+    }
+    return "<a class=\"" + classes + "\" href=\"" + href + "\"" + ext + ">" + label + "</a>"
+}
+
+fn render_github_cta(repo_path, label) {
+    // repo_path like "dancinlab/demiurge"
+    return render_cta("https://github.com/" + repo_path, label, "outline-lg")
+}
+
+// Nav-scoped CTA (e.g. the LOG IN button on the top bar).
+// Uses the .topnav .right .cta CSS (different size from page-level .btn).
+fn render_nav_cta(label, href) {
+    return "<div class=\"right\"><a class=\"cta\" href=\"" + href + "\">" + label + "</a></div>"
+}
+
+// Single-button language switcher (HTML <details> dropdown — no JS).
+// Shows full lang name + all 5 in menu with ✓ on current.
+fn render_lang_switcher(lang, current_path) {
+    let mut cur_label = "English"
+    if lang == "zh" { cur_label = "中文" }
+    if lang == "ru" { cur_label = "Русский" }
+    if lang == "ja" { cur_label = "日本語" }
+    if lang == "ko" { cur_label = "한국어" }
+    let mut s = "<details class=\"langsw\"><summary>" + cur_label + " ▾</summary>"
+    s = s + "<div class=\"langmenu\">"
+    let codes = ["en", "zh", "ru", "ja", "ko"]
+    let names = ["English", "中文", "Русский", "日本語", "한국어"]
+    let mut i = 0
+    while i < len(codes) {
+        let mut cl = ""
+        if codes[i] == lang { cl = " class=\"current\"" }
+        s = s + "<a href=\"/lang/" + codes[i] + "?from=" + current_path + "\"" + cl + ">"
+        s = s + "<span>" + names[i] + "</span>"
+        if codes[i] == lang { s = s + "<span class=\"chk\">✓</span>" }
+        s = s + "</a>"
+        i = i + 1
+    }
+    s = s + "</div></details>"
+    return s
+}
+
+// ── Shared marketing chrome (Decision-IA 나: unified brand) ──────
+// Used by the three public marketing pages: /, /phanes, /demiurge.
+// Authenticated pages (/login, /dashboard) keep their own product
+// chrome (standard marketing/product split, like Stripe).
+fn render_nav(current, lang, current_path) {
+    let mut cco = ""
+    let mut cph = ""
+    let mut cde = ""
+    let mut chx = ""
+    let mut can = ""
+    if current == "cosmogony" { cco = " class=\"current\"" }
+    if current == "phanes"    { cph = " class=\"current\"" }
+    if current == "demiurge"  { cde = " class=\"current\"" }
+    if current == "hexa-lang" { chx = " class=\"current\"" }
+    if current == "anima"     { can = " class=\"current\"" }
+    let mut n = "<nav class=\"topnav\">"
+    n = n + "<a class=\"brand\" href=\"/?lang=" + lang + "\"" + cco + ">dancinlab</a>"
+    n = n + "<div class=\"links\">"
+    n = n + "<a href=\"/phanes?lang=" + lang + "\"" + cph + ">Phanes</a>"
+    n = n + "<a href=\"/demiurge?lang=" + lang + "\"" + cde + ">Demiurge</a>"
+    n = n + "<a href=\"/hexa-lang?lang=" + lang + "\"" + chx + ">hexa-lang</a>"
+    n = n + "<a href=\"/anima?lang=" + lang + "\"" + can + ">Anima</a>"
+    n = n + "</div>"
+    // Reusable components: lang switcher + nav CTA
+    n = n + render_lang_switcher(lang, current_path)
+    n = n + render_nav_cta(_t("log_in", lang), "/login")
+    n = n + "</nav>"
+    return n
+}
+
+// ── Design tokens (single source of truth, no hardcoded values) ──
+// All colors, type sizes, spacing, radii, transitions live in :root.
+// Pages reference via `var(--<name>)`. Change a brand value in ONE
+// place → propagates site-wide. Modeled after Palantir Titanium's
+// own CSS-variable system (their bundle uses --body-100-size /
+// --text-color / etc.).
+fn _tokens_css() {
+    let mut c = ":root{"
+    // colors (Palantir Titanium palette)
+    c = c + "--bg:#1e2124;"
+    c = c + "--bg-elev:#2f3234;"
+    c = c + "--bg-deep:#1c212b;"
+    c = c + "--fg:#fff;"
+    c = c + "--fg-muted:#b9b9b9;"
+    c = c + "--fg-dim:#767676;"
+    c = c + "--fg-faint:#494a4b;"
+    c = c + "--line:rgba(255,255,255,0.07);"
+    c = c + "--line-strong:rgba(255,255,255,0.2);"
+    c = c + "--line-bold:rgba(255,255,255,0.85);"
+    c = c + "--accent-red:#ff4136;"
+    c = c + "--accent-green:#2b5945;"
+    c = c + "--accent-blue:#4e8af7;"
+    c = c + "--hover-bg:rgba(255,255,255,0.06);"
+    c = c + "--hover-bg-soft:rgba(255,255,255,0.04);"
+    // type stacks
+    c = c + "--font-sans:\"Alliance No.1\",system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,\"Helvetica Neue\",Helvetica,Arial,\"Apple SD Gothic Neo\",\"Noto Sans CJK\",sans-serif;"
+    c = c + "--font-mono:\"JetBrains Mono\",\"IBM Plex Mono\",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;"
+    // sizes (body-100/300/400 + hero/label/tiny ladder)
+    c = c + "--fs-tiny:10px;--fs-label:11px;--fs-200:12px;--fs-100:14px;--fs-300:16px;--fs-400:20px;--fs-500:24px;"
+    c = c + "--fs-headline:clamp(36px,7vw,80px);--fs-hero:clamp(56px,13vw,176px);"
+    // Palantir-aligned (body 16px, nav 15-20px, NOT 11-12px micro-text)
+    c = c + "--fs-body:16px;--fs-nav-brand:24px;--fs-nav-link:17px;--fs-nav-cta:14px;"
+    // weights (Palantir uses 400/500/600/700 ladder; 600 is CTA signature)
+    c = c + "--fw-regular:400;--fw-medium:500;--fw-semibold:600;--fw-bold:700;"
+    // letter-spacing — Palantir spec extracted (their submit btn uses 0.04em,
+    // form-label 0.08em, tag 0.1em; bigger heads use negative -0.5px)
+    c = c + "--ls-headline:-0.5px;--ls-tight:-0.04em;--ls-near:-0.015em;--ls-normal:0;"
+    c = c + "--ls-btn:0.04em;--ls-label:0.08em;--ls-tag:0.1em;"
+    c = c + "--ls-wide:0.12em;--ls-x:0.18em;--ls-xx:0.24em;--ls-xxx:0.32em;--ls-xxxx:0.4em;"
+    // line-height
+    c = c + "--lh-tight:1;--lh-snug:1.1;--lh-base:1.55;"
+    // spacing scale
+    c = c + "--sp-1:4px;--sp-2:8px;--sp-3:14px;--sp-4:24px;--sp-5:40px;--sp-6:60px;--sp-7:80px;"
+    // radii (Palantir uses 0; 4px small; 10px cards)
+    c = c + "--r-0:0;--r-1:4px;--r-2:10px;"
+    // transitions — Palantir spec uses 0.25s ease-in-out on nav/menu;
+    // page-level .btn explicitly overrides to `transition:none` for
+    // instant feedback (per user direction).
+    c = c + "--t-fast:opacity 0.25s ease-in-out;--t-base:0.25s ease-in-out;--t-menu:all 0.25s ease-in-out;"
+    // layout (nav-h grows with bigger brand)
+    c = c + "--nav-h:84px;--container:1240px;"
+    c = c + "}"
+    return c
+}
+
+fn _shared_css() {
+    let mut c = _tokens_css()
+    // ── base reset + body ────────────────────────────────────────
+    c = c + "*{box-sizing:border-box;margin:0;padding:0}"
+    c = c + "html,body{background:var(--bg);color:var(--fg);min-height:100%;font-family:var(--font-sans);font-weight:var(--fw-regular);font-size:var(--fs-body);line-height:var(--lh-base);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}"
+    c = c + "a{color:inherit;text-decoration:none}"
+    c = c + "code,.mono{font-family:var(--font-mono)}"
+    // ── topnav ───────────────────────────────────────────────────
+    c = c + ".topnav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-items:center;padding:0 36px;background:rgba(30,33,36,0.95);backdrop-filter:saturate(140%) blur(8px);z-index:100}"
+    c = c + ".topnav .brand{font-size:var(--fs-nav-brand);letter-spacing:0;font-weight:var(--fw-medium);opacity:0.95;line-height:var(--lh-tight);display:inline-flex;align-items:center}"
+    c = c + ".topnav .brand.current{opacity:1}"
+    c = c + ".topnav .links{margin-left:56px;display:flex;align-items:center;gap:32px}"
+    c = c + ".topnav .links a{font-size:var(--fs-nav-link);letter-spacing:0;font-weight:var(--fw-regular);opacity:0.65;transition:var(--t-fast);padding:2px 0;line-height:var(--lh-tight)}"
+    c = c + ".topnav .links a:hover{opacity:1}"
+    c = c + ".topnav .links a.current{opacity:1;text-decoration:underline;text-underline-offset:6px;text-decoration-color:var(--line-bold)}"
+    // ── lang switcher (single button + <details> dropdown) ──────
+    c = c + ".topnav .langsw{margin-left:auto;position:relative;margin-right:var(--sp-3)}"
+    c = c + ".topnav .langsw summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border:1px solid var(--fg);font-size:var(--fs-nav-cta);letter-spacing:0;font-weight:var(--fw-medium);line-height:var(--lh-tight);transition:none;white-space:nowrap}"
+    c = c + ".topnav .langsw summary::-webkit-details-marker{display:none}"
+    c = c + ".topnav .langsw summary::marker{display:none}"
+    c = c + ".topnav .langsw summary:hover{background:var(--fg);color:var(--bg)}"
+    c = c + ".topnav .langsw[open] summary{background:var(--fg);color:var(--bg)}"
+    c = c + ".topnav .langmenu{position:absolute;top:calc(100% - 1px);right:0;background:var(--bg);border:1px solid var(--fg);display:flex;flex-direction:column;min-width:220px;z-index:200}"
+    c = c + ".topnav .langmenu a{display:flex;align-items:center;justify-content:space-between;padding:13px 26px;font-size:var(--fs-nav-cta);letter-spacing:0;border-bottom:1px solid var(--fg);font-weight:var(--fw-medium);opacity:0.85;transition:none}"
+    c = c + ".topnav .langmenu a:last-child{border-bottom:0}"
+    c = c + ".topnav .langmenu a:hover{background:var(--fg);color:var(--bg);opacity:1}"
+    c = c + ".topnav .langmenu a.current{background:var(--fg);color:var(--bg);opacity:1}"
+    c = c + ".topnav .langmenu a .chk{font-size:var(--fs-label);margin-left:12px}"
+    // ── topnav CTA (right side LOG IN) — same shape as .btn-sm ──
+    c = c + ".topnav .right{display:flex;align-items:center}"
+    c = c + ".topnav .right .cta{display:inline-flex;align-items:center;line-height:var(--lh-tight);padding:13px 26px;border:1px solid var(--fg);font-size:var(--fs-nav-cta);letter-spacing:0;font-weight:var(--fw-medium);transition:none}"
+    c = c + ".topnav .right .cta:hover{background:var(--fg);color:var(--bg);border-color:var(--fg)}"
+    // ── Button system (Palantir Titanium exact spec, extracted) ─
+    // Master spec (from `.clickwrapForm__submit` in their bundle):
+    //   font:14px/600  letter-spacing:0.04em  padding:14px 40px
+    //   text-transform:uppercase  border-radius:0
+    //
+    // .btn         = THE button — transparent fill, 1px white border, inverts on hover
+    // .btn-sm      = compact (nav-form-label spec: 12px/600 0.08em)
+    // .btn-lg      = hero CTA (slightly larger pad)
+    // .btn-tag     = small uppercase chip (Alliance No.2 spec, not a button)
+    // Filled-CTA / filled-primary variants intentionally retired —
+    // render_cta() collapses every variant to this single outline look.
+    c = c + ".btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 40px;font-family:inherit;font-size:var(--fs-100);font-weight:var(--fw-semibold);letter-spacing:var(--ls-btn);text-transform:uppercase;line-height:var(--lh-tight);border:1px solid var(--fg);background:transparent;color:var(--fg);cursor:pointer;transition:none;text-decoration:none;border-radius:var(--r-0);white-space:nowrap}"
+    c = c + ".btn:hover{background:var(--fg);color:var(--bg)}"
+    c = c + ".btn-sm{padding:10px 22px;font-size:var(--fs-200);letter-spacing:var(--ls-label)}"
+    c = c + ".btn-lg{padding:16px 48px;font-size:var(--fs-100);letter-spacing:var(--ls-btn)}"
+    c = c + ".btn-tag{padding:7px 5px;font-size:var(--fs-100);font-weight:var(--fw-regular);letter-spacing:var(--ls-tag);text-transform:uppercase;border:0;background:transparent;color:var(--fg-muted);font-feature-settings:\"ss04\" on}"
+    // ── Heading utilities (Palantir titleContainer spec) ────────
+    c = c + ".h-display{font-size:var(--fs-hero);font-weight:200;letter-spacing:var(--ls-tight);line-height:var(--lh-tight)}"
+    c = c + ".h-headline{font-size:var(--fs-headline);font-weight:300;letter-spacing:var(--ls-near);line-height:var(--lh-snug)}"
+    c = c + ".h-title{font-size:22px;font-weight:var(--fw-medium);letter-spacing:var(--ls-headline);line-height:1.15}"
+    c = c + ".h-label{font-size:var(--fs-200);font-weight:var(--fw-semibold);letter-spacing:var(--ls-label);text-transform:uppercase;color:var(--fg-muted)}"
+    return c
+}
+
+// ── Landing (/, shared marketing) — SpaceX-style product panel list
+// Stacked full-bleed panels, one per product. Black background, light-
+// weight Helvetica Neue, wide-tracked all-caps labels. Marketing front
+// — no operator chrome, no cosmology rhetoric, just product roster.
+// One reusable product-row component for the cosmogony landing.
+// Same visual shape as /<product> hero, just smaller (cards on /).
+fn render_product_row(slug, mark, phonetic, tagline, cta_label, lang) {
+    let mut r = "<section class=\"row\">"
+    r = r + "<a class=\"rowlink\" href=\"/" + slug + "?lang=" + lang + "\">"
+    r = r + "<div class=\"row-name\">" + mark + "</div>"
+    if len(phonetic) > 0 { r = r + "<div class=\"row-kr\">" + phonetic + "</div>" }
+    r = r + "<div class=\"row-tag\">" + tagline + "</div>"
+    r = r + "</a>"
+    r = r + "<div class=\"row-cta\">" + render_cta("/" + slug + "?lang=" + lang, cta_label, "primary") + "</div>"
+    r = r + "</section>"
+    return r
+}
+
+fn render_cosmogony_landing(lang) {
+    let mut h = "<!doctype html>\n<html lang=\"" + lang + "\"><head>"
+    h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+    h = h + "<title>DANCINLAB</title>"
+    h = h + "<style>" + _shared_css()
+    // All values via tokens — no hardcoded sizes/colors leaking.
+    h = h + "main{padding:140px 24px 60px;max-width:var(--container);margin:0 auto}"
+    h = h + ".intro{text-align:center;margin-bottom:var(--sp-7)}"
+    h = h + ".intro h1{font-size:var(--fs-headline);font-weight:200;letter-spacing:var(--ls-tight);line-height:var(--lh-tight)}"
+    h = h + ".intro p{margin-top:var(--sp-3);font-size:var(--fs-label);letter-spacing:var(--ls-xxxx);text-transform:uppercase;opacity:0.5}"
+    h = h + ".rows{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line)}"
+    h = h + ".row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:var(--sp-5);padding:var(--sp-6) var(--sp-4);border-bottom:1px solid var(--line)}"
+    h = h + ".row .rowlink{display:block}"
+    h = h + ".row-name{font-size:clamp(40px,8vw,96px);font-weight:200;letter-spacing:var(--ls-tight);line-height:var(--lh-tight)}"
+    h = h + ".row-kr{margin-top:8px;font-size:var(--fs-300);font-weight:var(--fw-regular);opacity:0.5;letter-spacing:var(--ls-x)}"
+    h = h + ".row-tag{margin-top:var(--sp-3);font-size:var(--fs-label);letter-spacing:var(--ls-xx);text-transform:uppercase;opacity:0.55}"
+    h = h + ".row-cta{display:flex;align-items:center}"
+    h = h + "@media (max-width:720px){.row{grid-template-columns:1fr;gap:var(--sp-4)}.row-cta{justify-content:flex-start}}"
+    h = h + ".foot{padding:var(--sp-5) 0;text-align:center;font-size:var(--fs-tiny);letter-spacing:var(--ls-x);text-transform:uppercase;opacity:0.32;border-top:1px solid var(--line);margin-top:var(--sp-6)}"
+    h = h + "</style></head><body>"
+    h = h + render_nav("cosmogony", lang, "/")
+    h = h + "<main>"
+    h = h + "<div class=\"intro\"><h1>dancinlab</h1><p>" + _t("phanes_role", lang) + " · " + _t("demiurge_role", lang) + " · substrate · consciousness</p></div>"
+    h = h + "<div class=\"rows\">"
+    h = h + render_product_row("phanes",    "PHANES",    _t("phanes_phonetic", lang),    "autonomous discovery · saas",                _t("enter", lang)     + " →", lang)
+    h = h + render_product_row("demiurge",  "DEMIURGE",  _t("demiurge_phonetic", lang),  "universal technical-design meta-conductor",  _t("read_more", lang) + " →", lang)
+    h = h + render_product_row("hexa-lang", "HEXA-LANG", "",                              "native compiler with atlas-bound theorems",  _t("read_more", lang) + " →", lang)
+    h = h + render_product_row("anima",     "ANIMA",     "",                              "consciousness language model",               _t("read_more", lang) + " →", lang)
+    h = h + "</div>"
+    h = h + "</main>"
+    h = h + "<div class=\"foot\">© 2026 dancinlab · proprietary</div>"
+    h = h + "</body></html>"
+    return h
+}
+
+// ── Generic product-page template (one shape for all 4 brand pages) ──
+// Used by /phanes, /demiurge, /hexa-lang, /anima. Marketing front
+// shared chrome: nav + hero (name + phonetic + tagline + sub-body) +
+// CTA + optional sister link + footer.
+fn render_product_page(lang, slug, mark, phonetic, tagline, sub_body, cta_html, sister_label, sister_href, foot_note) {
+    let mut h = "<!doctype html>\n<html lang=\"" + lang + "\"><head>"
+    h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+    h = h + "<title>" + mark + "</title>"
+    h = h + "<style>" + _shared_css()
+    h = h + ".hero{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:120px 24px 60px;text-align:center}"
+    h = h + ".hero .name{font-size:var(--fs-hero);font-weight:200;letter-spacing:var(--ls-tight);line-height:var(--lh-tight)}"
+    h = h + ".hero .name-kr{font-size:clamp(14px,2.2vw,22px);opacity:0.55;margin-top:14px;letter-spacing:var(--ls-x);font-weight:var(--fw-regular)}"
+    h = h + ".hero .tagline{margin-top:76px;font-size:var(--fs-label);letter-spacing:var(--ls-xxxx);text-transform:uppercase;opacity:0.7}"
+    h = h + ".hero .sub-body{margin-top:32px;font-size:var(--fs-label);letter-spacing:var(--ls-xx);text-transform:uppercase;opacity:0.55;max-width:680px;line-height:1.9}"
+    h = h + ".hero .cta-wrap{margin-top:52px}"
+    h = h + ".hero .sister{margin-top:34px;font-size:var(--fs-tiny);opacity:0.4;letter-spacing:var(--ls-xx);text-transform:uppercase}"
+    h = h + ".hero .sister a{text-decoration:underline;text-decoration-color:rgba(255,255,255,0.3);text-underline-offset:3px;opacity:0.7}"
+    h = h + ".foot{padding:30px 0;text-align:center;font-size:var(--fs-tiny);opacity:0.32;letter-spacing:var(--ls-x);text-transform:uppercase;border-top:1px solid var(--line)}"
+    h = h + "</style></head><body>"
+    h = h + render_nav(slug, lang, "/" + slug)
+    h = h + "<section class=\"hero\">"
+    h = h + "<h1 class=\"name\">" + mark + "</h1>"
+    if len(phonetic) > 0 { h = h + "<div class=\"name-kr\">" + phonetic + "</div>" }
+    h = h + "<div class=\"tagline\">" + tagline + "</div>"
+    if len(sub_body) > 0 { h = h + "<div class=\"sub-body\">" + sub_body + "</div>" }
+    h = h + "<div class=\"cta-wrap\">" + cta_html + "</div>"
+    if len(sister_label) > 0 {
+        h = h + "<div class=\"sister\">sibling — <a href=\"" + sister_href + "\">" + sister_label + "</a></div>"
+    }
+    h = h + "</section>"
+    h = h + "<div class=\"foot\">© 2026 dancinlab · " + foot_note + "</div>"
+    h = h + "</body></html>"
+    return h
+}
+
+// ── 4 product pages — each one is just a render_product_page() call ──
+
+fn render_phanes_page(lang) {
+    return render_product_page(
+        lang, "phanes", "PHANES", _t("phanes_phonetic", lang),
+        "autonomous discovery · saas",
+        "seed → ouroboros → verified catalog · tenant-verifier authority · no over-claim",
+        render_cta("/login", _t("enter", lang), "primary"),
+        "DEMIURGE", "/demiurge?lang=" + lang,
+        "scope b · proprietary")
+}
+
+fn render_demiurge_page(lang) {
+    return render_product_page(
+        lang, "demiurge", "DEMIURGE", _t("demiurge_phonetic", lang),
+        "universal technical-design meta-conductor",
+        "specify · architect · design · analyze ⟲ · synthesize · verify · handoff",
+        render_github_cta("dancinlab/demiurge", "GitHub →"),
+        "PHANES", "/phanes?lang=" + lang,
+        "platonic timaeus")
+}
+
+fn render_hexa_lang_page(lang) {
+    return render_product_page(
+        lang, "hexa-lang", "HEXA-LANG", "",
+        "native compiler with atlas-bound theorems",
+        "8 strict-lint stages · @cite enforcement · no LLVM · no C-transpile · n=6 perfect-number primitives",
+        render_github_cta("dancinlab/hexa-lang", "GitHub →"),
+        "", "",
+        "language substrate")
+}
+
+fn render_anima_page(lang) {
+    return render_product_page(
+        lang, "anima", "ANIMA", "",
+        "consciousness language model",
+        "phi-scaled cells · embeddings · free energy · 14 laws · v1.x clm",
+        render_github_cta("dancinlab/anima", "GitHub →"),
+        "", "",
+        "consciousness substrate")
+}
+
+// ── Login page (SpaceX tone, compact form) ───────────────────────
+fn render_login_page(error_msg) {
+    let mut h = "<!doctype html>\n<html lang=\"ko\"><head>"
+    h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+    h = h + "<title>PHANES · log in</title>"
+    h = h + "<style>" + _shared_css()
+    h = h + ".wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:var(--sp-5) 20px}"
+    h = h + ".mark{font-size:var(--fs-500);font-weight:200;letter-spacing:var(--ls-near);margin-bottom:6px}"
+    h = h + ".mark-kr{font-size:var(--fs-200);opacity:0.5;letter-spacing:var(--ls-x);text-transform:uppercase;margin-bottom:var(--sp-6)}"
+    h = h + "form{width:min(380px,90vw);display:grid;gap:var(--sp-3)}"
+    h = h + "input{background:transparent;border:0;border-bottom:1px solid var(--line-strong);color:var(--fg);font:inherit;padding:10px 2px;outline:none;transition:border-bottom-color var(--t-base)}"
+    h = h + "input:focus{border-bottom-color:var(--fg)}"
+    h = h + "form .btn{margin-top:var(--sp-4)}"
+    h = h + ".err{color:var(--accent-red);font-size:var(--fs-label);letter-spacing:0.12em;text-transform:uppercase;text-align:center;margin-top:var(--sp-3)}"
+    h = h + ".back{margin-top:var(--sp-5);font-size:var(--fs-tiny);opacity:0.4;letter-spacing:var(--ls-x);text-transform:uppercase}"
+    h = h + ".back a{text-decoration:underline;text-decoration-color:rgba(255,255,255,0.3);text-underline-offset:3px}"
+    h = h + "</style></head><body><div class=\"wrap\">"
+    h = h + "<div class=\"mark\">PHANES</div><div class=\"mark-kr\">파네스</div>"
+    h = h + "<form method=\"post\" action=\"/login\">"
+    h = h + "<div class=\"h-label\">tenant</div><input name=\"tenant\" autocomplete=\"username\" required autofocus>"
+    h = h + "<div class=\"h-label\">bearer token</div><input name=\"token\" type=\"password\" autocomplete=\"current-password\" required>"
+    // Same shape as render_cta() outline-lg — kept as <button> so the form
+    // posts; class list matches helper output exactly so visuals stay unified.
+    h = h + "<button class=\"btn btn-lg\" type=\"submit\">log in</button>"
+    if len(error_msg) > 0 {
+        h = h + "<div class=\"err\">" + html_escape(error_msg) + "</div>"
+    }
+    h = h + "</form>"
+    h = h + "<div class=\"back\"><a href=\"/\">← back</a></div>"
+    h = h + "</div></body></html>"
+    return h
+}
+
+// Render the full dashboard page (workmanlike dev tone — distinct from
+// the SpaceX-tone landing). echoes-experience-tone CSS, HTMX via unpkg
+// (TODO P3.x: self-host at /static/htmx.min.js).
+fn render_dashboard_page_for(tenant, existing_rows) {
     let mut h = "<!doctype html>\n<html lang=\"ko\"><head>"
     h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
     h = h + "<title>phanes · dashboard</title>"
@@ -252,20 +876,28 @@ fn render_dashboard_page() {
     h = h + ".lab{color:var(--muted);font-size:12px;margin:14px 0 4px;text-transform:uppercase;letter-spacing:0.04em}"
     h = h + "code{color:var(--accent)}"
     h = h + "</style>"
+    h = h + ".bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--line)}"
+    h = h + ".bar h1{font-size:18px;margin:0}.bar .who{font-size:11px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase}"
+    h = h + ".bar .who code{color:var(--accent)}"
+    h = h + ".bar form{display:inline}"
+    h = h + ".bar button.logout{background:transparent;border:1px solid var(--line);color:var(--muted);padding:6px 12px;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;font-weight:400}"
+    h = h + ".bar button.logout:hover{color:var(--fg);border-color:var(--fg)}"
     h = h + "<script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script>"
     h = h + "</head><body><div class=\"wrap\">"
-    h = h + "<h1>🥚 phanes · 파네스 — dashboard</h1>"
-    h = h + "<p class=\"sub\">seed → OUROBOROS <code>goal → falsifier → saturation</code> → verified discovery catalog · <strong>HTMX dashboard</strong></p>"
-    h = h + "<p class=\"lab\">auth + job</p>"
+    h = h + "<div class=\"bar\"><h1>phanes · 파네스</h1>"
+    h = h + "<div class=\"who\">tenant <code>" + html_escape(tenant) + "</code> · "
+    h = h + "<form method=\"post\" action=\"/logout\"><button class=\"logout\" type=\"submit\">log out</button></form></div></div>"
+    h = h + "<p class=\"sub\">seed → OUROBOROS <code>goal → falsifier → saturation</code> → verified discovery catalog · scope B</p>"
+    h = h + "<p class=\"lab\">new job</p>"
     h = h + "<form hx-post=\"/dashboard/jobs\" hx-target=\"#jobs\" hx-swap=\"afterbegin\">"
-    h = h + "<div class=\"row\"><input name=\"tenant\" placeholder=\"tenant\" required>"
-    h = h + "<input name=\"token\" type=\"password\" placeholder=\"bearer token\" required></div>"
     h = h + "<textarea name=\"seed\" required>prove sigma(6)=12 perfect-number divisor structure</textarea>"
     h = h + "<div class=\"row\"><input name=\"rounds\" type=\"number\" value=\"1\" min=\"1\" max=\"5\">"
     h = h + "<button type=\"submit\">submit</button></div>"
     h = h + "</form>"
-    h = h + "<p class=\"lab\">jobs (HTMX polls each row until done/failed)</p>"
-    h = h + "<ul id=\"jobs\"></ul>"
+    h = h + "<p class=\"lab\">jobs (newest first · HTMX polls each row until done/failed)</p>"
+    h = h + "<ul id=\"jobs\">"
+    h = h + existing_rows
+    h = h + "</ul>"
     h = h + "<p class=\"sub\" style=\"font-size:12px;margin-top:24px\">Honest scope: developer dashboard. Public preset-verifier-only demo = P4 (<code>@D g_public_demo_constraint</code>). Under scope B the tenant verifier is the sole authority for \"objective met\" (<code>@D g_honest_scope.scope_b</code>).</p>"
     h = h + "</div></body></html>"
     return h
@@ -273,25 +905,121 @@ fn render_dashboard_page() {
 
 // ── dashboard handlers ───────────────────────────────────────────
 
-fn handle_dashboard(request) {
-    return _html_ok(render_dashboard_page())
+// ── marketing handlers ───────────────────────────────────────────
+
+fn handle_cosmogony(request) {
+    return _html_ok(render_cosmogony_landing(_detect_lang(request)))
 }
 
-fn handle_dash_submit(request) {
+fn handle_phanes_page(request) {
+    return _html_ok(render_phanes_page(_detect_lang(request)))
+}
+
+fn handle_demiurge_page(request) {
+    return _html_ok(render_demiurge_page(_detect_lang(request)))
+}
+
+fn handle_hexa_lang_page(request) {
+    return _html_ok(render_hexa_lang_page(_detect_lang(request)))
+}
+
+fn handle_anima_page(request) {
+    return _html_ok(render_anima_page(_detect_lang(request)))
+}
+
+// ── auth handlers ────────────────────────────────────────────────
+
+fn handle_login_get(request) {
+    return _html_ok(render_login_page(""))
+}
+
+fn handle_login_post(request) {
     let body = request["body"]
     if body == nil { body = "" }
     let q = parse_query(body)
     let tenant_r = q["tenant"]; if tenant_r == nil { tenant_r = "" }
     let token_r  = q["token"];  if token_r == nil { token_r = "" }
+    let tenant = urldecode(tenant_r).trim()
+    let token  = urldecode(token_r).trim()
+    if len(tenant) == 0 || len(token) == 0 {
+        return _html_ok(render_login_page("tenant and token required"))
+    }
+    // Validate via jobctl get on a sentinel job: rc=4 means auth failed;
+    // rc=5 (job not found) means tenant+token are valid.
+    let cmd = jobctl_cmd() + " get --tenant " + shquote(tenant)
+        + " --token " + shquote(token) + " --job __auth_check__"
+    let r = exec_with_status(cmd)
+    if r[1] == 4 {
+        return _html_ok(render_login_page("authentication failed"))
+    }
+    let sid = session_create(tenant, token)
+    return redirect_with_cookie("/dashboard", cookie_set_str("phanes_session", sid, 86400))
+}
+
+fn handle_logout(request) {
+    session_destroy(cookie_get(request, "phanes_session"))
+    return redirect_with_cookie("/", cookie_clear_str("phanes_session"))
+}
+
+// ── /lang/<code>?from=<path> — set phanes_lang cookie + redirect ─
+fn handle_lang_set(request) {
+    let path = request["path"]
+    let prefix = "/lang/"
+    let mut code = "en"
+    if len(path) >= len(prefix) {
+        if path.substring(0, len(prefix)) == prefix {
+            let tail = path.substring(len(prefix), len(path))
+            if _valid_lang(tail) { code = tail }
+        }
+    }
+    let mut from = "/"
+    let query = request["query"]
+    if query != nil {
+        if len(to_string(query)) > 0 {
+            let q = parse_query(to_string(query))
+            let f = q["from"]
+            if f != nil {
+                let fs = urldecode(to_string(f))
+                if len(fs) > 0 { from = fs }
+            }
+        }
+    }
+    let cookie = "phanes_lang=" + code + "; Path=/; SameSite=Lax; Max-Age=31536000"
+    return redirect_with_cookie(from, cookie)
+}
+
+// ── dashboard handlers (session auth) ────────────────────────────
+
+fn handle_dashboard(request) {
+    let sess = current_session(request)
+    if sess == nil { return redirect_resp("/login") }
+    let tenant = to_string(sess["tenant"])
+    let token  = to_string(sess["token"])
+    // Pre-render existing jobs (newest first, capped at 20).
+    let jobs = list_tenant_jobs(tenant, 20)
+    let mut rows = ""
+    let mut i = 0
+    while i < len(jobs) {
+        rows = rows + render_existing_job_row(tenant, token, jobs[i])
+        i = i + 1
+    }
+    return _html_ok(render_dashboard_page_for(tenant, rows))
+}
+
+fn handle_dash_submit(request) {
+    let sess = current_session(request)
+    if sess == nil {
+        return _html_401("<li style=\"color:#ff7b72\">session expired — log in again</li>")
+    }
+    let tenant = to_string(sess["tenant"])
+    let token  = to_string(sess["token"])
+    let body = request["body"]
+    if body == nil { body = "" }
+    let q = parse_query(body)
     let seed_r   = q["seed"];   if seed_r == nil { seed_r = "" }
     let rounds_r = q["rounds"]; if rounds_r == nil { rounds_r = "1" }
-    let tenant = urldecode(tenant_r)
-    let token  = urldecode(token_r)
     let seed   = urldecode(seed_r)
     let rounds = urldecode(rounds_r)
-    if len(tenant) == 0 || len(token) == 0 {
-        return _html_400("<li style=\"color:#ff7b72\">tenant + token required</li>")
-    }
     if len(seed) < 10 {
         return _html_400("<li style=\"color:#ff7b72\">seed too short (>=10 chars substantive)</li>")
     }
@@ -303,65 +1031,44 @@ fn handle_dash_submit(request) {
     let r = exec_with_status(cmd)
     let stdout = r[0]; let rc = r[1]
     if rc == 4 {
-        return _html_401("<li style=\"color:#ff7b72\">auth failed</li>")
+        return _html_401("<li style=\"color:#ff7b72\">auth failed (session stale)</li>")
     }
     if rc != 0 {
         return _html_500("<li style=\"color:#ff7b72\">jobctl rc=" + to_string(rc) + "</li>")
     }
     let job_id = stdout.trim()
-    // Initial row: queued; HTMX self-poll will swap it as it progresses.
-    return _html_ok(render_job_row(job_id, "queued", "-", rounds, "-", "", tenant, token))
+    return _html_ok(render_job_row(job_id, "queued", "-", rounds, "-", ""))
 }
 
 fn handle_dash_get_job(request) {
-    // Path: /dashboard/jobs/<id>
+    let sess = current_session(request)
+    if sess == nil {
+        return _html_401("<li>session expired</li>")
+    }
+    let tenant = to_string(sess["tenant"])
+    let token  = to_string(sess["token"])
     let path = request["path"]
     let prefix = "/dashboard/jobs/"
     if len(path) < len(prefix) { return _html_400("<li>not found</li>") }
     if path.substring(0, len(prefix)) != prefix { return _html_400("<li>not found</li>") }
     let job_id = path.substring(len(prefix), len(path))
-    // tenant/token from query string (HTMX hx-get URL we built in render_job_row)
-    let query = request["query"]
-    if query == nil { query = "" }
-    let qm = parse_query(query)
-    let tenant_r = qm["tenant"]; if tenant_r == nil { tenant_r = "" }
-    let token_r  = qm["token"];  if token_r == nil { token_r = "" }
-    let tenant = urldecode(tenant_r)
-    let token  = urldecode(token_r)
-    if len(tenant) == 0 || len(token) == 0 {
-        return _html_401("<li style=\"color:#ff7b72\">auth missing</li>")
-    }
-    let cmd = jobctl_cmd() + " get --tenant " + shquote(tenant)
-        + " --token " + shquote(token) + " --job " + shquote(job_id)
-    let r = exec_with_status(cmd)
-    let stdout = r[0]; let rc = r[1]
-    if rc == 4 { return _html_401("<li style=\"color:#ff7b72\">auth failed</li>") }
-    if rc == 5 { return _html_400("<li>job not found</li>") }
-    if rc != 0 { return _html_500("<li>jobctl rc=" + to_string(rc) + "</li>") }
-    let m = json_parse(stdout)
-    if m == nil {
-        return _html_500("<li>job.json parse fail</li>")
-    }
-    let mut status = "?"
-    if m["status"] != nil { status = to_string(m["status"]) }
-    let mut wall_ms = "-"
-    if m["wall_ms"] != nil { wall_ms = to_string(m["wall_ms"]) }
-    let mut rounds = "-"
-    if m["rounds"] != nil { rounds = to_string(m["rounds"]) }
-    let mut total = "-"
-    let res = m["result"]
-    if res != nil {
-        if res["total"] != nil { total = to_string(res["total"]) }
-    }
-    let mut verifier_rc = ""
-    if m["verifier_rc"] != nil { verifier_rc = to_string(m["verifier_rc"]) }
-    return _html_ok(render_job_row(job_id, status, wall_ms, rounds, total, verifier_rc, tenant, token))
+    if len(job_id) == 0 { return _html_400("<li>job id required</li>") }
+    return _html_ok(render_existing_job_row(tenant, token, job_id))
 }
 
 // ── dispatcher (server_serve calls this per request) ─────────────
 
 fn dispatch(handler_name, request) {
     if request["method"] == "OPTIONS" { return cors_preflight() }
+    if handler_name == "cosmogony"     { return handle_cosmogony(request) }
+    if handler_name == "phanes_page"   { return handle_phanes_page(request) }
+    if handler_name == "demiurge_page" { return handle_demiurge_page(request) }
+    if handler_name == "hexa_lang_page" { return handle_hexa_lang_page(request) }
+    if handler_name == "anima_page"    { return handle_anima_page(request) }
+    if handler_name == "login_get"     { return handle_login_get(request) }
+    if handler_name == "login_post"    { return handle_login_post(request) }
+    if handler_name == "logout"        { return handle_logout(request) }
+    if handler_name == "lang_set"      { return handle_lang_set(request) }
     if handler_name == "health"        { return handle_health(request) }
     if handler_name == "submit"        { return handle_submit(request) }
     if handler_name == "get_or_result" { return handle_get_or_result(request) }
@@ -381,12 +1088,24 @@ fn main() {
     if len(port_s) > 0 { port = to_int(port_s) }
 
     let s = server_new(host, port)
-    server_route(s, "GET",  "/v1/healthz",     "health")
-    server_route(s, "POST", "/v1/jobs",        "submit")
-    server_mount(s, "GET",  "/v1/jobs/",       "get_or_result")
-    // P3 thin slice — HTMX dashboard (Decision 8).
-    server_route(s, "GET",  "/dashboard",      "dashboard")
-    server_route(s, "POST", "/dashboard/jobs", "dash_submit")
+    // public marketing chrome
+    server_route(s, "GET",  "/",                "cosmogony")
+    server_route(s, "GET",  "/phanes",          "phanes_page")
+    server_route(s, "GET",  "/demiurge",        "demiurge_page")
+    server_route(s, "GET",  "/hexa-lang",       "hexa_lang_page")
+    server_route(s, "GET",  "/anima",           "anima_page")
+    // auth
+    server_route(s, "GET",  "/login",           "login_get")
+    server_route(s, "POST", "/login",           "login_post")
+    server_route(s, "POST", "/logout",          "logout")
+    server_mount(s, "GET",  "/lang/",           "lang_set")
+    // API
+    server_route(s, "GET",  "/v1/healthz",      "health")
+    server_route(s, "POST", "/v1/jobs",         "submit")
+    server_mount(s, "GET",  "/v1/jobs/",        "get_or_result")
+    // HTMX dashboard (Decision 8)
+    server_route(s, "GET",  "/dashboard",       "dashboard")
+    server_route(s, "POST", "/dashboard/jobs",  "dash_submit")
     server_mount(s, "GET",  "/dashboard/jobs/", "dash_get_job")
     server_listen(s)
     println("phanes-http listening on " + host + ":" + to_string(port))
