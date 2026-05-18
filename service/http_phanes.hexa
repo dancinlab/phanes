@@ -306,6 +306,13 @@ fn _html_resp(status, content_type, body) {
     let resp = #{}
     resp["status"] = status
     resp["content_type"] = content_type
+    // no-store kills both the regular cache and Chrome's bfcache, so a
+    // history navigation (e.g. back to /?lang=ko after visiting the
+    // dashboard) cannot serve a stale page with old HTMX polling triggers
+    // that would loop on the landing.
+    let h = #{}
+    h["Cache-Control"] = "no-store, must-revalidate"
+    resp["headers"] = h
     resp["body"] = body
     return resp
 }
