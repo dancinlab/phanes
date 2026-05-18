@@ -45,6 +45,21 @@ Brand-token note: "Phanes" has adjacent trademark collisions on record
 (`@D g_name_risk`); chosen by user with that acknowledged. Formal
 clearance precedes any public launch.
 
+## Naming (on record)
+
+- **Phanes · 파네스** — the chosen brand (design.md Decision 2). Lore as
+  above. Collision on record: Phanes Technologies (autonomous multi-agent
+  AI) + Phanes Therapeutics (USPTO-registered TMs).
+- **Manteia · 만테이아** — Greek "the power of divination / prophecy"
+  (root of *-mancy*); a discovery-oracle name the user also favors,
+  recorded per request. **Also collided**: Manteia Technologies Co., Ltd.
+  — active AI/software startup (adaptive radiotherapy), **registered
+  trademarks in the computer/software class**.
+- Web-verified clean so far: **only Orrery, Mimir**. Other brainstormed
+  names (Ouro / Kythera / Haechi / Bythos) are *not yet* search-verified —
+  do not call them clean until checked. Public-launch mark + USPTO
+  class-42 clearance remains an open obligation (`@D g_name_risk`).
+
 ## Status
 
 Scaffold. **Scope = B — generic autonomous-cycle platform** (pluggable

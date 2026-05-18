@@ -44,11 +44,24 @@
 **risk on record (g3 honesty — not a blocker, user override logged)**:
 Adjacent trademark collisions — **Phanes Technologies** (autonomous
 multi-agent AI, same lane) + **Phanes Therapeutics** (USPTO-registered
-TMs, pharma). Clean fallbacks evidenced clean by web search: `Ouro` /
-`Kythera` / `Haechi` / `Bythos`. Mitigation: treat Phanes as project
-narrative/lore; run formal USPTO class-42 clearance before any public
-launch or remote/org push; reconsider public-facing mark then.
-(Governance: `AGENTS.tape @D g_name_risk`.)
+TMs, pharma). Mitigation: treat Phanes as project narrative/lore; run
+formal USPTO class-42 clearance before any public launch or remote/org
+push; reconsider public-facing mark then. (Governance:
+`AGENTS.tape @D g_name_risk`.)
+
+**alternatives on record (user request 2026-05-19 — does NOT change
+picked=Phanes)**:
+- **Manteia · 만테이아** — Greek "power of divination/prophecy" (root of
+  *-mancy*); user also favors it. **Also collided** (web-verified):
+  Manteia Technologies Co., Ltd. — active AI/software startup (adaptive
+  radiotherapy), **registered trademarks in the computer/software
+  class**. Recorded for the trail; not a clean fallback.
+- Honest correction (g3): only **Orrery** and **Mimir** are
+  *web-verified* clean. `Ouro` / `Kythera` / `Haechi` / `Bythos` were
+  brainstorm-asserted, **not** search-verified — prior wording
+  overstated; do not call them clean until actually searched (the
+  Phanes/Telos/Aletheia/Pythia/Manteia pattern: brainstorm-clean ≠
+  search-clean).
 
 ---
 

@@ -70,7 +70,8 @@
 
 @D g_name_risk := "brand-token trademark risk acknowledged" :: governance [required d=2026-05-19 active]
   rule = "The token 'Phanes' has adjacent collisions — Phanes Technologies (autonomous multi-agent AI) + Phanes Therapeutics (USPTO-registered TMs). User chose Phanes with this on record (2026-05-19)."
-  remedy = "Treat Phanes as project narrative/lore; before any public launch or remote/org push, run a formal USPTO/class-42 clearance and reconsider the public-facing mark (clean fallback on record: Ouro / Kythera / Haechi)."
+  remedy = "Treat Phanes as project narrative/lore; before any public launch run a formal USPTO/class-42 clearance and reconsider the public-facing mark."
+  alternatives = "Manteia (user also favors, 2026-05-19) is ALSO collided — Manteia Technologies Co Ltd, active AI/software startup, registered TMs in the computer/software class; recorded, NOT a clean fallback. Web-verified clean so far = ONLY Orrery, Mimir. Ouro/Kythera/Haechi/Bythos were brainstorm-asserted, NOT search-verified — do not call clean until actually searched (g3: brainstorm-clean != search-clean)."
   authority = "user directive 2026-05-19 '파네스 go' (override of assistant ownability caveat, logged in design.md Decision 2)"
   @> AGENTS.md
 
