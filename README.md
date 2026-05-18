@@ -59,6 +59,21 @@ clearance precedes any public launch.
   names (Ouro / Kythera / Haechi / Bythos) are *not yet* search-verified —
   do not call them clean until checked. Public-launch mark + USPTO
   class-42 clearance remains an open obligation (`@D g_name_risk`).
+- **Sibling brand (paired cosmology)**: **`Demiurge` · 데미우르지** —
+  sibling repo [`dancinlab/demiurge`](https://github.com/dancinlab/demiurge)
+  (created 2026-05-18 as `hexa-arch`, renamed to `Demiurge` on
+  2026-05-19). Lore pairing: **Phanes** (Orphic primordial revealer of
+  Forms) ⇄ **Demiurge** (Platonic *Timaeus* shaper-to-Forms) — sibling
+  cosmological figures, two `dancinlab` brands one continuous cosmology.
+  `Demiurge` is the meta-conductor / universal technical-design
+  architecture program (7-verb spine `명세→구조→설계→해석⟲→합성→
+  검증→인계`, domain-pluggable, honesty-as-feature `g3`); `Phanes` is
+  the SaaS autonomous-cycle platform side (this repo). The pairing
+  was filed as a cross-session proposal at
+  `demiurge/inbox/notes/brand-name-demiurge-pair-with-phanes.md` and
+  locked as `demiurge/design.md` D23–D25 on 2026-05-19 (5 web-search
+  rounds, collision-clean per `g3` evidence; 한글 `데미우르지` 4음절,
+  파네스 3음절과 자매 리듬 정합).
 
 ## Status
 
