@@ -59,4 +59,9 @@ hexa kick (OUROBOROS goal→falsifier→saturation · hexa-lang upstream · cycl
   directive, over assistant rec A). North-star + IS reframed for B; honest-
   scope tightened (`@D g_honest_scope` scope_b — tenant verifier = sole
   authority). B's new engine surface = pluggable seed+verifier abstraction
-  (upstream inbox/patches candidate). Next gate: Decision 3 (deployment shape).
+  (upstream inbox/patches candidate).
+- **2026-05-19** — Decision 3 DECIDED = **가+다** (public demo funnel + full
+  dashboard; job API = shared substrate) (user directive, over assistant rec
+  나 API-only). New governance `@D g_public_demo_constraint`: public demo =
+  preset/curated verifiers only, round-capped — arbitrary verifier is
+  auth/paid-only. Next gate: Decision 6 (multi-tenant overlay isolation).

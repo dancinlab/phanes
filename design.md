@@ -13,7 +13,7 @@
 |---|----------|-------|
 | 1 | Product scope (A Conjecture-Mine / B Generic cycle / C Echoes-as-a-Service) | **DECIDED — B Generic cycle platform** |
 | 2 | Brand name | **DECIDED — Phanes** |
-| 3 | Deployment shape (public demo+paid backend / API-only / full dashboard) | queued (after #1) |
+| 3 | Deployment shape | **DECIDED — 가+다 (public demo funnel + full dashboard; API = shared substrate)** |
 | 4 | GitHub org + remote · private | **DECIDED — dancinlab/phanes (private)** |
 | 5 | License (commercial SaaS — not auto-MIT) | queued |
 | 6 | Multi-tenant overlay isolation approach (per-job HX data dir vs upstream patch) | queued |
@@ -98,3 +98,29 @@ provenance-tracked result/catalog. Pluggable seed + tenant verifier.
 - **Not foreclosed**: narrowing B → A/C for v1 (if the verifier
   abstraction proves too broad) stays available; recorded so the option
   is not lost.
+
+---
+
+### Decision 3 — Deployment shape = 가+다 (public demo funnel + full dashboard)
+
+**picked**: `가 + 다` — a public, round-capped **demo site** (marketing
+funnel) AND a full authenticated **dashboard** (job submit · result
+browser · catalog · billing). The job **API is the shared substrate**
+beneath both — not a competing third product.
+
+**rationale**:
+- **User directive 2026-05-19 "가+다"** — chosen over the assistant
+  recommendation (나 API-only v1); the richer two-surface bet is the
+  user's strategic call, recorded as decisive.
+- **Honest constraint MANDATED (g3 · scope_b)**: a public demo for a B
+  platform must **not** accept arbitrary tenant verifiers (over-claim +
+  arbitrary-compute security hole). The demo runs **only preset, curated
+  objective+verifier scenarios**, round-capped and sandboxed; arbitrary
+  verifier submission is **authenticated/paid-only** via the dashboard.
+  Enforced by `@D g_public_demo_constraint`.
+- **Accepted implication**: largest front-end surface (two UIs + billing)
+  — echoes-experience minimalism is harder. Sequencing stays disciplined:
+  API substrate → minimal dashboard slice → public demo, each thin, not
+  big-bang.
+- **API retained, not discarded**: the (나) work is the substrate both
+  surfaces consume — it is the foundation layer, fully kept.

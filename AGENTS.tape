@@ -60,6 +60,12 @@
   authority = "hexa-lang LATTICE_POLICY.md · [@x_lattice_policy]"
   @> AGENTS.md
 
+@D g_public_demo_constraint := "public demo = preset verifiers only" :: governance [required deny:write d=2026-05-19 active]
+  rule = "The public demo site (Decision 3 = 가) runs ONLY preset, curated objective+verifier scenarios — round-capped and sandboxed. It MUST NOT accept arbitrary tenant-supplied verifiers or unbounded seeds."
+  why = "Under scope B an arbitrary verifier on an unauthenticated surface = over-claim risk + arbitrary-compute/abuse hole. Arbitrary verifier submission is authenticated/paid-only via the dashboard (Decision 3 = 다)."
+  authority = "design.md Decision 3 · g_honest_scope.scope_b · hexa-lang g3 [@x_lattice_policy]"
+  @> AGENTS.md
+
 @D g_name_risk := "brand-token trademark risk acknowledged" :: governance [required d=2026-05-19 active]
   rule = "The token 'Phanes' has adjacent collisions — Phanes Technologies (autonomous multi-agent AI) + Phanes Therapeutics (USPTO-registered TMs). User chose Phanes with this on record (2026-05-19)."
   remedy = "Treat Phanes as project narrative/lore; before any public launch or remote/org push, run a formal USPTO/class-42 clearance and reconsider the public-facing mark (clean fallback on record: Ouro / Kythera / Haechi)."
@@ -73,7 +79,7 @@
 
 @D g_decision_gate := "step-by-step decision gate" :: governance [required]
   rule = "Product is built one decision at a time, never batched. Each lands in design.md as `### Decision N — <picked>` with picked + 3+ rationale bullets before the next is opened."
-  status = "DECIDED: Decision 1 = B Generic cycle platform · Decision 2 = name Phanes · Decision 4 = dancinlab/phanes private remote. NEXT GATE: Decision 3 (deployment shape). queued: 5 license · 6 multi-tenant overlay isolation · B-surface upstream handoff (pluggable verifier)."
+  status = "DECIDED: Decision 1 = B Generic cycle platform · 2 = name Phanes · 3 = deployment 가+다 (public demo + dashboard, API substrate) · 4 = dancinlab/phanes private remote. NEXT GATE: Decision 6 (multi-tenant overlay isolation). queued: 5 license · B-surface upstream handoff (pluggable verifier)."
   @> AGENTS.md
 
 @D g_commit_trailer := "commit-trailer co-author" :: governance [recommended]

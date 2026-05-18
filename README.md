@@ -48,6 +48,8 @@ clearance precedes any public launch.
 ## Status
 
 Scaffold. **Scope = B — generic autonomous-cycle platform** (pluggable
-seed + tenant verifier → `goal -> falsifier -> saturation`). Next gate:
-deployment shape (Decision 3). Decisions tracked in
+seed + tenant verifier → `goal -> falsifier -> saturation`).
+**Deployment = public demo funnel + full dashboard** on a shared job API
+(public demo = preset verifiers only, `@D g_public_demo_constraint`).
+Next gate: multi-tenant isolation. Decisions tracked in
 [`design.md`](design.md).
