@@ -79,7 +79,7 @@
 
 @D g_decision_gate := "step-by-step decision gate" :: governance [required]
   rule = "Product is built one decision at a time, never batched. Each lands in design.md as `### Decision N — <picked>` with picked + 3+ rationale bullets before the next is opened."
-  status = "DECIDED: Decision 1 = B Generic cycle platform · 2 = name Phanes · 3 = deployment 가+다 (public demo + dashboard, API substrate) · 4 = dancinlab/phanes private remote. NEXT GATE: Decision 6 (multi-tenant overlay isolation). queued: 5 license · B-surface upstream handoff (pluggable verifier)."
+  status = "DECIDED: 1 = B Generic cycle platform · 2 = name Phanes · 3 = deployment 가+다 · 4 = dancinlab/phanes private remote · 6 = multi-tenant isolation 다 hybrid. Upstream handoffs FILED (hexa-lang inbox/patches): phanes-hx-data-dir-per-tenant-isolation + phanes-pluggable-verifier-oracle-for-drill-loop. NEXT GATE: Decision 5 (license)."
   @> AGENTS.md
 
 @D g_commit_trailer := "commit-trailer co-author" :: governance [recommended]

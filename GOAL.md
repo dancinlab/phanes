@@ -64,4 +64,10 @@ hexa kick (OUROBOROS goal→falsifier→saturation · hexa-lang upstream · cycl
   dashboard; job API = shared substrate) (user directive, over assistant rec
   나 API-only). New governance `@D g_public_demo_constraint`: public demo =
   preset/curated verifiers only, round-capped — arbitrary verifier is
-  auth/paid-only. Next gate: Decision 6 (multi-tenant overlay isolation).
+  auth/paid-only.
+- **2026-05-19** — Decision 6 DECIDED = **다 (hybrid)**: per-job `$HOME`-jail
+  now + upstream first-class `HX_DATA_DIR` patch (canonical). Grounded in
+  `compiler/drill/checkpoint.hexa:53` (`env("HOME")`). Two upstream handoffs
+  filed to hexa-lang `inbox/patches/` (untracked drafts, pin `50f5f073`):
+  `phanes-hx-data-dir-per-tenant-isolation` + `phanes-pluggable-verifier-
+  oracle-for-drill-loop`. Next gate: Decision 5 (license).

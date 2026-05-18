@@ -15,8 +15,9 @@
 | 2 | Brand name | **DECIDED — Phanes** |
 | 3 | Deployment shape | **DECIDED — 가+다 (public demo funnel + full dashboard; API = shared substrate)** |
 | 4 | GitHub org + remote · private | **DECIDED — dancinlab/phanes (private)** |
-| 5 | License (commercial SaaS — not auto-MIT) | queued |
-| 6 | Multi-tenant overlay isolation approach (per-job HX data dir vs upstream patch) | queued |
+| 5 | License (commercial SaaS — not auto-MIT) | queued — **next gate** |
+| 6 | Multi-tenant overlay isolation | **DECIDED — 다 (hybrid: $HOME-jail now + upstream HX_DATA_DIR patch)** |
+| B-surface | Pluggable verifier upstream handoff | **filed — hexa-lang inbox/patches** |
 
 ---
 
@@ -124,3 +125,38 @@ beneath both — not a competing third product.
   big-bang.
 - **API retained, not discarded**: the (나) work is the substrate both
   surfaces consume — it is the foundation layer, fully kept.
+
+---
+
+### Decision 6 — Multi-tenant overlay isolation = 다 (hybrid)
+
+**picked**: `다` — per-job `$HOME`-jail / sandbox now (downstream, ships
+v1) **+** a parallel hexa-lang `inbox/patch` for a first-class
+`HX_DATA_DIR` (canonical path). Drop the `$HOME`-hijack once upstream
+lands; keep the per-job sandbox as defense-in-depth.
+
+**rationale**:
+- **Evidence-grounded, low risk**: `compiler/drill/checkpoint.hexa:53`
+  resolves the data dir from `env("HOME")` (overlay mirrors it); the
+  engine's *own* test suite isolates via per-base `$HOME`
+  (`mkdir -p $base/.hx/data`). (가) is a verified upstream idiom — works
+  today, zero engine change.
+- **Governance-correct**: `@I id002` · `@D g_inbox_patches` mandate
+  engine gaps go upstream — a first-class `HX_DATA_DIR` is the canonical
+  fix, filed as `phanes-hx-data-dir-per-tenant-isolation`. Pure-(가)
+  alone would be a forbidden permanent downstream workaround.
+- **Confidentiality non-negotiable**: a per-job sandbox = zero
+  cross-tenant discovery leakage; retained as defense-in-depth even after
+  the upstream knob lands.
+- **Concurrency sub-risk (recorded)**: the engine currently *serializes*
+  concurrent dispatch via `cmd_drill_batch` under a single `$HOME`
+  (`checkpoint.hexa:26`). Per-job `$HOME` isolation is precisely what
+  enables safe concurrent multi-tenant jobs — to be validated in the
+  compute-plane design, not assumed.
+
+**upstream handoffs filed (hexa-lang `inbox/patches/`, untracked drafts —
+the established inbox mechanism; pin `50f5f073` rfc043-hexa-torch)**:
+1. `phanes-hx-data-dir-per-tenant-isolation` — first-class `HX_DATA_DIR`
+   / `--overlay --checkpoint` (this decision's (나) half).
+2. `phanes-pluggable-verifier-oracle-for-drill-loop` — scope-B's
+   in-loop tenant-verifier extension point (the B-surface gap).

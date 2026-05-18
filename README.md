@@ -51,5 +51,6 @@ Scaffold. **Scope = B — generic autonomous-cycle platform** (pluggable
 seed + tenant verifier → `goal -> falsifier -> saturation`).
 **Deployment = public demo funnel + full dashboard** on a shared job API
 (public demo = preset verifiers only, `@D g_public_demo_constraint`).
-Next gate: multi-tenant isolation. Decisions tracked in
+Multi-tenant isolation = hybrid (per-job sandbox + upstream
+`HX_DATA_DIR` patch). Next gate: license. Decisions tracked in
 [`design.md`](design.md).
