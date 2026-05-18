@@ -84,6 +84,17 @@ if [ -z "$JOBDIR" ]; then JOBDIR="$(mktemp -d "${TMPDIR:-/tmp}/phanes_job.XXXXXX
 JAIL="$JOBDIR/jail"
 mkdir -p "$JAIL/.hx/data"
 
+# P2.x async-submit pivot — atomic status transitions. Concurrent GETs
+# poll job.json; tmp+rename guarantees they never see partial JSON.
+phanes_write_status() {
+  local s="$1"
+  cat > "$JOBDIR/job.json.tmp" <<EOF
+{"phanes_job":1,"status":"$s"}
+EOF
+  mv -f "$JOBDIR/job.json.tmp" "$JOBDIR/job.json"
+}
+phanes_write_status "running"
+
 # --- run: HOME-jail + cycle-h36 arena fix + ms wall meter (P2.1) ---
 # Note: P2.3 — HX_DATA_DIR upstream RESOLVED-SSOT 2026-05-19 but running
 # binary is pre-promote (probe: NOT honored). We keep $HOME-jail; after
@@ -140,13 +151,18 @@ if [ -n "$VERIFIER" ]; then
 fi
 NOTE_KV=""
 [ -n "$VERIFIER_NOTE" ] && NOTE_KV=",\"verifier_note\":\"$VERIFIER_NOTE\""
-cat > "$JOBDIR/job.json" <<EOF
-{"phanes_job":1,"rc":$RC,"wall_sec":$WALL,"wall_ms":$WALL_MS,
+# P2.x: status=done iff kick rc==0; failed otherwise. Atomic tmp+rename
+# so a concurrent GET can never observe a partial JSON.
+FINAL_STATUS="done"; [ "$RC" -ne 0 ] && FINAL_STATUS="failed"
+cat > "$JOBDIR/job.json.tmp" <<EOF
+{"phanes_job":1,"status":"$FINAL_STATUS","rc":$RC,
+ "wall_sec":$WALL,"wall_ms":$WALL_MS,
  "rounds":$ROUNDS,"engine":"$ENGINE","overlay_lines":$OVERLAY_LINES,
  "verifier_rc":$VERIFIER_RC$NOTE_KV,
  "result":${RESULT_JSON:-null},
  "artifacts":{"stdout":"stdout.txt","stderr":"stderr.txt","overlay":"overlay.n6","result":"job.json"$ART_VERIFIER}}
 EOF
+mv -f "$JOBDIR/job.json.tmp" "$JOBDIR/job.json"
 
 echo "$JOBDIR"
 exit "$RC"

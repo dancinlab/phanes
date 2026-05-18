@@ -56,18 +56,27 @@ case "$CMD" in
     JID="job_$(date +%s)_$(head -c6 /dev/urandom | od -An -tx1 | tr -d ' \n')"
     JOBDIR="$TDIR/jobs/$JID"; mkdir -p "$JOBDIR"
     # P2.4: auto-attach per-tenant verifier (sandboxed, post-hoc gate).
-    # Admin-placed for P2; tenant-upload endpoint = P3 (dashboard).
     EXTRA_ARGS=()
     if [ -r "$TDIR/verifier.sh" ]; then
       EXTRA_ARGS+=(--verifier "$TDIR/verifier.sh")
     fi
-    set +e
-    "$HERE/job_runner.sh" --seed "$SEED" --rounds "$ROUNDS" --jobdir "$JOBDIR" \
-      "${EXTRA_ARGS[@]}" >/dev/null
-    RC=$?
-    set -e
+    # P2.x — async-submit pivot (downstream workaround for the
+    # logical-only stdlib/net concurrency; see inbox note
+    # phanes-stdlib-net-os-thread-concurrency-roadmap-62).
+    # Initial status: queued. job_runner transitions to running -> done/failed.
+    # Atomic write tmp+rename so concurrent GETs never see a partial file.
+    cat > "$JOBDIR/job.json.tmp" <<EOF
+{"phanes_job":1,"status":"queued"}
+EOF
+    mv -f "$JOBDIR/job.json.tmp" "$JOBDIR/job.json"
+    # Detached engine spawn — submit returns once jobctl's bookkeeping
+    # is durable on disk; the kick runs in an OS-level child process.
+    nohup "$HERE/job_runner.sh" --seed "$SEED" --rounds "$ROUNDS" \
+      --jobdir "$JOBDIR" "${EXTRA_ARGS[@]}" \
+      >> "$JOBDIR/submit.log" 2>&1 < /dev/null &
+    disown $! 2>/dev/null || true
     echo "$JID"
-    exit "$RC"
+    exit 0
     ;;
   get)
     auth

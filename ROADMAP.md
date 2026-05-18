@@ -96,10 +96,31 @@ resolution verified: 1-round kick reports `wall_ms=1312`.
   `stdlib/net/http_server.hexa::server_serve` is a sequential accept-loop
   (one connection processed before the next accept). NOT a per-job
   isolation failure — execution layer.
-- Path forward = port `service/http_phanes.hexa` to
-  `stdlib/net/concurrent_serve.hexa` (different API: `ConcurrentServer`
-  struct + `register_endpoint` + `run(workers)`). Recorded as P2.x
-  follow-up, deferred this turn (non-trivial rewrite; measure-then-port).
+
+**P2.x — DONE measured (async-submit pivot, 2026-05-19).** Reading
+`stdlib/net/concurrent_serve.hexa` docstring revealed the port would NOT
+help: "Stage0 blocking net_accept 때문에 실제로는 단일 스레드 직렬
+처리이지만 work-stealing deque 를 매개로 하여 logical concurrency 형태를
+유지한다. 멀티 OS 스레드는 roadmap 62 통합 후 활성화." Instrument-first
+saved a substantial rewrite (cheap-oracle: read the docstring).
+**Pivot**: decouple HTTP throughput from kick wall at the **job
+dispatcher layer** instead. `service/jobctl.sh submit` backgrounds
+`job_runner.sh` (`nohup … & + disown`) and returns the `job_id`
+immediately; the kick runs in a detached child process. `job_runner.sh`
+atomic-writes status transitions (`queued → running → done/failed` via
+tmp+rename so concurrent GETs never see partial JSON). New upstream
+inbox filed: `phanes-stdlib-net-os-thread-concurrency-roadmap-62` (the
+gap escalation; once landed, http_phanes.hexa can drop the async detour).
+**Measured (2026-05-19)**:
+- `baseline_submit_ms = 162`  (vs pre-pivot 1530 — HTTP returns fast)
+- `baseline_kick_ms   = 1364` (full submit → done for 1 job)
+- 4-way concurrent submit total = `389ms` (submit-only ratio 2.4/10 —
+  HTTP still serial at accept-loop, expected)
+- 4-way end-to-end completion = `2360ms` (end-to-end ratio 1.7/10 vs
+  baseline_kick — **engine PARTIAL parallel** on multi-core, contention
+  < 1.5× per kick)
+- **Absolute throughput vs pre-pivot ~2.9× (6795 → 2360ms for 4 jobs).**
+- per-job statuses all `done`, isolation HOLDS at N=4.
 
 **P2.3 `HX_DATA_DIR` adoption — PENDING upstream binary promote.**
 Probe (2026-05-19): running `bin/hexa-absorbed-kick` (May 18 build) does

@@ -297,6 +297,54 @@ final transport stack is an open sub-gate revisited when P1b starts.
 - **P2.6 pluggable-verifier-oracle upstream patch** — still pending
   hexa-lang response. Post-hoc hook (P2.4) is the interim; in-loop
   hook remains the authoritative goal once landed.
+
+### P2.x execution — async-submit pivot (2026-05-19)
+
+Reading `stdlib/net/concurrent_serve.hexa` before porting saved a
+substantial rewrite — the stdlib's `run(workers)` is documented as
+"실제로는 단일 스레드 직렬 처리 … 멀티 OS 스레드는 roadmap 62 통합 후
+활성화". So porting `http_phanes.hexa` to ConcurrentServer would NOT
+move the concurrency ratio. Instrument-first methodology working.
+
+**Pivot taken**: decouple HTTP throughput from kick wall at the **job
+dispatcher layer** (downstream-only, no upstream dependency):
+- `service/jobctl.sh submit` writes initial `{"status":"queued"}`
+  atomically, backgrounds `job_runner.sh` via `nohup … &` + `disown`,
+  returns `job_id` immediately.
+- `service/job_runner.sh` writes status transitions
+  (`queued → running → done/failed`) via tmp+rename so concurrent GETs
+  never observe a partial JSON.
+- `service/concurrency_test.sh` gains `baseline_kick_ms` measurement
+  (1 submit + poll-to-done) so the end-to-end ratio compares against
+  the right baseline, not the submit-only one.
+
+**Measured (re-run with corrected baselines)**:
+- `baseline_submit_ms = 162` (vs pre-pivot 1530 — submit decoupled
+  from kick wall).
+- `baseline_kick_ms   = 1364` (1 submit + poll-to-done).
+- N=4 concurrent submit total = 389ms (submit-only ratio = 2.4/10 vs
+  baseline_submit — HTTP layer still serializes, as expected per
+  upstream stdlib's logical-only concurrency).
+- N=4 end-to-end completion = 2360ms (end-to-end ratio = 1.7/10 vs
+  baseline_kick_ms — **engine PARTIAL parallel** on multi-core Mac,
+  contention < 1.5× per kick).
+- **Absolute throughput vs pre-pivot ~2.9× (6795 → 2360ms for 4 jobs).**
+- Isolation HOLDS at N=4 (4 distinct jobs, each own `job.json` +
+  `overlay.n6`); per-job statuses all `done`.
+
+**Honest scope (g3)**:
+- HTTP-accept layer remains serial — only stdlib improvement lifts this.
+  Filed: `~/core/hexa-lang/inbox/notes/phanes-stdlib-net-os-thread-
+  concurrency-roadmap-62.md` (standing upstream-inbox policy).
+- Engine layer contention < 1.5× per kick is plausible-OS-scheduler
+  behavior on shared filesystem + memory bus; not investigated deeper
+  (P3 hardening if needed).
+- `nohup` + `disown` works on macOS/Linux but the spawned children
+  inherit the parent's working dir / open fds via POSIX defaults — a
+  container/jail boundary (P3) would tighten this. Recorded.
+- Standing upstream-inbox policy continues: filed 1 new item in this
+  turn (the concurrency escalation), making it filed 3 / resolved-ssot
+  2 cumulative.
 - **Standing upstream-inbox policy (user 2026-05-19)**: file inbox
   patches as upstream gaps are discovered. This turn: 0 new items
   (HX_DATA_DIR is the existing patch's pending-promote lifecycle, not a

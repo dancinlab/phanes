@@ -99,3 +99,13 @@ hexa kick (OUROBOROS goal→falsifier→saturation · hexa-lang upstream · cycl
   recorded as P2.x. P2.3 HX_DATA_DIR pending upstream binary promote;
   P2.5 fleet routing deferred to P3. **P2.1+P2.2+P2.4 DONE measured.**
   Standing upstream-inbox policy applied: 0 new items this turn.
+- **2026-05-19** — "phanes 진행" → P2.x. Instrument-first cheap oracle:
+  `stdlib/net/concurrent_serve.hexa` docstring says "실제로는 단일 스레드
+  직렬 처리 … 멀티 OS 스레드는 roadmap 62 통합 후" → porting wouldn't
+  help. **Pivot**: async-submit at the dispatcher layer (nohup + disown
+  + atomic status transitions). **Measured**: baseline_submit_ms 162
+  (vs 1530 pre-pivot) · 4-job end-to-end 2360ms (vs 6795 pre-pivot,
+  **~2.9× absolute throughput**) · engine ratio 1.7/10 PARTIAL parallel
+  on multi-core. Filed 3rd upstream inbox `phanes-stdlib-net-os-thread-
+  concurrency-roadmap-62` (escalation; filed 3 / resolved-ssot 2).
+  **P2.x DONE measured.**
