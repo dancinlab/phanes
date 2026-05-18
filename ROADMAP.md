@@ -19,7 +19,7 @@ license **proprietary**.
 Repo, governance (AGENTS.tape), GOAL/design/README/LICENSE, decision
 gates 1–6, two upstream handoffs filed to hexa-lang `inbox/patches/`.
 
-## P1 — Job API substrate (the (나) layer everything sits on) · P1a DONE (measured 2026-05-19)
+## P1 — Job API substrate (the (나) layer everything sits on) · P1a + P1b DONE (measured 2026-05-19)
 
 The spine both surfaces consume. Minimal authenticated service:
 
@@ -52,10 +52,32 @@ Exit: one tenant, one job, end-to-end, isolated, measured.
   (billing basis). No concurrency test yet (P2, `checkpoint.hexa:26`
   serialization concern). HTTP transport not built (P1b).
 
-**P1b — next**: thin HTTP transport over `jobctl` semantics
-(`service/API.md`). Stack: hexa-native preferred (ecosystem hexa-first;
-wilson/wisp precedent) — final transport choice = Decision 7 sub-gate at
-P1b start.
+**P1b status — DONE, measured (2026-05-19, hexa-native HTTP server):**
+- `service/http_phanes.hexa` — hexa program using `stdlib/net` (server +
+  request + response). Routes per `service/API.md`: GET `/v1/healthz`,
+  POST `/v1/jobs`, GET `/v1/jobs/:id`, GET `/v1/jobs/:id/result`. Auth =
+  `Authorization: Bearer` + `X-Phanes-Tenant`. Handlers shell out to
+  `service/jobctl.sh` (the verified substrate — true 1:1 skin).
+- `service/build.sh` — builds via upstream `hexa` toolchain
+  (HEXA_HOME=~/core/hexa-lang). 393KB arm64 Mach-O, clean clang build.
+- `web/index.html` — vanilla JS + Canvas single-file dev console
+  (echoes-experience template, "기존 생태계" frontend = static, no bundler).
+- **Measured smoke (7/7 PASS)**: healthz · submit · get · result · seed-
+  intact assertion (seed containing `=` preserved verbatim) · no-auth
+  → 401 · bad-JSON → 400. Wall ≈ 0.5s for submit, JSON body parsed via
+  `json_parse` builtin.
+- **Measured fix on record (g3)**: P1b smoke v1 used form-encoded body;
+  `stdlib parse_query` splits naively on every `=`, truncating seeds
+  containing `=`. Pivoted to JSON body + `json_parse`; seed-intact
+  assertion now PASS. Documented in `service/http_phanes.hexa`.
+
+**Upstream win on record**: the `phanes-hx-data-dir-per-tenant-isolation`
+handoff was **resolved SSOT 2026-05-19** in hexa-lang — `hx_data_dir()`
+helper added with precedence `HX_DATA_DIR > $HOME/.hx/data > ".hx/data"`,
+all 4 call sites switched, parse-gate clean. Binary promote pending
+(standard separate deploy step); phanes keeps `$HOME`-jail until then,
+swaps to `HX_DATA_DIR` after promote with sandbox as defense-in-depth
+(@ P2).
 
 ## P2 — Compute-plane hardening
 
@@ -98,7 +120,14 @@ authority).
   (1-round kick in `$HOME`-jail + `HEXA_VAL_ARENA=0` → rc=0, isolation
   proven, JSON `DrillResult` captured). Built `service/{job_runner.sh,
   jobctl.sh,API.md}`; full substrate self-test PASS (init→submit→get→
-  result, wrong-token rc=4). **P1a DONE, measured.** Recorded honest
-  gaps: integer-second wall meter (refine ms @P2), no concurrency test
-  yet (@P2), HTTP not built (P1b next). Decision 7 (service language)
-  logged in design.md.
+  result, wrong-token rc=4). **P1a DONE, measured.** Decision 7 (service
+  language) logged in design.md.
+- **2026-05-19** — "go" → P1b. Probe: stdlib/net HTTP server stack exists
+  + builds from outside hexa-lang (HEXA_HOME env), 370KB arm64 binary.
+  Built `service/http_phanes.hexa` (hexa-native HTTP), `service/build.sh`,
+  `web/index.html` (echoes-experience template). Measured smoke 7/7
+  PASS incl. seed-with-`=` intact through HTTP → jobctl → kick → result.
+  Honest fix on record: form-encoded body truncated seeds containing
+  `=`; pivoted to JSON body via `json_parse`. **P1b DONE, measured.**
+  Upstream win: `phanes-hx-data-dir-per-tenant-isolation` handoff
+  RESOLVED SSOT same-day in hexa-lang (binary promote pending).

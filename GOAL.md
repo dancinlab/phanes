@@ -81,5 +81,13 @@ hexa kick (OUROBOROS goal→falsifier→saturation · hexa-lang upstream · cycl
   proven). `service/{job_runner.sh,jobctl.sh,API.md}` built; full
   substrate self-test PASS. **P1a DONE, measured** (Decision 6 (가)
   isolation proven). Decision 7 (service lang) = shell substrate /
-  hexa-native preferred P1b+. Honest gaps: int-sec wall meter, no
-  concurrency test, HTTP not built (P1b next).
+  hexa-native preferred P1b+.
+- **2026-05-19** — "go" → P1b (가 hexa-native backend + 기존생태계
+  frontend). `service/http_phanes.hexa` (hexa-native HTTP using
+  `stdlib/net`) builds clean (393KB arm64) + `web/index.html` (vanilla
+  JS, echoes-experience template). Measured HTTP smoke 7/7 PASS incl.
+  seed-with-`=` intact end-to-end. Honest fix: form→JSON body pivot
+  (parse_query naive `=` split → json_parse). **P1b DONE, measured.**
+  Upstream win: `phanes-hx-data-dir-per-tenant-isolation` RESOLVED SSOT
+  same-day in hexa-lang (binary promote pending; phanes uses `$HOME`-
+  jail until then).

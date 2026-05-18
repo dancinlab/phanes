@@ -1,0 +1,169 @@
+// phanes — P1b HTTP transport (hexa-native; stdlib/net)
+//
+// A thin 1:1 skin over the verified jobctl substrate (service/jobctl.sh).
+// Per service/API.md. Downstream invariant: this program INVOKES the
+// upstream `hexa` toolchain at build time and the upstream `hexa kick`
+// binary at run time (via jobctl) — it does not vendor or fork hexa-lang.
+//
+// Build:  service/build.sh   (HEXA_HOME defaults to ~/core/hexa-lang)
+// Run:    PHANES_HOME=<phanes repo> ./bin/phanes-http
+// Env:    PHANES_HOME · PHANES_BIND_HOST (default 127.0.0.1) ·
+//         PHANES_BIND_PORT (default 8787)
+//
+// Routes (see service/API.md):
+//   GET  /v1/healthz                 -> "ok"
+//   POST /v1/jobs                    -> submit { seed, rounds } (form-encoded body)
+//   GET  /v1/jobs/<id>               -> job.json
+//   GET  /v1/jobs/<id>/result        -> DrillResult JSON
+//
+// Auth: Authorization: Bearer <token>  +  X-Phanes-Tenant: <tenant>
+//       (validated by jobctl; this layer just passes through.)
+
+import "stdlib/net/http_server.hexa"
+import "stdlib/net/http_request.hexa"
+import "stdlib/net/http_response.hexa"
+
+// ── small helpers ────────────────────────────────────────────────
+
+fn shquote(s) {
+    // POSIX single-quote wrap: ' -> '\''
+    return "'" + s.replace("'", "'\\''") + "'"
+}
+
+fn header_get(request, key_lower) {
+    let headers = request["headers"]
+    if headers == nil { return "" }
+    let v = headers[key_lower]
+    if v == nil { return "" }
+    return to_string(v)
+}
+
+fn bearer_token(request) {
+    let auth = header_get(request, "authorization")
+    if len(auth) < 7 { return "" }
+    if auth.substring(0, 7) == "Bearer " {
+        return auth.substring(7, len(auth))
+    }
+    return ""
+}
+
+fn jobctl_cmd() {
+    let here = env("PHANES_HOME")
+    if len(here) == 0 { here = "." }
+    return here + "/service/jobctl.sh"
+}
+
+// ── handlers ─────────────────────────────────────────────────────
+
+fn handle_health(request) {
+    return text_ok("ok\n")
+}
+
+fn handle_submit(request) {
+    let tenant = header_get(request, "x-phanes-tenant")
+    let token  = bearer_token(request)
+    if len(tenant) == 0 { return json_error(401, "X-Phanes-Tenant header required") }
+    if len(token)  == 0 { return json_error(401, "Authorization: Bearer <token> required") }
+    // JSON body: { "seed": "<>=10 char>", "rounds": <int> }
+    // Form-encoded body is not used (stdlib parse_query splits naively on
+    // every '=' — measured to truncate seeds containing '=' in P1b smoke).
+    let body = request["body"]
+    if body == nil { body = "" }
+    if len(body) == 0 { return json_error(400, "JSON body required") }
+    let m = json_parse(body)
+    if m == nil { return json_error(400, "JSON body did not parse") }
+    let seed_v = m["seed"]
+    if seed_v == nil { return json_error(400, "seed (string) required in JSON body") }
+    let seed = to_string(seed_v)
+    if len(seed) < 10 {
+        return json_error(400, "seed required (>=10 chars, substantive problem statement)")
+    }
+    let mut rounds = "1"
+    let r_v = m["rounds"]
+    if r_v != nil { rounds = to_string(r_v) }
+    let cmd = jobctl_cmd()
+        + " submit --tenant " + shquote(tenant)
+        + " --token "        + shquote(token)
+        + " --seed "         + shquote(seed)
+        + " --rounds "       + shquote(rounds)
+    let r = exec_with_status(cmd)
+    let stdout = r[0]
+    let rc = r[1]
+    if rc == 4 { return json_error(401, "auth failed") }
+    if rc != 0 { return json_error(500, "jobctl rc=" + to_string(rc) + " · stdout=" + stdout) }
+    let out = #{}
+    out["job_id"] = stdout.trim()
+    let resp = #{}
+    resp["status"] = 201
+    resp["content_type"] = "application/json"
+    resp["body"] = json_stringify(out)
+    return resp
+}
+
+fn handle_get_or_result(request) {
+    let tenant = header_get(request, "x-phanes-tenant")
+    let token  = bearer_token(request)
+    if len(tenant) == 0 { return json_error(401, "X-Phanes-Tenant header required") }
+    if len(token)  == 0 { return json_error(401, "Authorization: Bearer <token> required") }
+    let path = request["path"]
+    let prefix = "/v1/jobs/"
+    if len(path) < len(prefix) { return json_error(404, "not found") }
+    if path.substring(0, len(prefix)) != prefix { return json_error(404, "not found") }
+    let tail = path.substring(len(prefix), len(path))
+    let mut job_id = tail
+    let mut sub = "get"
+    let slash = tail.index_of("/")
+    if slash >= 0 {
+        job_id = tail.substring(0, slash)
+        let rest = tail.substring(slash + 1, len(tail))
+        if rest == "result" {
+            sub = "result"
+        } else {
+            return json_error(404, "not found")
+        }
+    }
+    if len(job_id) == 0 { return json_error(400, "job id required in path") }
+    let cmd = jobctl_cmd() + " " + sub
+        + " --tenant " + shquote(tenant)
+        + " --token "  + shquote(token)
+        + " --job "    + shquote(job_id)
+    let r = exec_with_status(cmd)
+    let stdout = r[0]
+    let rc = r[1]
+    if rc == 4 { return json_error(401, "auth failed") }
+    if rc == 5 { return json_error(404, "job not found") }
+    if rc != 0 { return json_error(500, "jobctl rc=" + to_string(rc)) }
+    let resp = #{}
+    resp["status"] = 200
+    resp["content_type"] = "application/json"
+    resp["body"] = stdout
+    return resp
+}
+
+// ── dispatcher (server_serve calls this per request) ─────────────
+
+fn dispatch(handler_name, request) {
+    if request["method"] == "OPTIONS" { return cors_preflight() }
+    if handler_name == "health"        { return handle_health(request) }
+    if handler_name == "submit"        { return handle_submit(request) }
+    if handler_name == "get_or_result" { return handle_get_or_result(request) }
+    return json_error(500, "unknown handler: " + handler_name)
+}
+
+// ── main ─────────────────────────────────────────────────────────
+
+fn main() {
+    let mut host = env("PHANES_BIND_HOST")
+    if len(host) == 0 { host = "127.0.0.1" }
+    let port_s = env("PHANES_BIND_PORT")
+    let mut port = 8787
+    if len(port_s) > 0 { port = to_int(port_s) }
+
+    let s = server_new(host, port)
+    server_route(s, "GET",  "/v1/healthz", "health")
+    server_route(s, "POST", "/v1/jobs",    "submit")
+    server_mount(s, "GET",  "/v1/jobs/",   "get_or_result")
+    server_listen(s)
+    println("phanes-http listening on " + host + ":" + to_string(port))
+    server_serve(s, dispatch)
+}

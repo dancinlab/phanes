@@ -43,10 +43,12 @@
   readme = "README.md — centered-header product overview (dancinlab format)"
   agents = "AGENTS.tape — governance + identity (tape v1.2); CLAUDE.md symlinks here"
   goal = "GOAL.md — one-sentence north-star (scope B) + Log"
-  design = "design.md — step-by-step decision-gate log (SSOT — Decisions 1-6 + B-surface CLOSED)"
-  roadmap = "ROADMAP.md — phased execution plan (P0-P5, thin-slice)"
+  design = "design.md — step-by-step decision-gate log (SSOT — Decisions 1-6 + B-surface CLOSED · P1a+P1b measured)"
+  roadmap = "ROADMAP.md — phased execution plan (P0 DONE · P1a+P1b DONE measured · P2-P5 next)"
+  service = "service/{job_runner.sh,jobctl.sh,http_phanes.hexa,build.sh,API.md} — P1 substrate (shell+hexa-native HTTP)"
+  web = "web/index.html — vanilla JS+Canvas dev API console (echoes-experience template, 기존생태계 frontend)"
   license = "LICENSE — proprietary, © dancinlab all rights reserved (Decision 5)"
-  gitignore = ".gitignore — standard"
+  gitignore = ".gitignore — standard (+ bin/ build/ .store/ runtime artifacts)"
 
 # ─── §3 Governance rules ─────────────────────────────────────────────
 
@@ -82,7 +84,7 @@
 
 @D g_decision_gate := "step-by-step decision gate" :: governance [required]
   rule = "Product is built one decision at a time, never batched. Each lands in design.md as `### Decision N — <picked>` with picked + 3+ rationale bullets before the next is opened."
-  status = "ALL PRODUCT GATES CLOSED (2026-05-19): 1 = B Generic cycle platform · 2 = name Phanes · 3 = deployment 가+다 · 4 = dancinlab/phanes private · 5 = license Proprietary · 6 = multi-tenant 다 hybrid · B-surface upstream handoffs FILED. Remaining = execution per ROADMAP.md (P0-P5). Pre-public-launch obligations: trademark clearance (g_name_risk) · upstream patches landing · honest-scope review."
+  status = "ALL PRODUCT GATES CLOSED + EXECUTION P1 DONE (2026-05-19): Decisions 1-7 + B-surface CLOSED. P0+P1a+P1b measured (cheap oracle + full HTTP smoke 7/7 PASS incl seed-with-= intact). Upstream win: HX_DATA_DIR patch RESOLVED SSOT same-day in hexa-lang (binary promote pending). NEXT = P2 (compute hardening: ms wall meter · concurrency · HX_DATA_DIR adoption after binary promote · verifier sandbox). Pre-public-launch: trademark clearance · pluggable-verifier patch landing · honest-scope review."
   @> AGENTS.md
 
 @D g_commit_trailer := "commit-trailer co-author" :: governance [recommended]

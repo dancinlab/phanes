@@ -18,3 +18,7 @@ drill_checkpoint.json
 # P1 job store (runtime)
 .store/
 service/.store/
+
+# Built artifacts (source is the SSOT; reproducible via service/build.sh)
+bin/
+build/

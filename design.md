@@ -231,8 +231,47 @@ final transport stack is an open sub-gate revisited when P1b starts.
   → rc=4. P1a DONE.
 - Honest gaps on record (g3): integer-second wall meter too coarse for
   sub-second jobs (refine to ms @ P2 — billing basis); no concurrency
-  test yet (@ P2, `checkpoint.hexa:26` serialization); HTTP transport
-  not built (P1b next).
+  test yet (@ P2, `checkpoint.hexa:26` serialization).
+
+### P1b execution — measured (2026-05-19, hexa-native HTTP)
+
+- Probe first (instrument-first): minimal `stdlib/net` program built from
+  outside hexa-lang via `HEXA_HOME=~/core/hexa-lang ~/.hx/bin/hexa build`
+  → 370KB arm64 Mach-O, `json_ok` + `build_response` emit valid HTTP
+  string. Toolchain path validated for downstream phanes (no fork/vendor).
+- Built `service/http_phanes.hexa` (hexa-native using `stdlib/net/
+  {http_server,http_request,http_response}` — `server_new` / `server_
+  route` / `server_mount` / `server_serve(dispatch_fn)`). Handlers shell
+  out via `exec_with_status` to `service/jobctl.sh` (true 1:1 skin over
+  the P1a substrate). Build clean first try (393KB arm64 binary).
+- **Measured smoke 7/7 PASS** (curl, port 8788, demo tenant): healthz
+  200, submit 201 + `job_id`, get 200 (full `job.json` w/ embedded
+  DrillResult), result 200 (DrillResult JSON), **seed-with-`=` intact
+  end-to-end** (HTTP → jobctl → kick → result), no-auth → 401, bad-JSON
+  → 400. Submit wall ≈ 0.5s (1 round).
+- **Honest fix on record (g3)**: first smoke used form-encoded body;
+  `stdlib parse_query` splits naively on every `=`, truncated seeds
+  containing `=` (measured: `"prove sigma(6)=12 ..." → "prove sigma(6)"`).
+  Pivoted to JSON body + `json_parse` builtin; re-smoked → seed-intact
+  assertion PASS. Documented in `http_phanes.hexa` handler comment.
+- `web/index.html` — vanilla JS + Canvas single-file dev API console
+  (echoes-experience template; "기존 생태계" frontend per user pick).
+  Sends JSON body, polls job, renders overlay shape on canvas.
+- `bin/` gitignored (built artifact; source is the SSOT; reproducible
+  via `service/build.sh`).
+
+### Upstream win — `phanes-hx-data-dir-per-tenant-isolation` RESOLVED SSOT
+
+The first inbox/patches handoff (filed 2026-05-19) was **resolved SSOT
+the same day** in hexa-lang: `hx_data_dir()` helper landed in
+`compiler/atlas/overlay.hexa` with precedence `HX_DATA_DIR > $HOME/.hx/
+data > ".hx/data"`; all 4 call sites (`overlay_path`, `overlay_ensure_
+dir`, `checkpoint_path`, `_ensure_dir`) switched; parse-gate clean.
+Binary promote pending (the 22c27a05 standard separate deploy pattern);
+phanes keeps the `$HOME`-jail until promote, then swaps to
+`HX_DATA_DIR` while keeping the sandbox as defense-in-depth (per
+Decision 6 (다) hybrid). Confirms the downstream→upstream pipeline works
+(g7) and de-risks Decision 6's canonical path.
 
 ---
 
