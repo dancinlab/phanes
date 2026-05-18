@@ -18,6 +18,7 @@
 | 5 | License (commercial SaaS — not auto-MIT) | **DECIDED — 가 Proprietary / All Rights Reserved** |
 | 6 | Multi-tenant overlay isolation | **DECIDED — 다 (hybrid: $HOME-jail now + upstream HX_DATA_DIR patch)** |
 | B-surface | Pluggable verifier upstream handoff | **filed — hexa-lang inbox/patches** |
+| 7 | Service language / stack | **DECIDED (P1) — POSIX shell substrate; hexa-native preferred for P1b+ (open sub-gate)** |
 
 ---
 
@@ -196,6 +197,42 @@ hexa-lang components it invokes.
   any bundling/redistribution of hexa-lang artifacts, verify hexa-lang's
   own LICENSE. Recorded; the LICENSE text scopes the grant to
   phanes-original code only.
+
+---
+
+### Decision 7 — Service language/stack (P1)
+
+**picked**: P1 substrate = **POSIX shell** (`service/job_runner.sh` +
+`jobctl.sh`) — thinnest glue that *is* the measured engine-invocation
+contract. P1b HTTP transport and later phases: **hexa-native preferred**
+(ecosystem hexa-first principle; wilson/wisp downstream precedent) —
+final transport stack is an open sub-gate revisited when P1b starts.
+
+**rationale**:
+- "P1 go" + no-stop directive: pick the conventional ecosystem default,
+  record it, proceed (not a blocking gate — a recorded call).
+- Thin-slice discipline: a hexa HTTP server in P1 = a rabbit hole; the
+  job-runner is process/sandbox glue where shell is the minimum credible
+  code and lets P1 be *run and measured today*.
+- Downstream invariant kept: shell runner *invokes* the upstream `hexa`
+  binary, never vendors/forks it (`@I id002`).
+- Reversible: P1b can implement HTTP in hexa over the same `jobctl`
+  semantics (`service/API.md`) without touching P1a.
+
+### P1 execution — measured (2026-05-19, arm64 macOS, local)
+
+- Cheap oracle first (instrument-first methodology): 1-round `hexa kick`
+  in `$HOME`-jail + `HEXA_VAL_ARENA=0` → rc=0, wall≈1s, overlay written
+  ONLY in jail, real `~/.hx/data` unchanged (2→2 files), stdout JSON
+  `DrillResult` captured. **Decision 6 (가) isolation proven, not
+  asserted.**
+- Full substrate self-test PASS: `init-tenant → submit → get → result`,
+  job.json rc=0 / overlay_lines=517 / DrillResult embedded; wrong-token
+  → rc=4. P1a DONE.
+- Honest gaps on record (g3): integer-second wall meter too coarse for
+  sub-second jobs (refine to ms @ P2 — billing basis); no concurrency
+  test yet (@ P2, `checkpoint.hexa:26` serialization); HTTP transport
+  not built (P1b next).
 
 ---
 

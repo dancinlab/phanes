@@ -19,7 +19,7 @@ license **proprietary**.
 Repo, governance (AGENTS.tape), GOAL/design/README/LICENSE, decision
 gates 1–6, two upstream handoffs filed to hexa-lang `inbox/patches/`.
 
-## P1 — Job API substrate (the (나) layer everything sits on)
+## P1 — Job API substrate (the (나) layer everything sits on) · P1a DONE (measured 2026-05-19)
 
 The spine both surfaces consume. Minimal authenticated service:
 
@@ -35,6 +35,27 @@ The spine both surfaces consume. Minimal authenticated service:
   (≈70% of an async-job pipeline already)
 
 Exit: one tenant, one job, end-to-end, isolated, measured.
+
+**P1a status — DONE, measured (2026-05-19, arm64 macOS local):**
+- `service/job_runner.sh` — verified engine-invocation contract: per-job
+  `$HOME`-jail + `HEXA_VAL_ARENA=0` + seed pre-validate + rounds clamp +
+  capture (stdout `DrillResult` JSON + `overlay.n6`) + wall meter.
+- `service/jobctl.sh` — filesystem job store: `init-tenant / submit /
+  get / result`, API-key auth, per-tenant dir isolation.
+- `service/API.md` — HTTP contract for P1b (1:1 skin, mechanical).
+- Measured: cheap oracle (1 round) rc=0, overlay ONLY in jail, real
+  `~/.hx/data` untouched; full self-test init→submit→get→result PASS,
+  wrong-token → rc=4. Decision 6 (가) `$HOME`-jail isolation **proven,
+  not asserted**.
+- **P1a honest gaps (recorded, not hidden)**: wall meter is
+  integer-second — too coarse for sub-second jobs, refine to ms in P2
+  (billing basis). No concurrency test yet (P2, `checkpoint.hexa:26`
+  serialization concern). HTTP transport not built (P1b).
+
+**P1b — next**: thin HTTP transport over `jobctl` semantics
+(`service/API.md`). Stack: hexa-native preferred (ecosystem hexa-first;
+wilson/wisp precedent) — final transport choice = Decision 7 sub-gate at
+P1b start.
 
 ## P2 — Compute-plane hardening
 
@@ -73,3 +94,11 @@ authority).
 - **2026-05-19** — ROADMAP created at P0 DONE. All product gates closed
   same day (decision-gate cycle, `design.md`). Next executable = P1 (job
   API substrate). No code yet — P1 begins on user go.
+- **2026-05-19** — "P1 go". Instrument-first: cheap oracle measured FIRST
+  (1-round kick in `$HOME`-jail + `HEXA_VAL_ARENA=0` → rc=0, isolation
+  proven, JSON `DrillResult` captured). Built `service/{job_runner.sh,
+  jobctl.sh,API.md}`; full substrate self-test PASS (init→submit→get→
+  result, wrong-token rc=4). **P1a DONE, measured.** Recorded honest
+  gaps: integer-second wall meter (refine ms @P2), no concurrency test
+  yet (@P2), HTTP not built (P1b next). Decision 7 (service language)
+  logged in design.md.

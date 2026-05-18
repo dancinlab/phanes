@@ -76,3 +76,10 @@ hexa kick (OUROBOROS goal→falsifier→saturation · hexa-lang upstream · cycl
   **ALL PRODUCT GATES CLOSED.** ROADMAP.md created (P0 DONE → P1 job API
   substrate next). Remaining = execution; pre-public-launch obligations
   tracked (trademark clearance · upstream patches · honest-scope review).
+- **2026-05-19** — "P1 go". Instrument-first: cheap oracle measured first
+  (1-round kick in `$HOME`-jail + `HEXA_VAL_ARENA=0` → rc=0, isolation
+  proven). `service/{job_runner.sh,jobctl.sh,API.md}` built; full
+  substrate self-test PASS. **P1a DONE, measured** (Decision 6 (가)
+  isolation proven). Decision 7 (service lang) = shell substrate /
+  hexa-native preferred P1b+. Honest gaps: int-sec wall meter, no
+  concurrency test, HTTP not built (P1b next).

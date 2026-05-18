@@ -14,3 +14,7 @@ __pycache__/
 state/
 *.overlay.n6
 drill_checkpoint.json
+
+# P1 job store (runtime)
+.store/
+service/.store/
