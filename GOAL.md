@@ -71,3 +71,8 @@ hexa kick (OUROBOROS goal→falsifier→saturation · hexa-lang upstream · cycl
   filed to hexa-lang `inbox/patches/` (untracked drafts, pin `50f5f073`):
   `phanes-hx-data-dir-per-tenant-isolation` + `phanes-pluggable-verifier-
   oracle-for-drill-loop`. Next gate: Decision 5 (license).
+- **2026-05-19** — Decision 5 DECIDED = **가 Proprietary / All Rights
+  Reserved** (LICENSE committed; grant scoped to phanes-original code).
+  **ALL PRODUCT GATES CLOSED.** ROADMAP.md created (P0 DONE → P1 job API
+  substrate next). Remaining = execution; pre-public-launch obligations
+  tracked (trademark clearance · upstream patches · honest-scope review).

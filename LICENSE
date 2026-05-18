@@ -1,0 +1,16 @@
+phanes — Proprietary License
+
+Copyright (c) 2026 dancinlab. All rights reserved.
+
+This software and its source code are the confidential and proprietary
+property of dancinlab. No license, express or implied, is granted to any
+person or entity to use, copy, modify, merge, publish, distribute,
+sublicense, or sell any part of this software, in source or binary form,
+without the prior written permission of dancinlab.
+
+Unauthorized use, reproduction, or distribution is prohibited.
+
+phanes is a downstream consumer of hexa-lang
+(github.com/dancinlab/hexa-lang); hexa-lang is governed by its own
+separate license. This proprietary grant covers only the phanes-original
+code in this repository, not any upstream hexa-lang components it invokes.

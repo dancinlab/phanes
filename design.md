@@ -15,7 +15,7 @@
 | 2 | Brand name | **DECIDED — Phanes** |
 | 3 | Deployment shape | **DECIDED — 가+다 (public demo funnel + full dashboard; API = shared substrate)** |
 | 4 | GitHub org + remote · private | **DECIDED — dancinlab/phanes (private)** |
-| 5 | License (commercial SaaS — not auto-MIT) | queued — **next gate** |
+| 5 | License (commercial SaaS — not auto-MIT) | **DECIDED — 가 Proprietary / All Rights Reserved** |
 | 6 | Multi-tenant overlay isolation | **DECIDED — 다 (hybrid: $HOME-jail now + upstream HX_DATA_DIR patch)** |
 | B-surface | Pluggable verifier upstream handoff | **filed — hexa-lang inbox/patches** |
 
@@ -160,3 +160,37 @@ the established inbox mechanism; pin `50f5f073` rfc043-hexa-torch)**:
    / `--overlay --checkpoint` (this decision's (나) half).
 2. `phanes-pluggable-verifier-oracle-for-drill-loop` — scope-B's
    in-loop tenant-verifier extension point (the B-surface gap).
+
+---
+
+### Decision 5 — License = 가 (Proprietary / All Rights Reserved)
+
+**picked**: `가` — proprietary, all rights reserved (`© 2026 dancinlab`).
+Short `LICENSE` committed; covers only phanes-original code, not upstream
+hexa-lang components it invokes.
+
+**rationale**:
+- **Commercial private SaaS** (Decisions 3·4): code stays server-side,
+  not distributed — an OSS license would surrender the moat for zero
+  benefit. design.md flagged "not auto-MIT" from the start.
+- **Simplest, reversible default**: proprietary → BSL / source-available
+  is always possible later; the reverse (un-MIT) is not. Safest gate
+  outcome.
+- **(나) BSL 1.1 kept as explicit fallback** if a source-available
+  commercial posture is later wanted.
+- **Upstream-compat sub-check (follow-up, not a blocker)**: phanes
+  invokes `hexa kick` server-side (no redistribution expected). Before
+  any bundling/redistribution of hexa-lang artifacts, verify hexa-lang's
+  own LICENSE. Recorded; the LICENSE text scopes the grant to
+  phanes-original code only.
+
+---
+
+## All product gates closed (2026-05-19)
+
+Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
+**execution**, tracked in `ROADMAP.md` (phased, echoes-experience thin-
+slice discipline). Pre-public-launch obligations on record: trademark
+clearance (`@D g_name_risk`), upstream patches landing
+(`HX_DATA_DIR` + pluggable verifier), honest-scope marketing review
+(`@D g_honest_scope` · `@D g_public_demo_constraint`).

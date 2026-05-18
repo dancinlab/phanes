@@ -52,5 +52,6 @@ seed + tenant verifier → `goal -> falsifier -> saturation`).
 **Deployment = public demo funnel + full dashboard** on a shared job API
 (public demo = preset verifiers only, `@D g_public_demo_constraint`).
 Multi-tenant isolation = hybrid (per-job sandbox + upstream
-`HX_DATA_DIR` patch). Next gate: license. Decisions tracked in
-[`design.md`](design.md).
+`HX_DATA_DIR` patch); license proprietary. **All product gates closed**
+([`design.md`](design.md)) — execution per [`ROADMAP.md`](ROADMAP.md),
+next = P1 job API substrate.

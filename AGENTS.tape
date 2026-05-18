@@ -39,11 +39,13 @@
 
 # ─── §2 Repo layout ──────────────────────────────────────────────────
 
-@L l1 := "phanes-layout" :: structure [draft]
+@L l1 := "phanes-layout" :: structure [active]
   readme = "README.md — centered-header product overview (dancinlab format)"
   agents = "AGENTS.tape — governance + identity (tape v1.2); CLAUDE.md symlinks here"
-  goal = "GOAL.md — one-sentence north-star · scope OPEN until Decision 1"
-  design = "design.md — step-by-step decision-gate log (SSOT for product decisions)"
+  goal = "GOAL.md — one-sentence north-star (scope B) + Log"
+  design = "design.md — step-by-step decision-gate log (SSOT — Decisions 1-6 + B-surface CLOSED)"
+  roadmap = "ROADMAP.md — phased execution plan (P0-P5, thin-slice)"
+  license = "LICENSE — proprietary, © dancinlab all rights reserved (Decision 5)"
   gitignore = ".gitignore — standard"
 
 # ─── §3 Governance rules ─────────────────────────────────────────────
@@ -79,7 +81,7 @@
 
 @D g_decision_gate := "step-by-step decision gate" :: governance [required]
   rule = "Product is built one decision at a time, never batched. Each lands in design.md as `### Decision N — <picked>` with picked + 3+ rationale bullets before the next is opened."
-  status = "DECIDED: 1 = B Generic cycle platform · 2 = name Phanes · 3 = deployment 가+다 · 4 = dancinlab/phanes private remote · 6 = multi-tenant isolation 다 hybrid. Upstream handoffs FILED (hexa-lang inbox/patches): phanes-hx-data-dir-per-tenant-isolation + phanes-pluggable-verifier-oracle-for-drill-loop. NEXT GATE: Decision 5 (license)."
+  status = "ALL PRODUCT GATES CLOSED (2026-05-19): 1 = B Generic cycle platform · 2 = name Phanes · 3 = deployment 가+다 · 4 = dancinlab/phanes private · 5 = license Proprietary · 6 = multi-tenant 다 hybrid · B-surface upstream handoffs FILED. Remaining = execution per ROADMAP.md (P0-P5). Pre-public-launch obligations: trademark clearance (g_name_risk) · upstream patches landing · honest-scope review."
   @> AGENTS.md
 
 @D g_commit_trailer := "commit-trailer co-author" :: governance [recommended]
