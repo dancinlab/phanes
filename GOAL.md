@@ -99,6 +99,14 @@ hexa kick (OUROBOROS goal→falsifier→saturation · hexa-lang upstream · cycl
   recorded as P2.x. P2.3 HX_DATA_DIR pending upstream binary promote;
   P2.5 fleet routing deferred to P3. **P2.1+P2.2+P2.4 DONE measured.**
   Standing upstream-inbox policy applied: 0 new items this turn.
+- **2026-05-19** — "프론트" → Decision 8 = (다) HTMX + server-rendered.
+  P3 thin slice landed: `GET /dashboard` HTML + `POST /dashboard/jobs`
+  form-body + `GET /dashboard/jobs/<id>` HTMX-polled row that auto-stops
+  polling on done/failed. Smoke 5/5 PASS (page · submit · poll trail ·
+  final row · negative). Same day: 3rd upstream RESOLVED SSOT
+  (`socket_set_nonblock + socket_select`) and hexa-arch brand-pair
+  LOCKED as Demiurge (D23/D24/D25). **3/3 upstream + Phanes-Demiurge
+  brand pair + P3 thin DONE — all 2026-05-19.**
 - **2026-05-19** — "phanes 진행" → P2.x. Instrument-first cheap oracle:
   `stdlib/net/concurrent_serve.hexa` docstring says "실제로는 단일 스레드
   직렬 처리 … 멀티 OS 스레드는 roadmap 62 통합 후" → porting wouldn't

@@ -140,6 +140,224 @@ fn handle_get_or_result(request) {
     return resp
 }
 
+// ── url-decode helper (form-body has + → space, %XX → byte) ──────
+// stdlib parse_query does not decode; we do here for the /dashboard
+// form-encoded surface (the /v1/jobs JSON-body API is unaffected).
+
+fn _hex1(c) {
+    if c == "0" { return 0 } if c == "1" { return 1 } if c == "2" { return 2 }
+    if c == "3" { return 3 } if c == "4" { return 4 } if c == "5" { return 5 }
+    if c == "6" { return 6 } if c == "7" { return 7 } if c == "8" { return 8 }
+    if c == "9" { return 9 }
+    if c == "a" { return 10 } if c == "b" { return 11 } if c == "c" { return 12 }
+    if c == "d" { return 13 } if c == "e" { return 14 } if c == "f" { return 15 }
+    if c == "A" { return 10 } if c == "B" { return 11 } if c == "C" { return 12 }
+    if c == "D" { return 13 } if c == "E" { return 14 } if c == "F" { return 15 }
+    return 0 - 1
+}
+
+fn urldecode(s) {
+    let mut out = ""
+    let mut i = 0
+    let n = len(s)
+    while i < n {
+        let c = s.substring(i, i + 1)
+        if c == "+" {
+            out = out + " "
+            i = i + 1
+        } else if c == "%" && (i + 2) < n {
+            let h = _hex1(s.substring(i + 1, i + 2))
+            let l = _hex1(s.substring(i + 2, i + 3))
+            if h >= 0 && l >= 0 {
+                out = out + chr(h * 16 + l)
+                i = i + 3
+            } else {
+                out = out + c
+                i = i + 1
+            }
+        } else {
+            out = out + c
+            i = i + 1
+        }
+    }
+    return out
+}
+
+fn html_escape(s) {
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        .replace("\"", "&quot;").replace("'", "&#39;")
+}
+
+// ── HTML fragment helpers ────────────────────────────────────────
+
+fn _html_resp(status, content_type, body) {
+    let resp = #{}
+    resp["status"] = status
+    resp["content_type"] = content_type
+    resp["body"] = body
+    return resp
+}
+
+fn _html_ok(body)    { return _html_resp(200, "text/html; charset=utf-8", body) }
+fn _html_400(body)   { return _html_resp(400, "text/html; charset=utf-8", body) }
+fn _html_401(body)   { return _html_resp(401, "text/html; charset=utf-8", body) }
+fn _html_500(body)   { return _html_resp(500, "text/html; charset=utf-8", body) }
+
+// Render one <li> job row. If status ∈ {done, failed} no hx-trigger
+// (polling stops). Otherwise hx-trigger every 2s polls itself for swap.
+fn render_job_row(job_id, status, wall_ms, rounds, total, verifier_rc, tenant, token) {
+    let id_attr = "job-" + job_id
+    let mut row = "<li id=\"" + id_attr + "\""
+    if status == "queued" || status == "running" {
+        // Self-poll: HTMX GET /dashboard/jobs/<id> every 2s.
+        // tenant/token threaded via form-style query (auth done server-side).
+        row = row
+            + " hx-get=\"/dashboard/jobs/" + job_id
+            + "?tenant=" + tenant + "&token=" + token + "\""
+            + " hx-trigger=\"load delay:2s\""
+            + " hx-swap=\"outerHTML\""
+    }
+    row = row + ">"
+    row = row + "<code>" + html_escape(job_id) + "</code> · "
+    row = row + "status=<b>" + html_escape(status) + "</b> · "
+    row = row + "wall_ms=" + wall_ms + " · "
+    row = row + "rounds=" + rounds + " · "
+    row = row + "total=" + total
+    if verifier_rc != "" && verifier_rc != "null" {
+        row = row + " · verifier_rc=" + verifier_rc
+    }
+    row = row + "</li>"
+    return row
+}
+
+// Render the full dashboard page. echoes-experience-tone CSS, HTMX
+// via unpkg (TODO P3.x: self-host at /static/htmx.min.js).
+fn render_dashboard_page() {
+    let mut h = "<!doctype html>\n<html lang=\"ko\"><head>"
+    h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+    h = h + "<title>phanes · dashboard</title>"
+    h = h + "<style>"
+    h = h + ":root{--bg:#0b0d12;--fg:#eaeef6;--muted:#7a8294;--accent:#f5b042;--line:#1e2330;--ok:#7ee787;--err:#ff7b72}"
+    h = h + "html,body{background:var(--bg);color:var(--fg);font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;margin:0}"
+    h = h + ".wrap{max-width:820px;margin:48px auto;padding:0 24px}"
+    h = h + "h1{font-weight:600;letter-spacing:-0.02em;margin:0 0 4px;font-size:22px}"
+    h = h + ".sub{color:var(--muted);margin:0 0 28px;font-size:13px}"
+    h = h + "form{display:grid;gap:10px;margin-bottom:18px}"
+    h = h + ".row{display:grid;grid-template-columns:1fr 1fr;gap:10px}"
+    h = h + "input,textarea,button{background:#11151e;color:var(--fg);border:1px solid var(--line);padding:8px 10px;font:inherit;border-radius:6px;box-sizing:border-box;width:100%}"
+    h = h + "textarea{resize:vertical;min-height:64px}"
+    h = h + "button{background:var(--accent);color:#1a1305;font-weight:700;border:0;cursor:pointer}"
+    h = h + "ul#jobs{list-style:none;padding:0;display:grid;gap:6px}"
+    h = h + "ul#jobs li{background:#11151e;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:12px}"
+    h = h + ".lab{color:var(--muted);font-size:12px;margin:14px 0 4px;text-transform:uppercase;letter-spacing:0.04em}"
+    h = h + "code{color:var(--accent)}"
+    h = h + "</style>"
+    h = h + "<script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script>"
+    h = h + "</head><body><div class=\"wrap\">"
+    h = h + "<h1>🥚 phanes · 파네스 — dashboard</h1>"
+    h = h + "<p class=\"sub\">seed → OUROBOROS <code>goal → falsifier → saturation</code> → verified discovery catalog · <strong>HTMX dashboard</strong></p>"
+    h = h + "<p class=\"lab\">auth + job</p>"
+    h = h + "<form hx-post=\"/dashboard/jobs\" hx-target=\"#jobs\" hx-swap=\"afterbegin\">"
+    h = h + "<div class=\"row\"><input name=\"tenant\" placeholder=\"tenant\" required>"
+    h = h + "<input name=\"token\" type=\"password\" placeholder=\"bearer token\" required></div>"
+    h = h + "<textarea name=\"seed\" required>prove sigma(6)=12 perfect-number divisor structure</textarea>"
+    h = h + "<div class=\"row\"><input name=\"rounds\" type=\"number\" value=\"1\" min=\"1\" max=\"5\">"
+    h = h + "<button type=\"submit\">submit</button></div>"
+    h = h + "</form>"
+    h = h + "<p class=\"lab\">jobs (HTMX polls each row until done/failed)</p>"
+    h = h + "<ul id=\"jobs\"></ul>"
+    h = h + "<p class=\"sub\" style=\"font-size:12px;margin-top:24px\">Honest scope: developer dashboard. Public preset-verifier-only demo = P4 (<code>@D g_public_demo_constraint</code>). Under scope B the tenant verifier is the sole authority for \"objective met\" (<code>@D g_honest_scope.scope_b</code>).</p>"
+    h = h + "</div></body></html>"
+    return h
+}
+
+// ── dashboard handlers ───────────────────────────────────────────
+
+fn handle_dashboard(request) {
+    return _html_ok(render_dashboard_page())
+}
+
+fn handle_dash_submit(request) {
+    let body = request["body"]
+    if body == nil { body = "" }
+    let q = parse_query(body)
+    let tenant_r = q["tenant"]; if tenant_r == nil { tenant_r = "" }
+    let token_r  = q["token"];  if token_r == nil { token_r = "" }
+    let seed_r   = q["seed"];   if seed_r == nil { seed_r = "" }
+    let rounds_r = q["rounds"]; if rounds_r == nil { rounds_r = "1" }
+    let tenant = urldecode(tenant_r)
+    let token  = urldecode(token_r)
+    let seed   = urldecode(seed_r)
+    let rounds = urldecode(rounds_r)
+    if len(tenant) == 0 || len(token) == 0 {
+        return _html_400("<li style=\"color:#ff7b72\">tenant + token required</li>")
+    }
+    if len(seed) < 10 {
+        return _html_400("<li style=\"color:#ff7b72\">seed too short (>=10 chars substantive)</li>")
+    }
+    let cmd = jobctl_cmd()
+        + " submit --tenant " + shquote(tenant)
+        + " --token "        + shquote(token)
+        + " --seed "         + shquote(seed)
+        + " --rounds "       + shquote(rounds)
+    let r = exec_with_status(cmd)
+    let stdout = r[0]; let rc = r[1]
+    if rc == 4 {
+        return _html_401("<li style=\"color:#ff7b72\">auth failed</li>")
+    }
+    if rc != 0 {
+        return _html_500("<li style=\"color:#ff7b72\">jobctl rc=" + to_string(rc) + "</li>")
+    }
+    let job_id = stdout.trim()
+    // Initial row: queued; HTMX self-poll will swap it as it progresses.
+    return _html_ok(render_job_row(job_id, "queued", "-", rounds, "-", "", tenant, token))
+}
+
+fn handle_dash_get_job(request) {
+    // Path: /dashboard/jobs/<id>
+    let path = request["path"]
+    let prefix = "/dashboard/jobs/"
+    if len(path) < len(prefix) { return _html_400("<li>not found</li>") }
+    if path.substring(0, len(prefix)) != prefix { return _html_400("<li>not found</li>") }
+    let job_id = path.substring(len(prefix), len(path))
+    // tenant/token from query string (HTMX hx-get URL we built in render_job_row)
+    let query = request["query"]
+    if query == nil { query = "" }
+    let qm = parse_query(query)
+    let tenant_r = qm["tenant"]; if tenant_r == nil { tenant_r = "" }
+    let token_r  = qm["token"];  if token_r == nil { token_r = "" }
+    let tenant = urldecode(tenant_r)
+    let token  = urldecode(token_r)
+    if len(tenant) == 0 || len(token) == 0 {
+        return _html_401("<li style=\"color:#ff7b72\">auth missing</li>")
+    }
+    let cmd = jobctl_cmd() + " get --tenant " + shquote(tenant)
+        + " --token " + shquote(token) + " --job " + shquote(job_id)
+    let r = exec_with_status(cmd)
+    let stdout = r[0]; let rc = r[1]
+    if rc == 4 { return _html_401("<li style=\"color:#ff7b72\">auth failed</li>") }
+    if rc == 5 { return _html_400("<li>job not found</li>") }
+    if rc != 0 { return _html_500("<li>jobctl rc=" + to_string(rc) + "</li>") }
+    let m = json_parse(stdout)
+    if m == nil {
+        return _html_500("<li>job.json parse fail</li>")
+    }
+    let mut status = "?"
+    if m["status"] != nil { status = to_string(m["status"]) }
+    let mut wall_ms = "-"
+    if m["wall_ms"] != nil { wall_ms = to_string(m["wall_ms"]) }
+    let mut rounds = "-"
+    if m["rounds"] != nil { rounds = to_string(m["rounds"]) }
+    let mut total = "-"
+    let res = m["result"]
+    if res != nil {
+        if res["total"] != nil { total = to_string(res["total"]) }
+    }
+    let mut verifier_rc = ""
+    if m["verifier_rc"] != nil { verifier_rc = to_string(m["verifier_rc"]) }
+    return _html_ok(render_job_row(job_id, status, wall_ms, rounds, total, verifier_rc, tenant, token))
+}
+
 // ── dispatcher (server_serve calls this per request) ─────────────
 
 fn dispatch(handler_name, request) {
@@ -147,6 +365,9 @@ fn dispatch(handler_name, request) {
     if handler_name == "health"        { return handle_health(request) }
     if handler_name == "submit"        { return handle_submit(request) }
     if handler_name == "get_or_result" { return handle_get_or_result(request) }
+    if handler_name == "dashboard"     { return handle_dashboard(request) }
+    if handler_name == "dash_submit"   { return handle_dash_submit(request) }
+    if handler_name == "dash_get_job"  { return handle_dash_get_job(request) }
     return json_error(500, "unknown handler: " + handler_name)
 }
 
@@ -160,9 +381,13 @@ fn main() {
     if len(port_s) > 0 { port = to_int(port_s) }
 
     let s = server_new(host, port)
-    server_route(s, "GET",  "/v1/healthz", "health")
-    server_route(s, "POST", "/v1/jobs",    "submit")
-    server_mount(s, "GET",  "/v1/jobs/",   "get_or_result")
+    server_route(s, "GET",  "/v1/healthz",     "health")
+    server_route(s, "POST", "/v1/jobs",        "submit")
+    server_mount(s, "GET",  "/v1/jobs/",       "get_or_result")
+    // P3 thin slice — HTMX dashboard (Decision 8).
+    server_route(s, "GET",  "/dashboard",      "dashboard")
+    server_route(s, "POST", "/dashboard/jobs", "dash_submit")
+    server_mount(s, "GET",  "/dashboard/jobs/", "dash_get_job")
     server_listen(s)
     println("phanes-http listening on " + host + ":" + to_string(port))
     server_serve(s, dispatch)

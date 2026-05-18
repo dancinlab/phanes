@@ -19,6 +19,7 @@
 | 6 | Multi-tenant overlay isolation | **DECIDED — 다 (hybrid: $HOME-jail now + upstream HX_DATA_DIR patch)** |
 | B-surface | Pluggable verifier upstream handoff | **filed — hexa-lang inbox/patches** |
 | 7 | Service language / stack | **DECIDED (P1) — POSIX shell substrate; hexa-native preferred for P1b+ (open sub-gate)** |
+| 8 | Frontend stack (P3 dashboard + P4 demo) | **DECIDED — (다) HTMX + server-rendered HTML on hexa-native backend** |
 
 ---
 
@@ -363,6 +364,41 @@ phanes keeps the `$HOME`-jail until promote, then swaps to
 `HX_DATA_DIR` while keeping the sandbox as defense-in-depth (per
 Decision 6 (다) hybrid). Confirms the downstream→upstream pipeline works
 (g7) and de-risks Decision 6's canonical path.
+
+---
+
+### Decision 8 — Frontend stack = (다) HTMX + server-rendered HTML
+
+**picked**: HTMX 1.9.x + server-rendered HTML fragments from the
+existing hexa-native backend (`service/http_phanes.hexa`,
+`stdlib/net/http_response.text_ok/json_ok`). No bundler, no SPA
+framework, no node toolchain. The dashboard is just more
+`pub fn handler(request) -> response` returning HTML.
+
+**rationale**:
+- **Backend정합 최대**: the backend is already hexa-native with
+  `stdlib/net` (`http_server`, `http_request`, `http_response`,
+  `std_web_template`); the `socket_set_nonblock + socket_select` upstream
+  also landed today (3/3 inbox resolved-ssot). HTMX = exactly the
+  topology this backend wants: server is single SSOT, browser swaps
+  fragments.
+- **dancinlab 톤 정합**: echoes-experience (vanilla JS · static · no
+  bundler) and wisp (thin native shell + hexa core) share "thin client,
+  smart server". HTMX is the natural ladder up — adds swap+poll
+  semantics without breaking the no-bundler / no-CDN-trust ethos.
+- **Reversible**: HTMX coexists with vanilla JS and with future Svelte
+  islands page-by-page. Picking HTMX now does NOT preclude adding a
+  Svelte island for a heavy view later; picking Svelte/React first
+  would commit the whole app to a runtime/bundler.
+- **State location matches reality**: phanes job/tenant/verifier state
+  is server-resident (filesystem store under `service/.store`). HTMX
+  keeps the browser as a render target, not a stateful mirror.
+
+**measurement-gate**: server returns HTML for `GET /dashboard`, `POST
+/dashboard/jobs` returns a `<li>` job-row fragment, `GET
+/dashboard/jobs/<id>` returns a swapped row; HTMX poll terminates when
+status ∈ {done, failed}. Implementation lands as P3 thin slice
+immediately after this gate.
 
 ---
 

@@ -168,11 +168,45 @@ serialization concern (`checkpoint.hexa:26`) under isolated per-job
 limits. Adopt upstream `HX_DATA_DIR` when it lands → retire `$HOME`
 hijack, keep sandbox as defense-in-depth.
 
-## P3 — Dashboard (Decision 3 = 다)
+## P3 — Dashboard (Decision 3 = 다) · P3.thin DONE measured (2026-05-19)
 
 Accounts/orgs auth; job-submit UI incl. verifier upload/reference;
 result browser + **per-tenant discovery catalog** (their private echoes,
 exportable); billing/metering console. Sits entirely on the P1 API.
+
+**P3.thin status — DONE, measured (2026-05-19, HTMX server-rendered):**
+- Decision 8 LOCKED: HTMX + server-rendered HTML on hexa-native backend.
+- 3 new routes in `service/http_phanes.hexa`:
+  - `GET /dashboard` — full HTML page (HTMX 1.9.10 via unpkg SRI;
+    self-host = P3.x polish), echoes-experience-tone CSS, form fields
+    tenant·token·seed·rounds.
+  - `POST /dashboard/jobs` — form-encoded body → urldecode → jobctl
+    submit → return `<li>` job-row with `hx-trigger="load delay:2s"` so
+    the row self-polls.
+  - `GET /dashboard/jobs/<id>?tenant=…&token=…` — render `<li>` from
+    `job.json`; **omit hx-trigger when status ∈ {done, failed}** so HTMX
+    auto-stops polling.
+- Helpers added: `urldecode` (+ → space, %XX → byte), `html_escape`,
+  `render_job_row`, `render_dashboard_page`.
+- Measured smoke (curl, arm64 macOS local, port 8788):
+  - GET /dashboard → 200 text/html 2516B, hx-post + htmx script +
+    form fields all present.
+  - POST /dashboard/jobs (form body, seed contains `=`) → 200 `<li>` row,
+    HTMX self-poll wired.
+  - Poll trail: t+300/600/900ms running, t+1200ms `done` with
+    hx-trigger REMOVED → polling stops automatically (the HTMX
+    termination pattern works).
+  - Final row: `wall_ms=1167 · rounds=1 · total=683 · verifier_rc=0`
+    (P2.4 verifier auto-attach still wired through dashboard).
+  - Negative (no tenant/token) → 400 + red `<li>` error fragment.
+- **Honest gaps on record (g3)**:
+  - HTMX served from unpkg CDN with SRI hash — self-host at
+    `/static/htmx.min.js` is a P3.x polish item (matches dancinlab
+    no-CDN-trust ethos eventually).
+  - Auth still via form-body fields rendered into row's hx-get URL
+    query string — exposes token in HTML; production needs HttpOnly
+    cookies or per-row signed handles (P3.x).
+  - Single tenant per page; multi-tenant org switcher = P3.x.
 
 ## P4 — Public demo funnel (Decision 3 = 가)
 
