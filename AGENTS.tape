@@ -26,10 +26,10 @@
   readme = "README.md — centered-header product overview (dancinlab format)"
   agents = "AGENTS.tape — governance + identity (tape v1.2); CLAUDE.md symlinks here"
   goal = "GOAL.md — one-sentence north-star (scope B) + Log"
-  design = "design.md — step-by-step decision-gate log (SSOT — Decisions 1-6 + B-surface CLOSED · P1a+P1b measured)"
-  roadmap = "ROADMAP.md — phased execution plan (P0 DONE · P1a+P1b DONE measured · P2-P5 next)"
-  service = "service/{job_runner.sh,jobctl.sh,http_phanes.hexa,build.sh,API.md} — P1 substrate (shell+hexa-native HTTP)"
-  web = "web/index.html — vanilla JS+Canvas dev API console (echoes-experience template, 기존생태계 frontend)"
+  design = "design.md — step-by-step decision-gate log (SSOT — Decisions 1-8 + B-surface CLOSED)"
+  roadmap = "ROADMAP.md — phased execution plan (P0 · P1 · P2.1/2/4/x · P3.thin DONE measured · P3.x/P4/P5 next)"
+  service = "service/{job_runner.sh,jobctl.sh,http_phanes.hexa,build.sh,API.md,concurrency_test.sh,example_verifier.sh} — P1+P2 substrate (shell+hexa-native HTTP w/ HTMX dashboard routes)"
+  web = "web/index.html — vanilla JS+Canvas dev API console (P1b smoke); P3 HTMX dashboard served inline by http_phanes /dashboard route (Decision 8)"
   license = "LICENSE — proprietary, © dancinlab all rights reserved (Decision 5)"
   gitignore = ".gitignore — standard (+ bin/ build/ .store/ runtime artifacts)"
 
@@ -67,7 +67,7 @@
 
 @D g_decision_gate := "step-by-step decision gate" :: governance [required]
   rule = "Product is built one decision at a time, never batched. Each lands in design.md as `### Decision N — <picked>` with picked + 3+ rationale bullets before the next is opened."
-  status = "GATES CLOSED + EXECUTION P0+P1+P2.1+P2.2+P2.4+P2.x DONE measured (2026-05-19): Decisions 1-7 + B-surface CLOSED. P2.x async-submit pivot DONE — instrument-first cheap-oracle (concurrent_serve docstring = logical-only) saved a port; pivoted to nohup-disown async dispatcher. Measured: baseline_submit 162ms (vs 1530 pre-pivot), 4-job end-to-end 2360ms (vs 6795 pre-pivot, ~2.9× absolute throughput), engine PARTIAL parallel 1.7/10. P2.3 HX_DATA_DIR pending upstream binary promote; P2.5 fleet routing deferred P3. Upstream inbox tally: 3 filed / 2 resolved-ssot. NEXT options: P3 dashboard · pre-launch gates (trademark clearance · pluggable-verifier patch landing · honest-scope review)."
+  status = "GATES CLOSED + EXECUTION P0..P3.thin DONE measured (2026-05-19): Decisions 1-8 + B-surface CLOSED. Same day: (a) upstream inbox 3/3 RESOLVED SSOT (HX_DATA_DIR · pluggable-verifier-oracle · socket_set_nonblock+socket_select) all awaiting binary promote; (b) sister brand LOCKED as Demiurge/데미우르지 in hexa-arch D23/D24/D25 — Phanes↔Demiurge cosmogony; (c) Decision 8 = (다) HTMX + server-rendered HTML; (d) P3.thin = 3 dashboard routes (GET /dashboard · POST /dashboard/jobs · GET /dashboard/jobs/<id>) smoke 5/5 PASS incl. HTMX auto-stop polling on done/failed. P2.x async-submit: baseline_submit 162ms (vs 1530 pre-pivot), 4-job end-to-end 2360ms (vs 6795 pre-pivot, ~2.9× throughput), engine PARTIAL parallel 1.7/10. P2.3 HX_DATA_DIR pending binary promote · P2.5 fleet routing deferred. NEXT options: P3.x polish (self-host HTMX · HttpOnly cookie auth · multi-tenant switcher) · P4 public preset-only demo · pre-launch gates (trademark clearance · binary-promote adoption · honest-scope marketing review)."
   @> AGENTS.md
 
 @D g_commit_trailer := "commit-trailer co-author" :: governance [recommended]
