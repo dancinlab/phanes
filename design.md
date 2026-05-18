@@ -11,7 +11,7 @@
 
 | # | Decision | State |
 |---|----------|-------|
-| 1 | Product scope (A Conjecture-Mine / B Generic cycle / C Echoes-as-a-Service) | **OPEN** |
+| 1 | Product scope (A Conjecture-Mine / B Generic cycle / C Echoes-as-a-Service) | **DECIDED — B Generic cycle platform** |
 | 2 | Brand name | **DECIDED — Phanes** |
 | 3 | Deployment shape (public demo+paid backend / API-only / full dashboard) | queued (after #1) |
 | 4 | GitHub org + remote · private | **DECIDED — dancinlab/phanes (private)** |
@@ -72,19 +72,29 @@ launch or remote/org push; reconsider public-facing mark then.
 
 ---
 
-### Decision 1 — Product scope  *(OPEN — next gate)*
+### Decision 1 — Product scope = B (Generic cycle platform)
 
-Options (assistant recommendation: **A**):
+**picked**: `B` — generic autonomous-cycle platform: a company brings a
+measurable objective + a verifier/oracle; phanes drives hexa kick's
+`goal → falsifier → saturation` loop against it and returns a verified,
+provenance-tracked result/catalog. Pluggable seed + tenant verifier.
 
-- **A. Conjecture-Mine** — seed → verified discovery catalog (a private
-  echoes). Narrowest honest scope; reuses the existing `gate/ hexa://kick`
-  remote pipeline most directly; literal "echoes처럼 완성"; smallest
-  credible v1; A → C is a natural superset path.
-- **B. Generic cycle platform** — pluggable seed+verifier, any measurable
-  objective (goal→falsifier→saturation). Largest TAM, largest build,
-  highest over-claim risk vs the advisory honesty gate.
-- **C. Echoes-as-a-Service** — hosted private *verified-discovery ledger*
-  + provenance + Lean/Python re-verification. Audit/compliance angle;
-  superset of A.
-
-*Not yet picked — awaiting user.*
+**rationale**:
+- **User directive 2026-05-19 "B"** — chosen over the assistant
+  recommendation (A); the larger-TAM strategic bet is the user's call and
+  is recorded as the decisive factor.
+- **Accepted build implication**: B's genuine engine delta vs A is a
+  **NEW pluggable seed+verifier/oracle abstraction** over `hexa kick`
+  (A reused the internal honesty gate + `gate/ hexa://kick` pipeline
+  as-is). This abstraction is an upstream hexa-lang `inbox/patches/`
+  candidate, not a downstream fork (`@I id002` · `@D g_inbox_patches`).
+- **Honest-scope risk now ACTIVE (g3)**: B's value prop ("drive *your*
+  objective to done") structurally collides with the advisory,
+  non-blocking honesty gate — saturation / round-cap is the only hard
+  stop. Mandated mitigation: the **tenant-supplied verifier is the sole
+  authority of record** for "objective met"; phanes surfaces saturation +
+  verifier verdict and never claims objective-met without the tenant
+  verifier's PASS. `@D g_honest_scope` tightened with a `scope_b` clause.
+- **Not foreclosed**: narrowing B → A/C for v1 (if the verifier
+  abstraction proves too broad) stays available; recorded so the option
+  is not lost.

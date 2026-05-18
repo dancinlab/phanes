@@ -56,6 +56,7 @@
 @D g_honest_scope := "honest-scope — no over-claim" :: governance [required deny:write]
   rule = "phanes markets what `hexa kick` actually produces: verified, atlas-bound mathematical/algorithmic DISCOVERIES with a per-round honesty (falsification) audit trail. NOT 'autonomously completes your software project'."
   why = "the OUROBOROS honesty gate is advisory (non-blocking); saturation is the only hard stop. Selling AGI-completion = over-claim. hexa-lang g3 real-limits-first applies downstream."
+  scope_b = "Under Decision 1 = B (generic cycle platform): the tenant-supplied verifier/oracle is the SOLE authority for 'objective met'. phanes surfaces saturation + the tenant verifier's verdict; it never substitutes the engine's advisory honesty gate for the tenant verifier's PASS, nor claims objective-met without it."
   authority = "hexa-lang LATTICE_POLICY.md · [@x_lattice_policy]"
   @> AGENTS.md
 
@@ -72,7 +73,7 @@
 
 @D g_decision_gate := "step-by-step decision gate" :: governance [required]
   rule = "Product is built one decision at a time, never batched. Each lands in design.md as `### Decision N — <picked>` with picked + 3+ rationale bullets before the next is opened."
-  status = "Decision 1 (product scope A/B/C) = OPEN · Decision 2 (brand name = Phanes) = DECIDED"
+  status = "DECIDED: Decision 1 = B Generic cycle platform · Decision 2 = name Phanes · Decision 4 = dancinlab/phanes private remote. NEXT GATE: Decision 3 (deployment shape). queued: 5 license · 6 multi-tenant overlay isolation · B-surface upstream handoff (pluggable verifier)."
   @> AGENTS.md
 
 @D g_commit_trailer := "commit-trailer co-author" :: governance [recommended]
@@ -95,8 +96,8 @@
 
 # ─── §6 Notes ────────────────────────────────────────────────────────
 
-@N n_scope_open := "product scope is the open gate" :: note [d=2026-05-19 active]
-  text = "Decision 1 (OPEN): A Conjecture-Mine (recommended) | B Generic cycle platform | C Echoes-as-a-Service. README/GOAL/ROADMAP stay scope-neutral until picked. See design.md."
+@N n_scope := "product scope = B (decided)" :: note [d=2026-05-19 active]
+  text = "Decision 1 DECIDED = B Generic cycle platform (user directive 2026-05-19, over assistant rec A). README/GOAL concretized for B. B's new engine surface = a pluggable seed+verifier/oracle abstraction over hexa kick — an upstream hexa-lang inbox/patches candidate, NOT a downstream fork. tenant verifier = sole authority for 'objective met' (see g_honest_scope.scope_b). See design.md Decision 1."
 
 @N n_ouro_phanes := "Ouro ⊂ Phanes lore" :: note [active]
   text = "Engine codename in hexa-lang = OUROBOROS (the self-feeding serpent: discoveries reseed the next round to saturation). In Orphic myth Phanes is the radiant first-born the OUROBOROS entwines. So Ouro = mechanism, Phanes = the truth it brings to light — one image, inside and out."

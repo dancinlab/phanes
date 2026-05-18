@@ -6,11 +6,12 @@
 
 ---
 
-`phanes` is a **hosted web product** that lets companies run hexa-lang's
-autonomous discovery engine — **`hexa kick`** (the OUROBOROS loop:
-`smash -> free -> absolute -> meta -> hyper -> resonance`, rounds until
-saturation, with a per-round honesty/falsification gate) — and get back a
-**verified, provenance-tracked discovery catalog** (their own private
+`phanes` is a **hosted web product** — a **generic autonomous-cycle
+platform**. A company brings a *measurable objective* + a
+*verifier/oracle*; phanes drives hexa-lang's OUROBOROS engine
+**`hexa kick`** (the loop `goal -> falsifier -> saturation`, rounds with a
+per-round honesty/falsification gate) against it, and returns a
+**verified, provenance-tracked result/catalog** (their own private
 [`echoes`](https://github.com/dancinlab/echoes)).
 
 > **Lore.** *Phanes* (Φάνης, from φαίνω "to bring to light") is the Orphic
@@ -32,11 +33,13 @@ saturation, with a per-round honesty/falsification gate) — and get back a
 
 ## Honest caveat
 
-phanes sells **what `hexa kick` actually produces**: verified, atlas-bound
-mathematical/algorithmic *discoveries* with a falsification audit trail.
-It is **not** "autonomously completes your software project" — the
-OUROBOROS honesty gate is advisory; saturation is the only hard stop.
-Over-claim is forbidden (hexa-lang `LATTICE_POLICY.md`, `@D g_honest_scope`).
+phanes does **not** guarantee your objective is met. Under scope B the
+**tenant-supplied verifier is the sole authority** for "objective met";
+phanes surfaces saturation + that verifier's verdict and never claims
+objective-met without the tenant verifier's PASS. The OUROBOROS honesty
+gate is advisory; saturation / round-cap is the only hard stop.
+Over-claim is forbidden (hexa-lang `LATTICE_POLICY.md`,
+`@D g_honest_scope.scope_b`).
 
 Brand-token note: "Phanes" has adjacent trademark collisions on record
 (`@D g_name_risk`); chosen by user with that acknowledged. Formal
@@ -44,6 +47,7 @@ clearance precedes any public launch.
 
 ## Status
 
-Scaffold. Product **scope is the open decision gate** —
-A Conjecture-Mine *(recommended)* / B Generic cycle platform /
-C Echoes-as-a-Service. Decisions tracked in [`design.md`](design.md).
+Scaffold. **Scope = B — generic autonomous-cycle platform** (pluggable
+seed + tenant verifier → `goal -> falsifier -> saturation`). Next gate:
+deployment shape (Decision 3). Decisions tracked in
+[`design.md`](design.md).
