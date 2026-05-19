@@ -84,11 +84,26 @@ clearance precedes any public launch.
 
 ## Status
 
-Scaffold. **Scope = B — generic autonomous-cycle platform** (pluggable
-seed + tenant verifier → `goal -> falsifier -> saturation`).
-**Deployment = public demo funnel + full dashboard** on a shared job API
-(public demo = preset verifiers only, `@D g_public_demo_constraint`).
-Multi-tenant isolation = hybrid (per-job sandbox + upstream
-`HX_DATA_DIR` patch); license proprietary. **All product gates closed**
-([`design.md`](design.md)) — execution per [`ROADMAP.md`](ROADMAP.md),
-next = P1 job API substrate.
+Working prototype. **Scope = B — generic autonomous-cycle platform**
+(pluggable seed + tenant verifier → `goal -> falsifier -> saturation`).
+
+- **Service** — hexa-native HTTP server (`service/http_phanes.hexa`):
+  a multilingual marketing site (cosmogony · Phanes · Demiurge ·
+  hexa-lang · Anima · Demo · Pricing · Contact), a public preset-only
+  demo, a session-authenticated HTMX dashboard, and the job API.
+- **Substrate** — shell job runner + `jobctl`; per-tenant isolation =
+  hybrid (`HX_DATA_DIR` per-tenant data boundary + `$HOME`-jail as
+  defense-in-depth), kick binary promoted and verified.
+- **Decisions** — all product + deployment gates closed in
+  [`design.md`](design.md): host = AWS EC2, pricing = tier + metered
+  (per OUROBOROS round, via Stripe), datastore = DynamoDB + S3,
+  deploy = repo-committed `deploy.sh`.
+- **Visibility** — public, **source-available**: the code is open to
+  read and audit; the license is proprietary / All Rights Reserved
+  (no right to run a competing service). See `design.md` Decision 16.
+
+Remaining work is execution — provisioning the EC2 host, the DynamoDB
+migration, the Stripe integration, deployment — tracked in
+[`ROADMAP.md`](ROADMAP.md). Pre-public-launch obligations (formal
+trademark clearance, `@D g_name_risk`) are specified in
+[`docs/TRADEMARK.md`](docs/TRADEMARK.md).
