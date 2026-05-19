@@ -22,6 +22,40 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 STORE="${PHANES_STORE:-$HERE/.store}"
 CMD="${1:-}"; shift || true
+
+# ── B3: tenant token on R2 (Decision 21/23), list-independent slice ──
+# The token is the one tenant record jobctl owns. In the Decision 22
+# 2-tier split the web container must auth a tenant without local disk,
+# so the token moves to R2. We do NOT hand-roll SigV4 in bash (that
+# would duplicate stdlib/aws/sigv4.hexa, against @D g_stdlib_ownership);
+# instead we call the phanes-http binary's PHANES_R2_OP CLI — the one
+# measured signer (r2_*/_kv_*). R2 key: tenants/<tenant>/token.
+# Degrades to the filesystem $TDIR/token byte-identically when R2 creds
+# are absent, so the verified local contract is unchanged. (jobs/job.json
+# stay filesystem here — that is the deeper F-D23-gated B3 remainder.)
+PHANES_BIN="${PHANES_BIN:-$HERE/../bin/phanes-http}"
+_r2_on() {
+  [ -n "${R2_ACCESS_KEY_ID:-}" ] && [ -n "${R2_SECRET_ACCESS_KEY:-}" ] \
+    && [ -n "${R2_ACCOUNT_ID:-}" ] && [ -x "$PHANES_BIN" ]
+}
+_r2op() {  # _r2op <get|put|del> <key> [stdin=body for put]
+  PHANES_R2_OP="$1" PHANES_R2_KEY="$2" "$PHANES_BIN"
+}
+# token I/O — R2 when enabled, else filesystem. Echoes the token (get)
+# or returns non-zero when absent; write reads the token from stdin.
+_token_key() { echo "tenants/$TENANT/token"; }
+_token_get() {
+  if _r2_on; then _r2op get "$(_token_key)" 2>/dev/null
+  else [ -f "$TDIR/token" ] && cat "$TDIR/token"; fi
+}
+_token_exists() {
+  if _r2_on; then _r2op get "$(_token_key)" >/dev/null 2>&1
+  else [ -f "$TDIR/token" ]; fi
+}
+_token_put() {  # token on stdin
+  if _r2_on; then _r2op put "$(_token_key)"
+  else umask 077; mkdir -p "$TDIR"; cat > "$TDIR/token"; fi
+}
 TENANT=""; TOKEN=""; SEED=""; ROUNDS=1; JOB=""
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -37,19 +71,18 @@ done
 TDIR="$STORE/tenants/$TENANT"
 
 auth() {
-  [ -f "$TDIR/token" ] || { echo "jobctl: unknown tenant" >&2; exit 4; }
-  [ -n "$TOKEN" ] && [ "$TOKEN" = "$(cat "$TDIR/token")" ] || {
+  _token_exists || { echo "jobctl: unknown tenant" >&2; exit 4; }
+  [ -n "$TOKEN" ] && [ "$TOKEN" = "$(_token_get)" ] || {
     echo "jobctl: auth failed (bad/absent --token)" >&2; exit 4; }
 }
 
 case "$CMD" in
   init-tenant)
     mkdir -p "$TDIR/jobs"
-    if [ ! -f "$TDIR/token" ]; then
-      umask 077
-      head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$TDIR/token"
+    if ! _token_exists; then
+      head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n' | _token_put
     fi
-    echo "tenant=$TENANT token=$(cat "$TDIR/token")"
+    echo "tenant=$TENANT token=$(_token_get)"
     ;;
   submit)
     auth
