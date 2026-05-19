@@ -49,6 +49,15 @@ RUN ./self/native/hexa_v2 self/main.hexa /tmp/hexa_main.c
 # macOS headers are laxer so this only surfaces on the real linux build.
 RUN clang -O2 -std=c11 -D_GNU_SOURCE -I self /tmp/hexa_main.c self/runtime.c \
       -o self/native/hexa -lm
+# [3b] the compiled module loader — REQUIRED for correct import flatten.
+# self/module_loader.hexa is import-free → hexa_v2 transpiles standalone.
+# Without build/hexa_module_loader, `hexa build` of an import-bearing
+# program silently falls back to raw-src and emits `extern` stubs for
+# imported symbols (undeclared `sigv4_sign` at clang) — a real harness
+# trap. Built here so phanes' stdlib imports flatten correctly.
+RUN ./self/native/hexa_v2 self/module_loader.hexa /tmp/hexa_ml.c \
+    && clang -O2 -std=c11 -D_GNU_SOURCE -I self /tmp/hexa_ml.c self/runtime.c \
+         -o build/hexa_module_loader -lm
 
 # phanes source (this build context)
 COPY . /src/phanes
@@ -58,6 +67,7 @@ RUN HEXA_MAC_BUILD_OK=1 \
     PHANES_HEXA_HOME=/src/hexa-lang \
     HEXA_LANG=/src/hexa-lang \
     HEXA_HOME=/src/hexa-lang \
+    HEXA_MODULE_LOADER=/src/hexa-lang/build/hexa_module_loader \
     PHANES_HEXA_BIN=/src/hexa-lang/self/native/hexa \
     bash service/build.sh /src/phanes/bin/phanes-http
 
