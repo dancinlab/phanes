@@ -677,6 +677,48 @@ script covers "given an EC2 host exists, ship to it."
 
 ---
 
+### Decision 15 — Managed datastore = (가) DynamoDB (+ S3 for overlays)
+
+**picked**: `(가)` — **DynamoDB** as the managed datastore for the
+structured records (sessions, tenants, job metadata), plus **S3** for
+the overlay blobs (`atlas.overlay.n6`). This replaces the current
+filesystem `.store/` job store. User directive 2026-05-19: "db 는
+managedDB."
+
+**rationale**:
+- **hexa-native HTTP fit — no wire-protocol driver needed.** DynamoDB
+  is reached over an HTTP/JSON API — the *same transport* as the
+  Decision 13 Stripe integration (`stdlib/net` `http_client`).
+  RDS/Aurora-direct (option 나) speaks the Postgres binary wire
+  protocol, which would require writing a Postgres driver in hexa
+  first — a separate, large blocker. DynamoDB needs none of that.
+- **phanes' access patterns are simple key/item lookups.** Session by
+  `sid`, tenant by name, jobs-by-tenant newest-N — there are no joins
+  and no relational queries. DynamoDB's item model maps directly;
+  relational power (option 나/다) would be unused weight.
+- **Serverless pay-per-request fits a zero-user start.** Cost scales
+  with actual requests and there is no idle instance charge, unlike an
+  always-on RDS/Aurora instance — consistent with Decision 11's
+  measure-demand-first posture.
+- **Fully managed (the directive).** Backups, patching, and scaling are
+  AWS's responsibility — no database operations for phanes.
+- **Overlays belong in object storage, not a DB.** `atlas.overlay.n6`
+  is a large discovery-artifact blob; it goes to S3 regardless of the
+  DB choice. DynamoDB holds the job *record* (status, rounds, wall_ms,
+  result JSON, the S3 key of the overlay); S3 holds the blob.
+
+**honest scope (g3)**: this is a **persistence re-architecture**, not a
+config change. Every filesystem call in the `.store/` layer —
+`session_create` / `session_load` / `session_destroy`, `list_tenant_jobs`,
+the `job.json` atomic tmp+rename writes, the overlay capture in
+`job_runner.sh` — gets rewritten against DynamoDB (HTTP API) and S3.
+There is no DynamoDB SDK for hexa, so it is hand-written AWS SigV4-signed
+HTTP calls over `stdlib/net`. Real, multi-step implementation work
+tracked as a future ROADMAP item. This decision fixes the datastore
+choice only; it does not perform the migration.
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
