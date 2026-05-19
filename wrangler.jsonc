@@ -1,0 +1,49 @@
+{
+  // phanes — Cloudflare Containers deploy (Decision 22 2-tier · 24 REST).
+  // Validated end-to-end at `wrangler deploy` time (CF builds the image
+  // from ./Dockerfile and surfaces the linux hexa-bootstrap reality);
+  // the data+queue plane (R2 + the `phanes-jobs` queue + scoped tokens)
+  // is already live and measured. DNS cutover of dancinlab.org is the
+  // explicit irreversible final step (Decision 20), kept out of here.
+  "name": "phanes",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-05-01",
+
+  // Two container classes, one image, role switched by PHANES_ROLE
+  // (Dockerfile ENTRYPOINT). Worker tier sized to the F-D22 measured
+  // floor: kick peak RSS 4.02 GiB ⇒ standard-2 (6 GiB), never std-1.
+  "containers": [
+    {
+      "class_name": "PhanesWeb",
+      "image": "./Dockerfile",
+      "instance_type": "standard-1",      // HTTP tier: light, ms requests
+      "max_instances": 3,
+      "env": { "PHANES_ROLE": "web" }
+    },
+    {
+      "class_name": "PhanesWorker",
+      "image": "./Dockerfile",
+      "instance_type": "standard-2",      // kick tier: F-D22 floor ≥6 GiB
+      "max_instances": 5,                 // worker pool ×N (Decision 22)
+      "env": { "PHANES_ROLE": "worker" }
+    }
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      { "name": "PHANES_WEB",    "class_name": "PhanesWeb" },
+      { "name": "PHANES_WORKER", "class_name": "PhanesWorker" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["PhanesWeb", "PhanesWorker"] }
+  ],
+
+  // Secrets (set via `wrangler secret put`, NOT committed — public repo):
+  //   R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_ACCOUNT_ID R2_BUCKET
+  //   PHANES_Q_ACCOUNT_ID PHANES_Q_ID PHANES_Q_TOKEN
+  // deploy.sh pushes them from the `secret` CLI (cloudflare.queues.* +
+  // r2.phanes.*). The container reads them as env (run-phanes.sh /
+  // queue_worker.sh already source these names).
+  "vars": {}
+}

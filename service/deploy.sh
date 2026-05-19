@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SUPERSEDED by /deploy.sh (Decision 22 Cloudflare Containers). Kept on
+# record per the decision trail; the EC2/systemd path below is legacy.
 # service/deploy.sh — ship phanes-http to its host (design.md Decision 14).
 #
 # Flow:  rsync source -> remote build (service/build.sh) -> swap binary
