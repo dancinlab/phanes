@@ -59,6 +59,28 @@ fn handle_health(request) {
     return text_ok("ok\n")
 }
 
+// Serve the self-hosted HTMX bundle (web/static/htmx.min.js). Replaces
+// the unpkg CDN <script> so the only interactive page has no external
+// SPOF and runs no third-party-origin script. The file is version-
+// pinned (htmx 1.9.10, sha384 verified at vendor time), so it is served
+// with a hard immutable cache — distinct from the no-store HTML resp.
+fn handle_static_htmx(request) {
+    let mut home = env("PHANES_HOME")
+    if len(home) == 0 { home = "." }
+    let p = home + "/web/static/htmx.min.js"
+    if !file_exists(p) {
+        return json_error(404, "static asset not found: htmx.min.js")
+    }
+    let resp = #{}
+    resp["status"] = 200
+    resp["content_type"] = "application/javascript; charset=utf-8"
+    let hdr = #{}
+    hdr["Cache-Control"] = "public, max-age=31536000, immutable"
+    resp["headers"] = hdr
+    resp["body"] = read_file(p)
+    return resp
+}
+
 fn handle_submit(request) {
     let tenant = header_get(request, "x-phanes-tenant")
     let token  = bearer_token(request)
@@ -1224,8 +1246,8 @@ fn render_login_page(error_msg) {
 // Same Palantir Titanium design system as the marketing pages (shared
 // :root tokens, Alliance font, hairline borders, outline buttons); the
 // echoes-experience amber/navy palette is retired. Monospace is scoped
-// to data values only (job-id, seed, status). HTMX via unpkg
-// (TODO P3.x: self-host at /static/htmx.min.js).
+// to data values only (job-id, seed, status). HTMX is self-hosted at
+// /static/htmx.min.js — no external CDN (P3.x done).
 fn render_dashboard_page_for(tenant, existing_rows) {
     let mut h = "<!doctype html>\n<html lang=\"ko\"><head>"
     h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
@@ -1268,7 +1290,8 @@ fn render_dashboard_page_for(tenant, existing_rows) {
     h = h + ".dnote{margin-top:var(--sp-6);padding-top:var(--sp-4);border-top:1px solid var(--line);font-size:var(--fs-200);color:var(--fg-dim);line-height:1.7}"
     h = h + ".dnote code{font-family:var(--font-mono);color:var(--fg-muted)}"
     h = h + "</style>"
-    h = h + "<script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script>"
+    // self-hosted HTMX — same-origin, no external CDN SPOF (P3.x)
+    h = h + "<script src=\"/static/htmx.min.js\"></script>"
     h = h + "</head><body>"
     // top bar
     h = h + "<div class=\"dbar\"><a class=\"brand\" href=\"/\">phanes</a>"
@@ -1465,6 +1488,7 @@ fn dispatch(handler_name, request) {
     if handler_name == "logout"        { return handle_logout(request) }
     if handler_name == "lang_set"      { return handle_lang_set(request) }
     if handler_name == "health"        { return handle_health(request) }
+    if handler_name == "static_htmx"   { return handle_static_htmx(request) }
     if handler_name == "submit"        { return handle_submit(request) }
     if handler_name == "get_or_result" { return handle_get_or_result(request) }
     if handler_name == "dashboard"     { return handle_dashboard(request) }
@@ -1494,6 +1518,8 @@ fn main() {
     server_route(s, "POST", "/login",           "login_post")
     server_route(s, "POST", "/logout",          "logout")
     server_mount(s, "GET",  "/lang/",           "lang_set")
+    // self-hosted static asset (HTMX bundle) — no external CDN
+    server_route(s, "GET",  "/static/htmx.min.js", "static_htmx")
     // API
     server_route(s, "GET",  "/v1/healthz",      "health")
     server_route(s, "POST", "/v1/jobs",         "submit")
