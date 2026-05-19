@@ -779,7 +779,15 @@ fn _sections_css() {
     c = c + ".foot-col a:hover{opacity:1}"
     c = c + ".foot-legal{max-width:var(--container);margin:var(--sp-6) auto 0;padding:var(--sp-4) 36px 0;border-top:1px solid var(--line);font-size:var(--fs-tiny);letter-spacing:var(--ls-x);text-transform:uppercase;opacity:0.35}"
     // responsive collapse
-    c = c + "@media (max-width:760px){.cards{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.hero .stats{flex-direction:column}.hero .stat{border-right:0;border-bottom:1px solid var(--line)}.hero .stat:last-child{border-bottom:0}.sec{padding:var(--sp-6) 0}.foot-grid{flex-direction:column;gap:var(--sp-5)}}"
+    c = c + "@media (max-width:760px){.cards{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.hero .stats{flex-direction:column}.hero .stat{border-right:0;border-bottom:1px solid var(--line);width:100%}.hero .stat:last-child{border-bottom:0}.sec{padding:var(--sp-6) 0}.foot-grid{flex-direction:column;gap:var(--sp-5)}.sec-in{padding:0 var(--sp-4)}.hero{padding:var(--nav-h) var(--sp-4) var(--sp-7)}.foot-grid,.foot-legal{padding-left:var(--sp-4);padding-right:var(--sp-4)}"
+    // topnav collapse — fixed-height bar overflows a phone: shrink padding,
+    // wrap nav links, drop oversized inter-link gap, pull lang switcher off
+    // margin-auto so the row reflows instead of pushing the CTA off-screen.
+    c = c + ".topnav{padding:0 var(--sp-4);height:auto;min-height:var(--nav-h);flex-wrap:wrap;gap:var(--sp-3) var(--sp-4);padding-top:var(--sp-3);padding-bottom:var(--sp-3)}"
+    c = c + ".topnav .links{margin-left:0;gap:var(--sp-4);flex-wrap:wrap}"
+    c = c + ".topnav .langsw{margin-left:auto}"
+    c = c + ".topnav .right .cta{padding:10px 18px}"
+    c = c + ".topnav .langsw summary{padding:10px 18px}}"
     return c
 }
 
@@ -1289,6 +1297,10 @@ fn render_dashboard_page_for(tenant, existing_rows) {
     // honest-scope footnote
     h = h + ".dnote{margin-top:var(--sp-6);padding-top:var(--sp-4);border-top:1px solid var(--line);font-size:var(--fs-200);color:var(--fg-dim);line-height:1.7}"
     h = h + ".dnote code{font-family:var(--font-mono);color:var(--fg-muted)}"
+    // mobile collapse — 36px gutters + fixed-height bar are too tight on a
+    // phone: shrink gutters, let the bar grow, wrap the tenant/logout row,
+    // and stack the rounds+submit frow so the submit button never overflows.
+    h = h + "@media (max-width:760px){.dwrap{padding-left:var(--sp-4);padding-right:var(--sp-4)}.dbar{padding:0 var(--sp-4)}.dbar .who{gap:var(--sp-3)}.panel{padding:var(--sp-4)}.panel .frow{flex-direction:column;align-items:stretch;gap:var(--sp-4)}input[type=number]{width:100%}}"
     h = h + "</style>"
     // self-hosted HTMX — same-origin, no external CDN SPOF (P3.x)
     h = h + "<script src=\"/static/htmx.min.js\"></script>"
@@ -1442,7 +1454,7 @@ fn handle_dashboard(request) {
 fn handle_dash_submit(request) {
     let sess = current_session(request)
     if sess == nil {
-        return _html_401("<li style=\"color:#ff7b72\">session expired — log in again</li>")
+        return _html_401("<li style=\"color:var(--accent-red)\">session expired — log in again</li>")
     }
     let tenant = to_string(sess["tenant"])
     let token  = to_string(sess["token"])
@@ -1454,7 +1466,7 @@ fn handle_dash_submit(request) {
     let seed   = urldecode(seed_r)
     let rounds = urldecode(rounds_r)
     if len(seed) < 10 {
-        return _html_400("<li style=\"color:#ff7b72\">seed too short (>=10 chars substantive)</li>")
+        return _html_400("<li style=\"color:var(--accent-red)\">seed too short (>=10 chars substantive)</li>")
     }
     let cmd = jobctl_cmd()
         + " submit --tenant " + shquote(tenant)
@@ -1464,10 +1476,10 @@ fn handle_dash_submit(request) {
     let r = exec_with_status(cmd)
     let stdout = r[0]; let rc = r[1]
     if rc == 4 {
-        return _html_401("<li style=\"color:#ff7b72\">auth failed (session stale)</li>")
+        return _html_401("<li style=\"color:var(--accent-red)\">auth failed (session stale)</li>")
     }
     if rc != 0 {
-        return _html_500("<li style=\"color:#ff7b72\">jobctl rc=" + to_string(rc) + "</li>")
+        return _html_500("<li style=\"color:var(--accent-red)\">jobctl rc=" + to_string(rc) + "</li>")
     }
     let job_id = stdout.trim()
     return _html_ok(render_job_row(job_id, "queued", "-", rounds, "-", ""))
