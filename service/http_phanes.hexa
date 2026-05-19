@@ -589,12 +589,16 @@ fn render_nav(current, lang, current_path) {
     let mut chx = ""
     let mut can = ""
     let mut cdm = ""
+    let mut cpr = ""
+    let mut cct = ""
     if current == "cosmogony" { cco = " class=\"current\"" }
     if current == "phanes"    { cph = " class=\"current\"" }
     if current == "demiurge"  { cde = " class=\"current\"" }
     if current == "hexa-lang" { chx = " class=\"current\"" }
     if current == "anima"     { can = " class=\"current\"" }
     if current == "demo"      { cdm = " class=\"current\"" }
+    if current == "pricing"   { cpr = " class=\"current\"" }
+    if current == "contact"   { cct = " class=\"current\"" }
     let mut n = "<nav class=\"topnav\">"
     n = n + "<a class=\"brand\" href=\"/?lang=" + lang + "\"" + cco + ">dancinlab</a>"
     n = n + "<div class=\"links\">"
@@ -603,6 +607,8 @@ fn render_nav(current, lang, current_path) {
     n = n + "<a href=\"/hexa-lang?lang=" + lang + "\"" + chx + ">hexa-lang</a>"
     n = n + "<a href=\"/anima?lang=" + lang + "\"" + can + ">Anima</a>"
     n = n + "<a href=\"/demo?lang=" + lang + "\"" + cdm + ">Demo</a>"
+    n = n + "<a href=\"/pricing?lang=" + lang + "\"" + cpr + ">Pricing</a>"
+    n = n + "<a href=\"/contact?lang=" + lang + "\"" + cct + ">Contact</a>"
     n = n + "</div>"
     // Reusable components: lang switcher + nav CTA
     n = n + render_lang_switcher(lang, current_path)
@@ -843,6 +849,8 @@ fn render_site_footer(lang) {
     // platform
     f = f + "<div class=\"foot-col\"><h4>platform</h4>"
     f = f + "<a href=\"/demo?lang=" + lang + "\">demo</a>"
+    f = f + "<a href=\"/pricing?lang=" + lang + "\">pricing</a>"
+    f = f + "<a href=\"/contact?lang=" + lang + "\">contact</a>"
     f = f + "<a href=\"/login\">" + _t("log_in", lang) + "</a>"
     f = f + "<a href=\"/dashboard\">dashboard</a></div>"
     f = f + "</div>"
@@ -1204,6 +1212,118 @@ fn render_demo_page(lang) {
     h = h + "<p class=\"lead\">The presets above are bounded on purpose. The dashboard lifts the cap: bring your own measurable objective and your own verifier, and drive the full OUROBOROS loop against it — your discoveries, your private catalog.</p>"
     h = h + "<div class=\"vf-cta\">" + render_cta("/login", _t("enter", lang) + " phanes", "primary-lg")
     h = h + "<span class=\"vf-sister\">discovery surface — <a href=\"/phanes?lang=" + lang + "\">how Phanes works</a></span>"
+    h = h + "</div></div></section>"
+    h = h + render_site_footer(lang)
+    h = h + "</body></html>"
+    return h
+}
+
+// ── Pricing page (/pricing) — Palantir Titanium design system. States
+// the Decision 12 + 13 pricing MODEL (tier + metered round overage, via
+// Stripe). g3: no concrete prices — Decision 12 fixed the model only;
+// tier names / quotas / per-round prices await a measured infra-cost
+// calibration, so this page publishes the structure, not invented
+// numbers.
+fn render_pricing_page(lang) {
+    let mut h = "<!doctype html>\n<html lang=\"" + lang + "\"><head>"
+    h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+    h = h + "<title>PHANES · pricing</title>"
+    h = h + "<style>" + _shared_css() + _sections_css() + "</style></head><body>"
+    h = h + render_nav("pricing", lang, "/pricing")
+    // hero
+    h = h + "<section class=\"hero\">"
+    h = h + "<div class=\"tag\">Pricing · Tier + Metered</div>"
+    h = h + "<h1 class=\"mark\">Pricing</h1>"
+    h = h + "<div class=\"sub\">A base tier plus metered overage — billed per OUROBOROS round, the unit of verified discovery work</div>"
+    h = h + "<div class=\"stats\">"
+    h = h + render_hero_stat("1", "round = the billing unit")
+    h = h + render_hero_stat("2", "layers: base + metered")
+    h = h + render_hero_stat("0", "charge without measured work")
+    h = h + "</div>"
+    h = h + "<div class=\"cue\">↓ scroll</div>"
+    h = h + "</section>"
+    // overview — the model
+    h = h + "<section class=\"sec\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">How Phanes Is Priced</h2>"
+    h = h + "<p class=\"lead\">Phanes charges for the discovery work the engine measurably performs — nothing else. A base tier bundles an included quota of OUROBOROS rounds; usage beyond the bundle is metered, per round.</p>"
+    h = h + "<p class=\"ov-p2\">A round is one turn of the loop — a goal proposed, a falsifier fired against it, a saturation check — and it is already a first-class, measured quantity in every job's result. Billing per round means your invoice maps exactly to the verified work done: no seats, no opaque bundles, no charge for a round the engine did not run. Payments are processed by Stripe; card data never touches Phanes.</p>"
+    h = h + "</div></section>"
+    // key features — what you pay for
+    h = h + "<section class=\"sec\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">What You Pay For</h2>"
+    h = h + "<div class=\"feats\">"
+    h = h + render_feat_bullet("The round, not the seat:",
+        "the OUROBOROS round is the unit — the actual unit of discovery work. You are not billed per user or per project; you are billed for the rounds the engine ran.")
+    h = h + render_feat_bullet("A predictable base:",
+        "each tier bundles a fixed quota of included rounds, so the recurring cost is known up front — no open-ended exposure for finance to sign off.")
+    h = h + render_feat_bullet("Metered overage only:",
+        "beyond the bundle, usage is metered per round. The metered component aligns the bill with the compute actually consumed — heavy use costs more, light use costs less, and an idle account costs nothing extra.")
+    h = h + "</div></div></section>"
+    // honest — numbers not yet published
+    h = h + "<section class=\"sec\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">Tiers &amp; Numbers</h2>"
+    h = h + "<p class=\"lead\">Concrete tier names, included quotas, and the per-round price are being finalized against measured infrastructure cost.</p>"
+    h = h + "<p class=\"ov-p2\">Phanes does not publish a number it has not verified — the same real-limits-first honesty that governs the engine governs the price list. For early-access pricing, or to size a plan for your team, get in touch.</p>"
+    h = h + "</div></section>"
+    // closer CTA → contact
+    h = h + "<section class=\"sec vf\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">Get Early-Access Pricing</h2>"
+    h = h + "<p class=\"lead\">Tell us the kind of objective you want to run and the scale you have in mind — we will follow up with an early-access plan.</p>"
+    h = h + "<div class=\"vf-cta\">" + render_cta("/contact?lang=" + lang, "contact", "primary-lg")
+    h = h + "<span class=\"vf-sister\">try it first — <a href=\"/demo?lang=" + lang + "\">see the demo</a></span>"
+    h = h + "</div></div></section>"
+    h = h + render_site_footer(lang)
+    h = h + "</body></html>"
+    return h
+}
+
+// ── Contact page (/contact) — Palantir Titanium design system. Honest:
+// lists the channels phanes actually has (GitHub on the public,
+// source-available repo). No contact email is shown — none has been
+// designated; one can be wired in when an address exists rather than
+// inventing one.
+fn render_contact_page(lang) {
+    let mut h = "<!doctype html>\n<html lang=\"" + lang + "\"><head>"
+    h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+    h = h + "<title>PHANES · contact</title>"
+    h = h + "<style>" + _shared_css() + _sections_css() + "</style></head><body>"
+    h = h + render_nav("contact", lang, "/contact")
+    // hero
+    h = h + "<section class=\"hero\">"
+    h = h + "<div class=\"tag\">Contact · dancinlab</div>"
+    h = h + "<h1 class=\"mark\">Contact</h1>"
+    h = h + "<div class=\"sub\">Reach the team behind Phanes — for early access, enterprise plans, or the source itself</div>"
+    h = h + "<div class=\"cue\">↓ scroll</div>"
+    h = h + "</section>"
+    // overview
+    h = h + "<section class=\"sec\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">Get In Touch</h2>"
+    h = h + "<p class=\"lead\">Phanes is a dancinlab product, built downstream of the open hexa-lang toolchain. The source is public and source-available — the fastest way to reach us is through the repository.</p>"
+    h = h + "<p class=\"ov-p2\">Whether you want early-access pricing, a plan sized for your team, to report something, or just to read the code that backs every honesty claim on this site — the channels below are the way in.</p>"
+    h = h + "</div></section>"
+    // channels — cards
+    h = h + "<section class=\"sec\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">Channels</h2>"
+    h = h + "<div class=\"cards\">"
+    h = h + render_feat_card("01", "GitHub — Issues",
+        "Bugs, questions, and feature requests.",
+        "Open an issue on the public dancinlab/phanes repository. This is the primary channel — public, tracked, and the same place the source itself lives.")
+    h = h + render_feat_card("02", "GitHub — The Source",
+        "Read the code behind the claims.",
+        "Phanes is source-available: every honest-scope claim on this site — verifier-as-sole-authority, no over-claim — is auditable in the repository. Browsing the code is itself a way to evaluate us.")
+    h = h + render_feat_card("03", "Early Access &amp; Enterprise",
+        "Plans, pricing, larger objectives.",
+        "For early-access pricing or a plan sized to your team, open a GitHub issue tagged \"sales\" with the kind of objective and scale you have in mind, and we will follow up.")
+    h = h + render_feat_card("04", "The Demo",
+        "See it before you ask.",
+        "The public demo runs three curated discovery scenarios end to end — the quickest way to understand what Phanes does before getting in touch.")
+    h = h + "</div></div></section>"
+    // closer CTA
+    h = h + "<section class=\"sec vf\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">Start Here</h2>"
+    h = h + "<p class=\"lead\">New to Phanes? Run the demo first, then reach out — or jump straight to the dashboard if you already have access.</p>"
+    h = h + "<div class=\"vf-cta\">" + render_github_cta("dancinlab/phanes", "GitHub")
+    h = h + "<span class=\"vf-sister\">or — <a href=\"/demo?lang=" + lang + "\">see the demo</a></span>"
     h = h + "</div></div></section>"
     h = h + render_site_footer(lang)
     h = h + "</body></html>"
@@ -1576,6 +1696,14 @@ fn handle_demo_page(request) {
     return _html_ok(render_demo_page(_detect_lang(request)))
 }
 
+fn handle_pricing_page(request) {
+    return _html_ok(render_pricing_page(_detect_lang(request)))
+}
+
+fn handle_contact_page(request) {
+    return _html_ok(render_contact_page(_detect_lang(request)))
+}
+
 // ── auth handlers ────────────────────────────────────────────────
 
 fn handle_login_get(request) {
@@ -1726,6 +1854,8 @@ fn dispatch(handler_name, request) {
     if handler_name == "hexa_lang_page" { return handle_hexa_lang_page(request) }
     if handler_name == "anima_page"    { return handle_anima_page(request) }
     if handler_name == "demo_page"     { return handle_demo_page(request) }
+    if handler_name == "pricing_page"  { return handle_pricing_page(request) }
+    if handler_name == "contact_page"  { return handle_contact_page(request) }
     if handler_name == "login_get"     { return handle_login_get(request) }
     if handler_name == "login_post"    { return handle_login_post(request) }
     if handler_name == "logout"        { return handle_logout(request) }
@@ -1760,6 +1890,8 @@ fn main() {
     // public demo funnel (Decision 3 = 가 · P4) — preset scenarios,
     // cached results, zero live compute (Decision 10)
     server_route(s, "GET",  "/demo",            "demo_page")
+    server_route(s, "GET",  "/pricing",         "pricing_page")
+    server_route(s, "GET",  "/contact",         "contact_page")
     // auth
     server_route(s, "GET",  "/login",           "login_get")
     server_route(s, "POST", "/login",           "login_post")
