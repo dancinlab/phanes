@@ -40,6 +40,16 @@
     { "tag": "v1", "new_sqlite_classes": ["PhanesWeb", "PhanesWorker"] }
   ],
 
+  // 5-min keep-warm cron — fires src/worker.js `scheduled()` which pings
+  // both containers. With sleepAfter=24h on each, the ping arrives well
+  // before sleep, so neither container ever reaches the wake-from-sleep
+  // path that hit containers#162 on 2026-05-20. 288 scheduled
+  // invocations/day — far inside CF's free tier. The cron is the active
+  // wedge-prevention; sleepAfter is the cron-failure safety net.
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
+
   // Secrets (set via `wrangler secret put`, NOT committed — public repo):
   //   R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_ACCOUNT_ID R2_BUCKET
   //   PHANES_Q_ACCOUNT_ID PHANES_Q_ID PHANES_Q_TOKEN

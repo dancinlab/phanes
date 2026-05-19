@@ -33,12 +33,13 @@ function _phanesEnv(role, env) {
 
 export class PhanesWeb extends Container {
   defaultPort = 8787;            // phanes-http binds 0.0.0.0:8787
-  // sleepAfter widened from 10m → 1h: the CF Containers wake-from-sleep
-  // path (containers#162) can wedge — observed 2026-05-20, hung after a
-  // 10h overnight idle. 6× fewer sleep-wake cycles = 6× less exposure
-  // to the wedge while keeping cost bounded (still sleeps when truly
-  // unused). Matches the spirit of PhanesWorker's 30m for the kick tier.
-  sleepAfter = "1h";
+  // sleepAfter = "24h" + a 5-min keep-warm cron (wrangler.jsonc triggers
+  // .crons) → the container is pinged every 5 min, so under normal
+  // operation it NEVER reaches the sleep threshold and therefore never
+  // exercises the CF Containers wake-from-sleep wedge (containers#162).
+  // The 24h cap is just the safety net for the corner case where the
+  // cron itself fails to fire — bounds cost to ≤1 idle day per outage.
+  sleepAfter = "24h";
   constructor(ctx, env) {
     super(ctx, env);
     this.envVars = _phanesEnv("web", env);
@@ -47,10 +48,11 @@ export class PhanesWeb extends Container {
 
 export class PhanesWorker extends Container {
   // The kick tier polls the queue forever; keep it alive well past the
-  // max job wall (F-D22 measured 75 s/5-rounds; cushion + the
-  // containers#162 sleep-kill guard → queue_worker also sets a long
-  // visibility timeout).
-  sleepAfter = "30m";
+  // max job wall (F-D22 measured 75 s/5-rounds). Widened 30m → 24h to
+  // pair with the 5-min keep-warm cron — same logic as PhanesWeb: cron
+  // ping prevents sleep entirely; the 24h cap is the cron-failure
+  // safety net. (containers#162 wake-wedge guard.)
+  sleepAfter = "24h";
   constructor(ctx, env) {
     super(ctx, env);
     this.envVars = _phanesEnv("worker", env);
@@ -64,12 +66,19 @@ export default {
     return getContainer(env.PHANES_WEB).fetch(request);
   },
 
-  // Hourly tick: ensure the worker-tier container is running so it keeps
-  // draining `phanes-jobs`. (The pull loop itself is REST, Decision 24;
-  // this only guarantees the consumer process exists.)
+  // 5-min keep-warm tick (wrangler.jsonc triggers.crons "*/5 * * * *"):
+  // ping BOTH containers so neither reaches the sleepAfter threshold
+  // → containers#162 wake-wedge never fires. The web ping doubles as a
+  // /v1/healthz probe; the worker ping just guarantees the consumer
+  // process exists (it pulls phanes-jobs via REST, Decision 24).
   async scheduled(_event, env) {
-    await getContainer(env.PHANES_WORKER).fetch(
-      new Request("http://worker/healthz")
-    );
+    await Promise.all([
+      getContainer(env.PHANES_WEB).fetch(
+        new Request("http://web/v1/healthz")
+      ),
+      getContainer(env.PHANES_WORKER).fetch(
+        new Request("http://worker/healthz")
+      ),
+    ]);
   },
 };
