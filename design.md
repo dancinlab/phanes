@@ -563,6 +563,47 @@ impossibility.
 
 ---
 
+### Decision 12 — Pricing model = (다) tier + metered hybrid
+
+**picked**: `(다)` — a **base tier with an included quota, plus metered
+overage**. Each tier (e.g. a free/trial tier and one or more paid
+tiers) bundles a fixed number of included OUROBOROS rounds per billing
+period; usage beyond the bundle is metered per round. The OUROBOROS
+**round** is the billing unit.
+
+**rationale**:
+- **A kick job burns real compute, so revenue must track cost.** Each
+  OUROBOROS round consumes CPU and wall-time on the EC2 host (Decision
+  11) — a real, variable cost. A pure flat/seat plan (가) lets a heavy
+  tenant run at a loss; the metered component aligns the bill with the
+  compute actually consumed.
+- **A base tier keeps it sellable.** Pure metering (나) makes the bill
+  unpredictable, which blocks B2B adoption ("we can't sign an open
+  cheque"). A base tier gives a predictable floor and an included
+  bundle; only the overage is metered — predictability without the
+  flat-plan loss exposure.
+- **The metering substrate already exists — near-zero new code.** Every
+  job already records its round count and `wall_ms` in `job.json` /
+  `DrillResult`. Metering is an *aggregation* of data phanes already
+  writes per job — no new instrumentation pipeline, no engine change.
+- **The round is the honest billing unit.** A round is the actual unit
+  of discovery work (goal → falsifier → saturation, one turn of the
+  loop) and is already first-class in the engine's output. Billing per
+  round means the customer is charged for exactly the verified work
+  done — consistent with scope B (`@D g_honest_scope.scope_b`: the
+  tenant verifier, not phanes, judges "objective met"; phanes only
+  bills the work the engine measurably performed).
+
+**honest scope (g3)**: this decision fixes the *pricing model* only.
+The concrete tier names, prices, and bundle sizes are a later
+calibration (they need a real EC2 per-round cost measurement first —
+do not invent numbers). Payment processing — a PG / Stripe-style
+integration — is a separate decision (Decision 13). A free/trial tier
+may also serve as the interim "measure demand first" surface before
+paid tiers switch on (g3 measured-first).
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
