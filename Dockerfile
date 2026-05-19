@@ -17,7 +17,10 @@
 # portable artifact (HEXA-NATIVE-ONLY: the C path is a fallback
 # artifact, not a third-party codegen backend).
 
-ARG HEXALANG_SHA=9e55b864aacde978cfe87a9258cf2b0513d36dee
+# Pinned to an origin/main SHA that carries the stdlib phanes imports
+# (stdlib/aws/sigv4.hexa + stdlib/core/hash/hmac.hexa + stdlib/net/*) —
+# the earlier 9e55b864 predated the SigV4 stdlib landing on main.
+ARG HEXALANG_SHA=645ed1c02089d9d422016f63781a63b97f3b1c9c
 
 # ── Stage 1: builder — bootstrap hexa, build phanes-http (linux) ──────
 FROM debian:bookworm-slim AS builder
