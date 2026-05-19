@@ -82,3 +82,19 @@ Both audits came back clean of any actionable defect: C2 measured
 NOT-honored (matching the existing accurate code comment — no change
 correct) and C3 found every rendered string within honest scope. No
 phanes source was modified; this note is the deliverable.
+
+---
+
+## Update — 2026-05-19 (C2 superseded)
+
+The C2 "NOT-honored" finding above was a point-in-time measurement of a
+pre-promote kick binary. Later the same day the kick binary was rebuilt
+and promoted (`tool/build_absorbed_binaries.sh kick` against the
+HX_DATA_DIR-carrying `compiler/drill/` source) and re-probed: with
+`HX_DATA_DIR` set, the engine writes `atlas.overlay.n6` +
+`drill_checkpoint.json` there — **now honored**. `job_runner.sh` was
+wired to set `HX_DATA_DIR="$JAIL/.hx/data"` (jail kept as
+defense-in-depth), and a verifier-less-submit `set -u` bug in
+`jobctl.sh` was fixed along the way. Verified end-to-end: jobctl submit
+→ job_runner → kick → done, rc=0, overlay under `JAIL/.hx/data`. See
+commit `37c66b2`.
