@@ -2101,7 +2101,36 @@ fn dispatch(handler_name, request) {
 
 // ── main ─────────────────────────────────────────────────────────
 
+// PHANES_R2_SELFTEST=1 — exercise the real r2_put/get/delete path
+// against the live bucket then exit (ops health check; no duplicated
+// signing code). Round-trips a unique key, asserts body byte-equality,
+// deletes it, asserts the delete took. Prints `R2-SELFTEST: PASS|FAIL`.
+fn r2_selftest() {
+    let stamp = env("PHANES_R2_SELFTEST_STAMP")
+    let key   = "_selftest/" + stamp + ".txt"
+    let body  = "phanes-r2-selftest-" + stamp
+    println("R2-SELFTEST: bucket=" + _r2_bucket() + " host=" + _r2_host() + " key=" + key)
+    let p = r2_put(key, body)
+    println("  put    -> ok=" + to_string(p["ok"]) + " status=" + to_string(p["status"]) + " err=" + p["error"])
+    if !p["ok"] { println("R2-SELFTEST: FAIL (put)"); return }
+    let g = r2_get(key)
+    println("  get    -> ok=" + to_string(g["ok"]) + " status=" + to_string(g["status"]) + " bytes=" + to_string(len(g["body"])))
+    if !g["ok"] { println("R2-SELFTEST: FAIL (get)"); return }
+    if g["body"] != body {
+        println("  body MISMATCH: got [" + g["body"] + "] want [" + body + "]")
+        println("R2-SELFTEST: FAIL (roundtrip)"); return
+    }
+    let d = r2_delete(key)
+    println("  delete -> ok=" + to_string(d["ok"]) + " status=" + to_string(d["status"]))
+    if !d["ok"] { println("R2-SELFTEST: FAIL (delete)"); return }
+    let g2 = r2_get(key)
+    println("  get'   -> status=" + to_string(g2["status"]) + " (expect 404)")
+    if g2["ok"] { println("R2-SELFTEST: FAIL (delete did not take)"); return }
+    println("R2-SELFTEST: PASS")
+}
+
 fn main() {
+    if env("PHANES_R2_SELFTEST") == "1" { r2_selftest(); return }
     let mut host = env("PHANES_BIND_HOST")
     if len(host) == 0 { host = "127.0.0.1" }
     let port_s = env("PHANES_BIND_PORT")
