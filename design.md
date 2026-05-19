@@ -1265,6 +1265,71 @@ Sub-gate still deferred (not batched): worker autoscaling trigger
 
 ---
 
+### Decision 24 — Queue access model = (a) Cloudflare Queues REST API (no Worker sidecar), F-D23 PASS
+
+**picked**: `(a) CF Queues REST API`, decided by measurement (goal "go
+to all closure" — no paper gate; instrument-first per the project
+methodology). The open question from Decision 23 was: a CF Queue
+producer/consumer is normally a Worker binding, but phanes is a
+**hexa-native binary, not a Worker** — how does it touch the queue?
+Three candidates were on the table: (a) CF Queues **REST API** direct
+from the binary, (b) a thin Worker sidecar bridging queue↔container,
+(c) container-is-part-of-a-Worker.
+
+Cloudflare Queues exposes a **full HTTP REST API**: HTTP-push producer
+(`POST /accounts/{acct}/queues/{qid}/messages`), HTTP-pull consumer
+(`POST …/messages/pull`), and ack (`POST …/messages/ack`) — so a
+non-Worker process can do the whole lifecycle with a CF API credential
+over the same curl-shell carrier phanes already uses for R2. (b)/(c)
+add a Worker we do not need. **(a) picked.**
+
+**F-D23 RESULT — falsifier RAN, measured PASS (2026-05-19, live CF):**
+
+End-to-end against the real Cloudflare Queues API (account d4acc9…079bc,
+`X-Auth-Email`/`X-Auth-Key` global-key auth):
+
+```
+create queue                               -> success
+add http_pull consumer                     -> success
+send  {"tenant":"acme","job_id":"job_…"}    -> success=True
+pull                                       -> body byte-EQ to sent ✅
+ack   (lease_id)                           -> ackCount=1
+delete queue (cleanup)                     -> success
+```
+
+The Decision 23 pointer message `{tenant,job_id}` round-trips
+**byte-exact** through a real queue from a non-Worker caller. The
+F-D23 risk (could the 2-tier split's queue even be reached without a
+Worker?) is **falsified — it can.**
+
+**rationale**:
+- **Measured, not assumed.** Same discipline as F-D22 — the queue
+  model was proven on live infra before locking, not reasoned.
+- **No new component.** REST API reuses the existing signed-curl
+  carrier pattern; zero Worker sidecar, consistent with "minimum
+  moving parts" and Decision 22's 2-tier shape.
+- **Symmetric producer/consumer.** Web tier HTTP-pushes on submit;
+  worker pool HTTP-pulls + acks (visibility timeout = the redelivery
+  lease; at-least-once + kick per-job_id idempotence, per Decision 23).
+
+**honest scope (g3)**:
+- F-D23 used the `cloudflare.global_key`. **Production must use a
+  scoped CF API token** (Queues edit only), mirroring the R2
+  least-privilege token (Decision 21) — recorded as a pre-launch
+  obligation, not built now.
+- This proves the *transport*. The remaining B3 is engineering on top:
+  web tier emits the push on submit; the worker is a pull+ack loop that
+  pulls a pointer, `GetObject`s the job record from R2, runs kick,
+  `PutObject`s status/overlay. None of that is blocked now —
+  transport + storage primitive are both measured.
+- Actual Cloudflare deployment (queue creation in the prod account,
+  container images, DNS cutover) is **user-gated** — it is billable,
+  account-bound, outward-facing infrastructure; closure here means
+  every piece is locally measured and the deploy is the explicit
+  remaining user action.
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
