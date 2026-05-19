@@ -644,6 +644,39 @@ it does not implement billing.
 
 ---
 
+### Decision 14 — Deployment method = (나) repo-committed deploy.sh
+
+**picked**: `(나)` — a **deploy script committed to the repo**. It
+rsyncs the source to the EC2 host, runs `service/build.sh` there,
+health-checks `/v1/healthz`, and rolls back to the previous binary on
+failure. No IaC, no container image.
+
+**rationale**:
+- **For one EC2 host (Decision 11), IaC is over-engineering.** Terraform
+  / CloudFormation earn their keep on fleets and reproducible
+  multi-resource infra; a single box does not justify the learning and
+  maintenance cost — the same measure-demand-first logic as Decision
+  11's deferred fleet.
+- **A committed script is reproducible; manual SSH is not.** Option (가)
+  makes each deploy depend on memory ("what did I run yesterday"), and
+  without a health-check + rollback a broken build goes straight to
+  live. `deploy.sh` is the SSOT for the deploy procedure and thins onto
+  the existing `service/build.sh`.
+- **A container image (라) conflicts with Decision 11's shape.** EC2
+  runs the native binary directly; adding a Docker layer is unnecessary
+  weight. Containerization is only needed for the CF-Containers
+  future-path, which is itself gated behind the durable-store rewrite.
+- **It grows without rework.** When a fleet eventually exists,
+  `deploy.sh` becomes the per-host step a small orchestrator calls —
+  no rewrite.
+
+**honest scope (g3)**: `deploy.sh` can be written now, but the actual
+deploy needs the user's AWS account — creating the EC2 instance, key
+pair, and security group are console/CLI actions outside the repo. The
+script covers "given an EC2 host exists, ship to it."
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
