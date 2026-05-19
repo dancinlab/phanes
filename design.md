@@ -1355,6 +1355,43 @@ production scoped-token rotation; and the user-gated live Cloudflare
 Containers deploy. The architecture itself is no longer a risk — it is
 measured.
 
+**DEPLOY EXECUTION (2026-05-19, "배포 …연결 완료까지 진행", measured):**
+
+Driven autonomously via non-interactive wrangler auth
+(`CLOUDFLARE_API_KEY`+`CLOUDFLARE_EMAIL` global-key env — no
+interactive `wrangler login` needed). Scaffold: `Dockerfile`
+(pinned-SHA upstream clone, `clang … hexa_cc.c` bootstrap),
+`wrangler.jsonc` (PhanesWeb std-1×3 / PhanesWorker std-2×5),
+`src/worker.js` (`@cloudflare/containers@0.3.4`, `envVars` role
+switch), `package.json`, top-level `deploy.sh`, `cutover-domain.sh`.
+
+LIVE + measured:
+- Reversible data/queue plane (R2 bucket `phanes`, durable queue
+  `phanes-jobs` + http_pull@600 s, scoped least-priv token) — verified.
+- **Worker deployed**: `https://phanes.dancinlife.workers.dev`
+  (Version bd9df80f) — bindings PHANES_WEB/PHANES_WORKER (Durable
+  Objects), both container classes recognized, **all 7 runtime secrets
+  pushed** (R2×4 + Queue×3). `deploy --containers-rollout=none`
+  exit 0.
+- `dancinlab.org`: active CF zone (6c41a072…), 8 records all mail, no
+  web record — cutover is purely additive (mail untouched).
+
+**Measured wall (honest, g3):** the container image is **not** rolled
+out. `wrangler deploy` builds the image with the **local Docker CLI**
+(absent here; podman absent; the wilson-pool hosts ssh-timed-out all
+session) — so the `Dockerfile` linux hexa-bootstrap was never
+exercised; the wall is *upstream of it*, at image build, an
+environment/tooling fact, not a phanes or hexa defect. The Worker
+URL therefore times out (fetch → container that isn't rolled out).
+
+**The single remaining user action:** provide a Docker-capable
+context (Docker Desktop locally, or a reachable Docker host via
+`WRANGLER_DOCKER_BIN`/`DOCKER_HOST`), then `bash deploy.sh` builds +
+rolls out the two container images; smoke the `*.workers.dev` URL;
+then `bash cutover-domain.sh dancinlab.org` for the deliberate DNS
+bind. Everything up to the Docker-gated image build is done and
+measured; nothing is faked as deployed.
+
 ---
 
 ## All product gates closed (2026-05-19)

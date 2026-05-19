@@ -17,15 +17,16 @@
       "class_name": "PhanesWeb",
       "image": "./Dockerfile",
       "instance_type": "standard-1",      // HTTP tier: light, ms requests
-      "max_instances": 3,
-      "env": { "PHANES_ROLE": "web" }
+      "max_instances": 3
+      // PHANES_ROLE=web set via the PhanesWeb.envVars in src/worker.js
+      // (wrangler containers[] has no `env` field)
     },
     {
       "class_name": "PhanesWorker",
       "image": "./Dockerfile",
       "instance_type": "standard-2",      // kick tier: F-D22 floor ≥6 GiB
-      "max_instances": 5,                 // worker pool ×N (Decision 22)
-      "env": { "PHANES_ROLE": "worker" }
+      "max_instances": 5                  // worker pool ×N (Decision 22)
+      // PHANES_ROLE=worker via PhanesWorker.envVars in src/worker.js
     }
   ],
 

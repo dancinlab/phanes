@@ -16,14 +16,18 @@ import { Container, getContainer } from "@cloudflare/containers";
 export class PhanesWeb extends Container {
   defaultPort = 8787;            // run-phanes.sh binds 0.0.0.0:8787
   sleepAfter = "10m";            // HTTP tier may idle between requests
+  // env to the container (wrangler.jsonc containers[] has no `env`
+  // field — role is set here, read by the Dockerfile ENTRYPOINT).
+  envVars = { PHANES_ROLE: "web" };
 }
 
 export class PhanesWorker extends Container {
   // The kick tier polls the queue forever; keep it alive well past the
   // max job wall (F-D22 measured 75 s/5-rounds; cushion + the
   // containers#162 sleep-kill guard → queue_worker also sets a long
-  // visibility timeout). renew on each loop tick.
+  // visibility timeout).
   sleepAfter = "30m";
+  envVars = { PHANES_ROLE: "worker" };
 }
 
 export default {
