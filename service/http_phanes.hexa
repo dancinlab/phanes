@@ -121,7 +121,17 @@ fn handle_submit(request) {
     if rc == 4 { return json_error(401, "auth failed") }
     if rc != 0 { return json_error(500, "jobctl rc=" + to_string(rc) + " · stdout=" + stdout) }
     let out = #{}
-    out["job_id"] = stdout.trim()
+    let job_id = stdout.trim()
+    out["job_id"] = job_id
+    // Decision 24: the job record is now durable (jobctl returned the
+    // id); HTTP-push the {tenant,job_id} pointer to the CF Queue so the
+    // worker pool consumes it. Best-effort + reported in the response —
+    // when the queue is disabled (no PHANES_Q_*) the local detached
+    // spawn jobctl already started is the path (degrade), so a missing
+    // queue never fails a submit.
+    let q = q_send(tenant, job_id)
+    out["queued"] = q["ok"]
+    if !q["ok"] && q_enabled() { out["queue_error"] = q["error"] }
     let resp = #{}
     resp["status"] = 201
     resp["content_type"] = "application/json"
@@ -386,6 +396,58 @@ fn r2_delete(key)     { return r2_request("DELETE", _r2_bucket(), key, "", "") }
 // r2_list — ListObjectsV2 under a key prefix. Caller sorts/limits the
 // returned XML (newest-first via a reverse-timestamp key prefix).
 fn r2_list(prefix)    { return r2_request("GET", _r2_bucket(), "", "list-type=2&prefix=" + prefix, "") }
+
+// ── CF Queues dispatch producer (Decision 24 — REST API, F-D23 PASS) ──
+// On submit the web tier HTTP-pushes a pointer {tenant,job_id} to the
+// Cloudflare Queue; the worker pool is the pull+ack consumer. Endpoint
+// measured-validated by F-D23. Pure curl-shell carrier (same model as
+// r2_request) — no Worker sidecar (Decision 24). Creds from env
+// (run-phanes.sh ← secret cloudflare.queues.*): PHANES_Q_ACCOUNT_ID,
+// PHANES_Q_ID, PHANES_Q_TOKEN. Absent ⇒ q_enabled()=false ⇒ submit
+// skips the push and the job still runs via the local detached spawn
+// (degrade preserves today's behavior; the Queue is the 2-tier path).
+fn q_enabled() {
+    return len(env("PHANES_Q_ACCOUNT_ID")) > 0
+        && len(env("PHANES_Q_ID")) > 0
+        && len(env("PHANES_Q_TOKEN")) > 0
+}
+
+// q_send — POST {"body":{"tenant","job_id"}} to the queue. Returns a
+// dict {ok:bool, status:int, error:str}. Best-effort: a failed push is
+// reported, not fatal (the local detached spawn is the fallback path
+// until the worker tier is the sole consumer).
+fn q_send(tenant, job_id) {
+    let mut result = #{}
+    result["ok"]     = false
+    result["status"] = 0
+    result["error"]  = ""
+    if !q_enabled() { result["error"] = "queue disabled (PHANES_Q_* unset)"; return result }
+    let acct = env("PHANES_Q_ACCOUNT_ID")
+    let qid  = env("PHANES_Q_ID")
+    let tok  = env("PHANES_Q_TOKEN")
+    let url  = "https://api.cloudflare.com/client/v4/accounts/" + acct
+        + "/queues/" + qid + "/messages"
+    // pointer-only payload (Decision 23) — far under the 128 KB CF cap.
+    let payload = "{\"body\":{\"tenant\":" + json_stringify(tenant)
+        + ",\"job_id\":" + json_stringify(job_id) + "}}"
+    let cmd = "curl -sS -X POST --max-time 15"
+        + " -H " + shquote("Authorization: Bearer " + tok)
+        + " -H " + shquote("Content-Type: application/json")
+        + " --data " + shquote(payload)
+        + " -w " + shquote("\n%{http_code}")
+        + " " + shquote(url)
+    let rr = exec_with_status(cmd)
+    let out = rr[0]
+    if rr[1] != 0 { result["error"] = "curl failed rc=" + to_string(rr[1]); return result }
+    let lines = out.split("\n")
+    let n = len(lines)
+    if n < 1 { result["error"] = "empty response"; return result }
+    let status_str = lines[n - 1].trim()
+    result["status"] = to_int(status_str)
+    if result["status"] == 200 { result["ok"] = true }
+    if !result["ok"] { result["error"] = "queue HTTP " + status_str }
+    return result
+}
 
 // rate_limit_ok(key, max_hits, window_sec) — records this hit and
 // returns true if the caller is within the limit, false if over it.
