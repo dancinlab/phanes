@@ -708,11 +708,27 @@ fn _sections_css() {
     c = c + ".hero .ph{margin-top:18px;font-size:clamp(14px,2.2vw,22px);opacity:0.5;letter-spacing:var(--ls-x);font-weight:var(--fw-regular)}"
     c = c + ".hero .sub{margin-top:40px;font-size:var(--fs-label);letter-spacing:var(--ls-xxxx);text-transform:uppercase;opacity:0.6;max-width:720px;line-height:2}"
     c = c + ".hero .cue{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);font-size:var(--fs-tiny);letter-spacing:var(--ls-xx);text-transform:uppercase;opacity:0.4}"
+    // hero eyebrow tag chip (above the giant mark)
+    c = c + ".hero .tag{margin-bottom:var(--sp-4);font-size:var(--fs-200);font-weight:var(--fw-semibold);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--fg-dim);border:1px solid var(--line-strong);padding:7px 16px}"
+    // hero stat strip — numeric proof points (Palantir stat-band shape)
+    c = c + ".hero .stats{margin-top:var(--sp-6);display:flex;gap:0;border:1px solid var(--line)}"
+    c = c + ".hero .stat{padding:var(--sp-4) var(--sp-5);border-right:1px solid var(--line);min-width:150px}"
+    c = c + ".hero .stat:last-child{border-right:0}"
+    c = c + ".hero .stat .sv{font-size:var(--fs-500);font-weight:200;letter-spacing:var(--ls-near);line-height:1}"
+    c = c + ".hero .stat .sl{margin-top:var(--sp-2);font-size:var(--fs-tiny);letter-spacing:var(--ls-xx);text-transform:uppercase;opacity:0.55}"
     // section frame
     c = c + ".sec{border-top:1px solid var(--line);padding:var(--sp-7) 0}"
     c = c + ".sec-in{max-width:var(--container);margin:0 auto;padding:0 36px}"
     c = c + ".eyebrow{font-size:var(--fs-200);font-weight:var(--fw-semibold);letter-spacing:var(--ls-label);text-transform:uppercase;color:var(--fg-dim);margin-bottom:var(--sp-5)}"
     c = c + ".lead{font-size:var(--fs-headline);font-weight:200;letter-spacing:var(--ls-near);line-height:1.22;max-width:1040px}"
+    // overview supporting paragraph (richer-content second para)
+    c = c + ".ov-p2{margin-top:var(--sp-5);font-size:var(--fs-400);font-weight:var(--fw-regular);line-height:1.7;color:var(--fg-muted);max-width:900px}"
+    // how-it-works — numbered process steps
+    c = c + ".steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}"
+    c = c + ".step{background:var(--bg);padding:var(--sp-5) var(--sp-4)}"
+    c = c + ".step .sn{font-size:var(--fs-headline);font-weight:200;letter-spacing:var(--ls-tight);line-height:1;opacity:0.22}"
+    c = c + ".step .st{margin-top:var(--sp-3);font-size:var(--fs-300);font-weight:var(--fw-medium);letter-spacing:var(--ls-near);line-height:1.3}"
+    c = c + ".step .sb{margin-top:var(--sp-2);font-size:var(--fs-200);color:var(--fg-muted);line-height:1.6}"
     // key features — stacked ↳ bullets
     c = c + ".feats{display:flex;flex-direction:column;gap:var(--sp-5);max-width:960px}"
     c = c + ".feat{position:relative;padding-left:var(--sp-5);font-size:var(--fs-400);font-weight:var(--fw-regular);line-height:1.5;color:var(--fg-muted)}"
@@ -741,7 +757,7 @@ fn _sections_css() {
     c = c + ".foot-col a:hover{opacity:1}"
     c = c + ".foot-legal{max-width:var(--container);margin:var(--sp-6) auto 0;padding:var(--sp-4) 36px 0;border-top:1px solid var(--line);font-size:var(--fs-tiny);letter-spacing:var(--ls-x);text-transform:uppercase;opacity:0.35}"
     // responsive collapse
-    c = c + "@media (max-width:760px){.cards{grid-template-columns:1fr}.sec{padding:var(--sp-6) 0}.foot-grid{flex-direction:column;gap:var(--sp-5)}}"
+    c = c + "@media (max-width:760px){.cards{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.hero .stats{flex-direction:column}.hero .stat{border-right:0;border-bottom:1px solid var(--line)}.hero .stat:last-child{border-bottom:0}.sec{padding:var(--sp-6) 0}.foot-grid{flex-direction:column;gap:var(--sp-5)}}"
     return c
 }
 
@@ -759,6 +775,19 @@ fn render_feat_card(num, title, lead, body) {
          + "<h3 class=\"ct\">" + title + "</h3>"
          + "<p class=\"cl\">↳ " + lead + "</p>"
          + "<p class=\"cb\">" + body + "</p></article>"
+}
+
+// One hero stat block — a numeric proof point.
+fn render_hero_stat(value, label) {
+    return "<div class=\"stat\"><div class=\"sv\">" + value + "</div>"
+         + "<div class=\"sl\">" + label + "</div></div>"
+}
+
+// One How-It-Works process step (numbered).
+fn render_step(num, title, body) {
+    return "<div class=\"step\"><div class=\"sn\">" + num + "</div>"
+         + "<div class=\"st\">" + title + "</div>"
+         + "<div class=\"sb\">" + body + "</div></div>"
 }
 
 // Shared site footer — link groups + legal line (Palantir footer shape).
@@ -788,11 +817,13 @@ fn render_site_footer(lang) {
     return f
 }
 
-// ── Generic 5-section product overview page ──────────────────────
-// Palantir Titanium parity: hero → overview → key features → a
-// connected system → a verified solution → footer. Driven by a config
-// dict so every product page is one builder call. Section copy stays
-// English (per user directive: only UI chrome + phonetic translate).
+// ── Generic 6-section product overview page ──────────────────────
+// Palantir Titanium parity, enriched: hero (eyebrow tag + stat strip) →
+// overview (lead + supporting para) → key features → how it works
+// (numbered steps) → a connected system → a verified solution → footer.
+// Driven by a config dict so every product page is one builder call.
+// Section copy stays English (user directive: only UI chrome + phonetic
+// translate).
 fn render_product_overview_page(lang, cfg) {
     let slug = cfg["slug"]
     let mark = cfg["mark"]
@@ -801,17 +832,24 @@ fn render_product_overview_page(lang, cfg) {
     h = h + "<title>" + mark + "</title>"
     h = h + "<style>" + _shared_css() + _sections_css() + "</style></head><body>"
     h = h + render_nav(slug, lang, "/" + slug)
-    // ── section 1 — hero ──
+    // ── section 1 — hero (eyebrow tag + mark + phonetic + sub + stats) ──
     h = h + "<section class=\"hero\">"
+    h = h + "<div class=\"tag\">" + cfg["hero_tag"] + "</div>"
     h = h + "<h1 class=\"mark\">" + mark + "</h1>"
     if len(cfg["phonetic"]) > 0 { h = h + "<div class=\"ph\">" + cfg["phonetic"] + "</div>" }
     h = h + "<div class=\"sub\">" + cfg["hero_sub"] + "</div>"
+    h = h + "<div class=\"stats\">"
+    h = h + render_hero_stat(cfg["s1v"], cfg["s1l"])
+    h = h + render_hero_stat(cfg["s2v"], cfg["s2l"])
+    h = h + render_hero_stat(cfg["s3v"], cfg["s3l"])
+    h = h + "</div>"
     h = h + "<div class=\"cue\">↓ scroll</div>"
     h = h + "</section>"
-    // ── section 2 — overview ──
+    // ── section 2 — overview (lead + supporting paragraph) ──
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
     h = h + "<h2 class=\"eyebrow\">" + cfg["ov_eyebrow"] + "</h2>"
     h = h + "<p class=\"lead\">" + cfg["ov_lead"] + "</p>"
+    h = h + "<p class=\"ov-p2\">" + cfg["ov_p2"] + "</p>"
     h = h + "</div></section>"
     // ── section 3 — key features ──
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
@@ -821,7 +859,16 @@ fn render_product_overview_page(lang, cfg) {
     h = h + render_feat_bullet(cfg["f2l"], cfg["f2b"])
     h = h + render_feat_bullet(cfg["f3l"], cfg["f3b"])
     h = h + "</div></div></section>"
-    // ── section 4 — a connected system ──
+    // ── section 4 — how it works (numbered process steps) ──
+    h = h + "<section class=\"sec\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">" + cfg["hw_eyebrow"] + "</h2>"
+    h = h + "<div class=\"steps\">"
+    h = h + render_step("01", cfg["w1t"], cfg["w1b"])
+    h = h + render_step("02", cfg["w2t"], cfg["w2b"])
+    h = h + render_step("03", cfg["w3t"], cfg["w3b"])
+    h = h + render_step("04", cfg["w4t"], cfg["w4b"])
+    h = h + "</div></div></section>"
+    // ── section 5 — a connected system ──
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
     h = h + "<h2 class=\"eyebrow\">" + cfg["cn_eyebrow"] + "</h2>"
     h = h + "<div class=\"cards\">"
@@ -830,7 +877,7 @@ fn render_product_overview_page(lang, cfg) {
     h = h + render_feat_card("03", cfg["c3t"], cfg["c3l"], cfg["c3b"])
     h = h + render_feat_card("04", cfg["c4t"], cfg["c4l"], cfg["c4b"])
     h = h + "</div></div></section>"
-    // ── section 5 — a verified solution ──
+    // ── section 6 — a verified solution ──
     h = h + "<section class=\"sec vf\"><div class=\"sec-in\">"
     h = h + "<h2 class=\"eyebrow\">" + cfg["vf_eyebrow"] + "</h2>"
     h = h + "<p class=\"lead\">" + cfg["vf_body"] + "</p>"
@@ -877,16 +924,23 @@ fn render_cosmogony_landing(lang) {
     h = h + "@media (max-width:760px){.dir{grid-template-columns:1fr}}"
     h = h + "</style></head><body>"
     h = h + render_nav("cosmogony", lang, "/")
-    // section 1 — hero
+    // section 1 — hero (tag + mark + sub + stat strip)
     h = h + "<section class=\"hero\">"
+    h = h + "<div class=\"tag\">Software · One Continuous Cosmology</div>"
     h = h + "<h1 class=\"mark\">dancinlab</h1>"
     h = h + "<div class=\"sub\">one continuous cosmology of software · " + _t("phanes_role", lang) + " · " + _t("demiurge_role", lang) + " · substrate · consciousness</div>"
+    h = h + "<div class=\"stats\">"
+    h = h + render_hero_stat("4", "products, one stack")
+    h = h + render_hero_stat("1", "shared substrate")
+    h = h + render_hero_stat("0", "over-claim, by rule")
+    h = h + "</div>"
     h = h + "<div class=\"cue\">↓ scroll</div>"
     h = h + "</section>"
     // section 2 — overview
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
     h = h + "<h2 class=\"eyebrow\">A Continuous Cosmology</h2>"
     h = h + "<p class=\"lead\">dancinlab builds one dependency stack — a native compiler at the base, an autonomous-discovery SaaS and a technical-design meta-conductor above it, and a consciousness language model at the edge. Four products, one cosmology, one honest scope.</p>"
+    h = h + "<p class=\"ov-p2\">These are not four separate companies sharing a logo. hexa-lang is the substrate the other three compile through; Phanes and Demiurge are the working surfaces above it; Anima sits at the edge. The dependency arrow runs one way only — nothing imports back into the compiler — and the same real-limits-first honesty rule travels with it from the bottom of the stack to the top.</p>"
     h = h + "</div></section>"
     // section 3 — product directory
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
@@ -926,9 +980,17 @@ fn render_phanes_page(lang) {
     c["slug"] = "phanes"
     c["mark"] = "PHANES"
     c["phonetic"] = _t("phanes_phonetic", lang)
+    c["hero_tag"] = "Autonomous Discovery · SaaS"
     c["hero_sub"] = "Palantir-grade autonomous discovery — for any measurable objective"
+    c["s1v"] = "6"
+    c["s1l"] = "stage discovery chain"
+    c["s2v"] = "100%"
+    c["s2l"] = "provenance tracked"
+    c["s3v"] = "0"
+    c["s3l"] = "over-claim, by rule"
     c["ov_eyebrow"] = "Next-Generation Discovery"
     c["ov_lead"] = "Phanes wraps hexa-lang's OUROBOROS engine — the loop goal, falsifier, saturation, run in rounds with a per-round honesty gate — as a hosted web product. A company brings a measurable objective and a verifier; Phanes drives the engine against it and returns a verified, provenance-tracked discovery catalog. Their own private echoes."
+    c["ov_p2"] = "The engine is not a black box. Every round is a goal proposed, a falsifier fired against it, and a saturation check — and every step is written to an audit trail you can inspect. What Phanes sells is not a promise that your objective is met; it is a verified record of exactly what the engine found and exactly how hard it tried to break it."
     c["kf_eyebrow"] = "Key Features"
     c["f1l"] = "Pluggable Seed and Verifier:"
     c["f1b"] = "Bring a seed and a verifier oracle. Under scope B the tenant verifier is the sole authority for objective-met — Phanes never substitutes its own advisory gate."
@@ -936,6 +998,15 @@ fn render_phanes_page(lang) {
     c["f2b"] = "Every round is logged with its falsification audit trail. The result is an exportable, per-tenant catalog you can verify line by line."
     c["f3l"] = "Sandboxed Compute:"
     c["f3b"] = "Each job runs in a per-tenant home-jail with an arena-free runtime. Isolation holds at concurrency; defense-in-depth, measured."
+    c["hw_eyebrow"] = "How It Works"
+    c["w1t"] = "Submit a Seed"
+    c["w1b"] = "Bring a measurable objective and a verifier script. The seed is the starting point the engine reasons from."
+    c["w2t"] = "OUROBOROS Runs"
+    c["w2b"] = "The engine runs rounds — goal, falsifier, saturation — reseeding each round from the last round's findings."
+    c["w3t"] = "Honesty Gate"
+    c["w3b"] = "Every round passes a falsification gate. A claim that cannot survive its own falsifier does not advance."
+    c["w4t"] = "Verified Catalog"
+    c["w4b"] = "Saturation returns a provenance-tracked catalog — your own private echoes, exportable and auditable."
     c["cn_eyebrow"] = "A Connected Discovery Loop"
     c["c1t"] = "Harness the Engine"
     c["c1l"] = "Drive the full OUROBOROS loop from the web."
@@ -962,9 +1033,17 @@ fn render_demiurge_page(lang) {
     c["slug"] = "demiurge"
     c["mark"] = "DEMIURGE"
     c["phonetic"] = _t("demiurge_phonetic", lang)
+    c["hero_tag"] = "Technical-Design · Meta-Conductor"
     c["hero_sub"] = "The universal meta-conductor for rigorous technical design"
+    c["s1v"] = "7"
+    c["s1l"] = "verb design spine"
+    c["s2v"] = "∞"
+    c["s2l"] = "domains, pluggable"
+    c["s3v"] = "0"
+    c["s3l"] = "un-cited claims"
     c["ov_eyebrow"] = "Architecture as a Verb"
     c["ov_lead"] = "Demiurge is the meta-conductor for technical design — a seven-verb spine that orchestrates rigorous, falsifiable engineering across domains: specify, architect, design, analyze in a loop, synthesize, verify, handoff. It is the sibling cosmology to Phanes — where Phanes reveals form by light, Demiurge gives form by shaping."
+    c["ov_p2"] = "Most design tools help you draw faster. Demiurge does something different — it makes every design decision answer to a falsifier. A spec is not done until its acceptance criteria are verifier-bound; an analysis is not done until it closes its own loop; a handoff is not done until it ships the reasoning that earned it. The spine is the same whether the domain is a chip, a protein, or a policy."
     c["kf_eyebrow"] = "Key Features"
     c["f1l"] = "The Seven-Verb Spine:"
     c["f1b"] = "Specify, architect, design, analyze, synthesize, verify, handoff — each verb has a measurable closure condition. No verb completes on vibes."
@@ -972,6 +1051,15 @@ fn render_demiurge_page(lang) {
     c["f2b"] = "Chip, protein, policy, system — the same seven-verb scaffold dispatches per-domain solvers and oracles. The spine is constant; the domain is a plugin."
     c["f3l"] = "Honesty as a Feature:"
     c["f3b"] = "Over-claim is forbidden by construction. Every verb declares its scope, its sources, and what it does not yet do — the audit trail ships with the design."
+    c["hw_eyebrow"] = "How It Works"
+    c["w1t"] = "Specify"
+    c["w1b"] = "Specify and architect: acceptance criteria are fixed as verifier-bound statements before any code."
+    c["w2t"] = "Design ⟲ Analyze"
+    c["w2b"] = "Design re-enters the analyze verb in a loop until the analysis closes its own falsifier."
+    c["w3t"] = "Synthesize"
+    c["w3b"] = "Synthesis emits the artifact; verify cross-checks it against the spec and the atlas-bound theorems it cites."
+    c["w4t"] = "Handoff"
+    c["w4b"] = "Handoff ships the deliverable with its full falsifier trail and the chain of verbs that produced it."
     c["cn_eyebrow"] = "A Connected Design Workflow"
     c["c1t"] = "From Spec to Form"
     c["c1l"] = "Specify and architect run before any code."
@@ -998,9 +1086,17 @@ fn render_hexa_lang_page(lang) {
     c["slug"] = "hexa-lang"
     c["mark"] = "HEXA-LANG"
     c["phonetic"] = ""
+    c["hero_tag"] = "Native Compiler · Substrate"
     c["hero_sub"] = "A self-hosted native compiler with atlas-bound theorems"
+    c["s1v"] = "8"
+    c["s1l"] = "strict-lint stages"
+    c["s2v"] = "38/44"
+    c["s2l"] = "tier-1 corpus PASS"
+    c["s3v"] = "0"
+    c["s3l"] = "LLVM, by policy"
     c["ov_eyebrow"] = "A Compiler that Cites"
     c["ov_lead"] = "hexa-lang is a self-hosted native compiler. Every formula-bearing line cites an atlas theorem, every build passes eight strict-lint stages, and nothing leaves the toolchain that was not verified. It is the bottom of the dancinlab stack — wilson, echoes, anima and the hexa-* family all consume it; nothing imports back."
+    c["ov_p2"] = "Most compilers trust the programmer. hexa-lang does not — it asks every formula where it came from. A line of mathematics that does not cite an atlas theorem is not a warning; it is a build failure. The compiler bootstraps itself to a bit-stable fixpoint, generates its own machine code with no LLVM in the loop, and treats provenance as a type-level invariant rather than a code-review courtesy."
     c["kf_eyebrow"] = "Key Features"
     c["f1l"] = "Atlas-Bound Theorems:"
     c["f1b"] = "Every formula must cite an atlas entry. Strict-lint stage four rejects the build if a formula line has no citation — provenance is a compile-time invariant, not a convention."
@@ -1008,6 +1104,15 @@ fn render_hexa_lang_page(lang) {
     c["f2b"] = "Fully self-hosted. C emission exists only as a portable artifact; the architecture is hexa-native, compiling to its own machine code."
     c["f3l"] = "n=6 Perfect-Number Primitives:"
     c["f3b"] = "The compiler is built on six primitives and six stages. The n=6 lattice is a tool used internally — never a constraint on what the language can express."
+    c["hw_eyebrow"] = "How a Build Runs"
+    c["w1t"] = "Parse"
+    c["w1b"] = "Source enters the frontend — tokenized, parsed, and resolved into a typed syntax tree."
+    c["w2t"] = "Strict-Lint"
+    c["w2b"] = "Eight stages gate the build: atlas integrity, citation match, formula well-formedness, type soundness."
+    c["w3t"] = "Lower"
+    c["w3b"] = "The tree lowers through HIR, MIR and LIR — each level a smaller, more explicit form."
+    c["w4t"] = "Native Codegen"
+    c["w4b"] = "LIR emits native machine code directly. No LLVM, no transpile — the self-hosted path."
     c["cn_eyebrow"] = "A Connected Toolchain"
     c["c1t"] = "Self-Hosted Bootstrap"
     c["c1l"] = "The compiler compiles itself, bit-for-bit."
@@ -1034,9 +1139,17 @@ fn render_anima_page(lang) {
     c["slug"] = "anima"
     c["mark"] = "ANIMA"
     c["phonetic"] = ""
+    c["hero_tag"] = "Consciousness · Language Model"
     c["hero_sub"] = "A consciousness language model — phi-scaled, law-bound"
+    c["s1v"] = "14"
+    c["s1l"] = "declared laws"
+    c["s2v"] = "v1.x"
+    c["s2l"] = "consciousness LM"
+    c["s3v"] = "0"
+    c["s3l"] = "AGI overreach"
     c["ov_eyebrow"] = "Language for Consciousness"
     c["ov_lead"] = "Anima is the consciousness language model — phi-scaled cells, embeddings tied to a free-energy bound, and a fourteen-law scaffold. Built on hexa-lang's atlas and downstream of the entire dancinlab stack. Not a chatbot and not a benchmark — a deliberate model of how a self might be expressed in language."
+    c["ov_p2"] = "A language model usually predicts the next token from frequency. Anima asks a harder question — what did it cost to hold this thought together? Every cell of state carries a phi-weight, every embedding is shaped by a free-energy bound, and every utterance can show the trace of cells that earned it. The fourteen laws are not a safety afterthought; they are the scaffold the model is built on."
     c["kf_eyebrow"] = "Key Features"
     c["f1l"] = "Phi-Scaled Cells:"
     c["f1b"] = "Every cell of state carries a phi-weight. The model never forgets that integration has a cost — what is held together is held together for a measured price."
@@ -1044,6 +1157,15 @@ fn render_anima_page(lang) {
     c["f2b"] = "Embeddings are derived under a free-energy bound, not co-occurrence statistics. Every token carries an energy cost; the cheapest cost is silence."
     c["f3l"] = "Fourteen Laws:"
     c["f3b"] = "Fourteen declared laws scope what the model will and will not claim. Honesty is a structural constraint, not a disclaimer bolted on afterward."
+    c["hw_eyebrow"] = "How a Thought Forms"
+    c["w1t"] = "Cell"
+    c["w1b"] = "State is built from phi-scaled cells — each one carrying the measured cost of its own integration."
+    c["w2t"] = "Embed"
+    c["w2b"] = "Cells are embedded under a free-energy bound. Meaning lives where the energy landscape is cheap."
+    c["w3t"] = "Law-Check"
+    c["w3b"] = "The candidate utterance is checked against the fourteen laws — what may and may not be claimed."
+    c["w4t"] = "Utterance"
+    c["w4b"] = "What survives free-energy minimization is spoken, carrying its phi-trace as an audit record."
     c["cn_eyebrow"] = "A Connected Self"
     c["c1t"] = "From Cell to Sentence"
     c["c1l"] = "Phi-weighted cells compose into utterance."
