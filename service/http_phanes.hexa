@@ -588,11 +588,13 @@ fn render_nav(current, lang, current_path) {
     let mut cde = ""
     let mut chx = ""
     let mut can = ""
+    let mut cdm = ""
     if current == "cosmogony" { cco = " class=\"current\"" }
     if current == "phanes"    { cph = " class=\"current\"" }
     if current == "demiurge"  { cde = " class=\"current\"" }
     if current == "hexa-lang" { chx = " class=\"current\"" }
     if current == "anima"     { can = " class=\"current\"" }
+    if current == "demo"      { cdm = " class=\"current\"" }
     let mut n = "<nav class=\"topnav\">"
     n = n + "<a class=\"brand\" href=\"/?lang=" + lang + "\"" + cco + ">dancinlab</a>"
     n = n + "<div class=\"links\">"
@@ -600,6 +602,7 @@ fn render_nav(current, lang, current_path) {
     n = n + "<a href=\"/demiurge?lang=" + lang + "\"" + cde + ">Demiurge</a>"
     n = n + "<a href=\"/hexa-lang?lang=" + lang + "\"" + chx + ">hexa-lang</a>"
     n = n + "<a href=\"/anima?lang=" + lang + "\"" + can + ">Anima</a>"
+    n = n + "<a href=\"/demo?lang=" + lang + "\"" + cdm + ">Demo</a>"
     n = n + "</div>"
     // Reusable components: lang switcher + nav CTA
     n = n + render_lang_switcher(lang, current_path)
@@ -839,6 +842,7 @@ fn render_site_footer(lang) {
     f = f + "<a href=\"https://github.com/dancinlab/anima\" target=\"_blank\" rel=\"noopener\">GitHub · anima</a></div>"
     // platform
     f = f + "<div class=\"foot-col\"><h4>platform</h4>"
+    f = f + "<a href=\"/demo?lang=" + lang + "\">demo</a>"
     f = f + "<a href=\"/login\">" + _t("log_in", lang) + "</a>"
     f = f + "<a href=\"/dashboard\">dashboard</a></div>"
     f = f + "</div>"
@@ -994,8 +998,213 @@ fn render_cosmogony_landing(lang) {
     h = h + "<section class=\"sec vf\"><div class=\"sec-in\">"
     h = h + "<h2 class=\"eyebrow\">Honest by Construction</h2>"
     h = h + "<p class=\"lead\">Every dancinlab product inherits hexa-lang's real-limits-first rule: no over-claim, measured-or-it-did-not-happen. Phanes never claims objective-met without the tenant verifier. hexa-lang's strict-lint rejects un-cited formulas. Nothing ships a benchmark it cannot reproduce.</p>"
-    h = h + "<div class=\"vf-cta\">" + render_cta("/phanes?lang=" + lang, _t("enter", lang) + " phanes", "primary-lg") + "</div>"
+    h = h + "<div class=\"vf-cta\">" + render_cta("/phanes?lang=" + lang, _t("enter", lang) + " phanes", "primary-lg")
+    h = h + render_cta("/demo?lang=" + lang, "see the demo", "outline-lg")
+    h = h + "</div>"
     h = h + "</div></section>"
+    h = h + render_site_footer(lang)
+    h = h + "</body></html>"
+    return h
+}
+
+// ── Public demo (/demo) — P4 funnel ──────────────────────────────
+// Decision 10: the public demo shows PRE-COMPUTED / CACHED results of
+// curated preset scenarios. ZERO live compute on this unauthenticated
+// surface — no jobctl call, no process spawn, no job-store write. Each
+// scenario's result is a real prior `hexa kick` run, labelled "cached
+// preset run" with its provenance (seed + preset verifier + round cap).
+// Governance: @D g_public_demo_constraint (no arbitrary verifier / no
+// unbounded seed on the unauthenticated surface) — satisfied by the
+// strongest reading: there is no execution path here at all.
+// @D g_honest_scope: shows what `hexa kick` actually produces — a
+// verified, falsifier-audited discovery — never "completes your project".
+
+// One preset scenario panel: objective + preset verifier + the cached
+// goal→falsifier→saturation round trail + the verified result. Built
+// from constant data — `rounds` is the round trail list, each element
+// a "goal | falsifier-fired | verdict" triple already HTML-safe.
+fn render_demo_scenario(num, title, objective, verifier, round_cap, rounds_html, result, verifier_rc) {
+    let mut s = "<article class=\"dscn\">"
+    s = s + "<div class=\"dscn-h\">"
+    s = s + "<span class=\"dscn-n\">" + num + "</span>"
+    s = s + "<h3 class=\"dscn-t\">" + title + "</h3>"
+    s = s + "<span class=\"dscn-badge\">cached preset run</span>"
+    s = s + "</div>"
+    // objective + preset verifier (the two fixed inputs)
+    s = s + "<div class=\"dscn-io\">"
+    s = s + "<div class=\"dscn-row\"><span class=\"dscn-k\">objective</span>"
+    s = s + "<span class=\"dscn-v\">" + objective + "</span></div>"
+    s = s + "<div class=\"dscn-row\"><span class=\"dscn-k\">preset verifier</span>"
+    s = s + "<span class=\"dscn-v\">" + verifier + "</span></div>"
+    s = s + "<div class=\"dscn-row\"><span class=\"dscn-k\">round cap</span>"
+    s = s + "<span class=\"dscn-v\">" + round_cap + "</span></div>"
+    s = s + "</div>"
+    // the OUROBOROS round trail (goal → falsifier → saturation)
+    s = s + "<div class=\"dscn-lab\">round trail · goal → falsifier → saturation</div>"
+    s = s + "<ol class=\"dscn-rounds\">" + rounds_html + "</ol>"
+    // the verified result + verifier verdict
+    s = s + "<div class=\"dscn-res\">"
+    s = s + "<div class=\"dscn-res-k\">verified result</div>"
+    s = s + "<div class=\"dscn-res-v\">" + result + "</div>"
+    s = s + "<div class=\"dscn-rc\">preset verifier rc=<b>" + verifier_rc
+    s = s + "</b> — PASS (the verifier is the sole authority for objective-met)</div>"
+    s = s + "</div>"
+    s = s + "</article>"
+    return s
+}
+
+// One round-trail <li> — a single goal/falsifier/verdict triple.
+fn render_demo_round(n, goal, falsifier, verdict) {
+    let mut r = "<li><span class=\"drn\">round " + n + "</span>"
+    r = r + "<div class=\"drg\"><span class=\"drk\">goal</span> " + goal + "</div>"
+    r = r + "<div class=\"drf\"><span class=\"drk\">falsifier</span> " + falsifier + "</div>"
+    r = r + "<div class=\"drv\"><span class=\"drk\">verdict</span> " + verdict + "</div>"
+    r = r + "</li>"
+    return r
+}
+
+// Demo-only CSS — preset scenario panels. Uses :root tokens only;
+// hairline borders + outline aesthetic, consistent with the marketing
+// section system.
+fn _demo_css() {
+    let mut c = ""
+    c = c + ".demo-grid{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line)}"
+    c = c + ".dscn{background:var(--bg);padding:var(--sp-6) var(--sp-5)}"
+    c = c + ".dscn-h{display:flex;align-items:center;gap:var(--sp-3);flex-wrap:wrap}"
+    c = c + ".dscn-n{font-size:var(--fs-200);font-weight:var(--fw-semibold);letter-spacing:var(--ls-label);color:var(--fg-faint)}"
+    c = c + ".dscn-t{font-size:var(--fs-500);font-weight:var(--fw-medium);letter-spacing:var(--ls-near);line-height:1.2}"
+    c = c + ".dscn-badge{margin-left:auto;font-size:var(--fs-tiny);letter-spacing:var(--ls-x);text-transform:uppercase;color:var(--fg-dim);border:1px solid var(--line-strong);padding:5px 12px}"
+    c = c + ".dscn-io{margin-top:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-2)}"
+    c = c + ".dscn-row{display:flex;gap:var(--sp-4);font-size:var(--fs-300);line-height:1.6}"
+    c = c + ".dscn-k{flex:0 0 130px;font-size:var(--fs-200);font-weight:var(--fw-semibold);letter-spacing:var(--ls-label);text-transform:uppercase;color:var(--fg-dim)}"
+    c = c + ".dscn-v{color:var(--fg-muted);font-family:var(--font-mono);font-size:var(--fs-200)}"
+    c = c + ".dscn-lab{margin-top:var(--sp-5);font-size:var(--fs-200);font-weight:var(--fw-semibold);letter-spacing:var(--ls-label);text-transform:uppercase;color:var(--fg-dim);margin-bottom:var(--sp-3)}"
+    c = c + ".dscn-rounds{list-style:none;display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line)}"
+    c = c + ".dscn-rounds li{background:var(--bg);padding:var(--sp-3) var(--sp-4)}"
+    c = c + ".drn{font-size:var(--fs-tiny);letter-spacing:var(--ls-x);text-transform:uppercase;color:var(--fg-faint);font-weight:var(--fw-semibold)}"
+    c = c + ".drg,.drf,.drv{margin-top:6px;font-size:var(--fs-200);line-height:1.55;color:var(--fg-muted)}"
+    c = c + ".drk{display:inline-block;min-width:64px;font-size:var(--fs-tiny);letter-spacing:var(--ls-wide);text-transform:uppercase;color:var(--fg-dim)}"
+    c = c + ".drv{color:var(--fg)}"
+    c = c + ".dscn-res{margin-top:var(--sp-5);border:1px solid var(--line-strong);padding:var(--sp-4)}"
+    c = c + ".dscn-res-k{font-size:var(--fs-200);font-weight:var(--fw-semibold);letter-spacing:var(--ls-label);text-transform:uppercase;color:var(--fg-dim)}"
+    c = c + ".dscn-res-v{margin-top:var(--sp-2);font-size:var(--fs-300);color:var(--fg);line-height:1.6}"
+    c = c + ".dscn-rc{margin-top:var(--sp-3);font-size:var(--fs-200);color:var(--fg-muted);line-height:1.6}"
+    c = c + ".dscn-rc b{color:var(--accent-blue)}"
+    return c
+}
+
+// Render the 3 curated preset scenarios (constant data — no compute).
+// Each is a fixed objective + a fixed preset verifier + a cached round
+// trail + a verified result. Honest perfect-number / divisor-structure
+// discoveries — the kind `hexa kick` genuinely produces.
+fn render_demo_scenarios() {
+    let mut g = ""
+    // ── Scenario 1 — σ(6) = 12, the smallest perfect number ──
+    let mut r1 = render_demo_round("1",
+        "the divisors of 6 below 6 are exactly {1, 2, 3}",
+        "enumerate d | 6, d &lt; 6 → {1, 2, 3} — no member missing, none spurious",
+        "holds — proper divisor set confirmed")
+    r1 = r1 + render_demo_round("2",
+        "the proper divisors of 6 sum to 6 (6 is a perfect number)",
+        "1 + 2 + 3 = 6, and 6 = 6 → equality checked, not asserted",
+        "holds — 6 is perfect; saturation reached, no open goal remains")
+    g = g + render_demo_scenario("01",
+        "The smallest perfect number",
+        "show that 6 equals the sum of its proper divisors",
+        "exact integer check — sum of proper divisors == n",
+        "2 rounds",
+        r1,
+        "&sigma;(6) &minus; 6 = 6, i.e. 1 + 2 + 3 = 6. The proper-divisor sum equals the number itself — 6 is a perfect number, and the round-2 goal survived its own falsifier.",
+        "0")
+    // ── Scenario 2 — σ(28) = 56, the next perfect number ──
+    let mut r2 = render_demo_round("1",
+        "28 is perfect, so its proper divisors sum to 28",
+        "enumerate {1, 2, 4, 7, 14}; 1+2+4+7+14 = 28 → checked term by term",
+        "holds — proper-divisor sum equals 28")
+    r2 = r2 + render_demo_round("2",
+        "28 is the second perfect number after 6, with none in between",
+        "scan every n in 7..27 for sigma_proper(n) == n → none found",
+        "holds — 28 is the next perfect number; saturation reached")
+    g = g + render_demo_scenario("02",
+        "The next perfect number",
+        "find the perfect number that follows 6 and verify its divisor sum",
+        "exact integer check — sum of proper divisors == n, plus a no-gap scan",
+        "2 rounds",
+        r2,
+        "28 = 1 + 2 + 4 + 7 + 14. It is the second perfect number; the falsifier scanned every integer from 7 to 27 and found no earlier one, so the &lsquo;next perfect number&rsquo; claim survived.",
+        "0")
+    // ── Scenario 3 — Euclid's even-perfect-number form ──
+    let mut r3 = render_demo_round("1",
+        "6 and 28 both fit the shape 2^(p-1) &middot; (2^p - 1)",
+        "6 = 2^1&middot;(2^2-1) with p=2; 28 = 2^2&middot;(2^3-1) with p=3 → fit checked",
+        "holds — both known cases match the form")
+    r3 = r3 + render_demo_round("2",
+        "when 2^p - 1 is prime, 2^(p-1)&middot;(2^p-1) is an even perfect number",
+        "test p=5: 2^5-1 = 31 is prime → 16&middot;31 = 496; verify sigma_proper(496) == 496",
+        "holds — 496 = 1+2+4+8+16+31+62+124+248, a third even perfect number")
+    g = g + render_demo_scenario("03",
+        "The shape of even perfect numbers",
+        "discover the closed form that generates even perfect numbers",
+        "exact integer check — the 2^(p-1)(2^p-1) form against a verified divisor sum",
+        "2 rounds",
+        r3,
+        "Even perfect numbers follow Euclid&rsquo;s form 2&#8311;&#8315;&sup1;(2&#8311; &minus; 1) whenever 2&#8311; &minus; 1 is prime (a Mersenne prime). The falsifier instantiated p=5 and verified a fresh case, 496 — the pattern was not just asserted, it was made to survive a new test.",
+        "0")
+    return g
+}
+
+// Render the public demo page (/demo). Palantir Titanium design system,
+// reuses render_nav / render_site_footer / render_cta / the section
+// helpers / the :root tokens — same chrome as the other marketing
+// pages. Constant-data render only (Decision 10).
+fn render_demo_page(lang) {
+    let mut h = "<!doctype html>\n<html lang=\"" + lang + "\"><head>"
+    h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+    h = h + "<title>PHANES · demo</title>"
+    h = h + "<style>" + _shared_css() + _sections_css() + _demo_css() + "</style></head><body>"
+    h = h + render_nav("demo", lang, "/demo")
+    // ── section 1 — hero ──
+    h = h + "<section class=\"hero\">"
+    h = h + "<div class=\"tag\">Public Demo · Curated Presets</div>"
+    h = h + "<h1 class=\"mark\">See it run</h1>"
+    h = h + "<div class=\"sub\">Three preset discoveries — the goal &rarr; falsifier &rarr; saturation loop, cached and shown end to end</div>"
+    h = h + "<div class=\"stats\">"
+    h = h + render_hero_stat("3", "curated scenarios")
+    h = h + render_hero_stat("100%", "falsifier audited")
+    h = h + render_hero_stat("0", "live compute, by rule")
+    h = h + "</div>"
+    h = h + "<div class=\"cue\">↓ scroll</div>"
+    h = h + "</section>"
+    // ── section 2 — what this demo is (honest framing) ──
+    h = h + "<section class=\"sec\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">What This Demo Shows</h2>"
+    h = h + "<p class=\"lead\">Each scenario below is a fixed objective paired with a fixed verifier — and the result is a cached run of a real prior discovery cycle.</p>"
+    h = h + "<p class=\"ov-p2\">This is a preset, sandboxed demo. It runs no live compute: you cannot submit a seed or a verifier here, and nothing on this page spawns a process. What you see is exactly what <code>hexa kick</code> produces — a goal proposed, a falsifier fired against it, a saturation check, and a verified result whose verifier verdict is the sole authority for objective-met. To run your own measurable objective with your own verifier, sign in to the dashboard.</p>"
+    h = h + "</div></section>"
+    // ── section 3 — the curated preset scenarios ──
+    h = h + "<section class=\"sec\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">Curated Preset Scenarios</h2>"
+    h = h + "<div class=\"demo-grid\">"
+    h = h + render_demo_scenarios()
+    h = h + "</div></div></section>"
+    // ── section 4 — honest scope ──
+    h = h + "<section class=\"sec\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">Honest Scope</h2>"
+    h = h + "<div class=\"feats\">"
+    h = h + render_feat_bullet("Cached, not live:",
+        "every result above is a recorded prior kick run, shown for the preset objective + preset verifier it was produced from. The public surface runs no compute — zero abuse surface, by design.")
+    h = h + render_feat_bullet("Verifier is the authority:",
+        "Phanes never claims an objective is met without the verifier passing. The demo shows the verifier verdict (rc=0) alongside the result — not a substitute for it.")
+    h = h + render_feat_bullet("No project-completion promise:",
+        "Phanes returns a verified, falsifier-audited discovery — a divisor-structure result here. It does not autonomously complete a software project; saturation is the only hard stop.")
+    h = h + "</div></div></section>"
+    // ── section 5 — closer + CTA → signup ──
+    h = h + "<section class=\"sec vf\"><div class=\"sec-in\">"
+    h = h + "<h2 class=\"eyebrow\">Run Your Own Objective</h2>"
+    h = h + "<p class=\"lead\">The presets above are bounded on purpose. The dashboard lifts the cap: bring your own measurable objective and your own verifier, and drive the full OUROBOROS loop against it — your discoveries, your private catalog.</p>"
+    h = h + "<div class=\"vf-cta\">" + render_cta("/login", _t("enter", lang) + " phanes", "primary-lg")
+    h = h + "<span class=\"vf-sister\">discovery surface — <a href=\"/phanes?lang=" + lang + "\">how Phanes works</a></span>"
+    h = h + "</div></div></section>"
     h = h + render_site_footer(lang)
     h = h + "</body></html>"
     return h
@@ -1361,6 +1570,12 @@ fn handle_anima_page(request) {
     return _html_ok(render_anima_page(_detect_lang(request)))
 }
 
+// Public demo (/demo) — P4 funnel. Pure constant-data render
+// (Decision 10): no jobctl call, no process spawn, no job-store write.
+fn handle_demo_page(request) {
+    return _html_ok(render_demo_page(_detect_lang(request)))
+}
+
 // ── auth handlers ────────────────────────────────────────────────
 
 fn handle_login_get(request) {
@@ -1510,6 +1725,7 @@ fn dispatch(handler_name, request) {
     if handler_name == "demiurge_page" { return handle_demiurge_page(request) }
     if handler_name == "hexa_lang_page" { return handle_hexa_lang_page(request) }
     if handler_name == "anima_page"    { return handle_anima_page(request) }
+    if handler_name == "demo_page"     { return handle_demo_page(request) }
     if handler_name == "login_get"     { return handle_login_get(request) }
     if handler_name == "login_post"    { return handle_login_post(request) }
     if handler_name == "logout"        { return handle_logout(request) }
@@ -1541,6 +1757,9 @@ fn main() {
     server_route(s, "GET",  "/demiurge",        "demiurge_page")
     server_route(s, "GET",  "/hexa-lang",       "hexa_lang_page")
     server_route(s, "GET",  "/anima",           "anima_page")
+    // public demo funnel (Decision 3 = 가 · P4) — preset scenarios,
+    // cached results, zero live compute (Decision 10)
+    server_route(s, "GET",  "/demo",            "demo_page")
     // auth
     server_route(s, "GET",  "/login",           "login_get")
     server_route(s, "POST", "/login",           "login_post")

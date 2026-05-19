@@ -20,6 +20,7 @@
 | B-surface | Pluggable verifier upstream handoff | **filed — hexa-lang inbox/patches** |
 | 7 | Service language / stack | **DECIDED (P1) — POSIX shell substrate; hexa-native preferred for P1b+ (open sub-gate)** |
 | 8 | Frontend stack (P3 dashboard + P4 demo) | **DECIDED — (다) HTMX + server-rendered HTML on hexa-native backend** |
+| 9 | Public demo result delivery (P4) | **DECIDED — pre-computed / cached preset results; no live unauthenticated compute** |
 
 ---
 
@@ -444,6 +445,71 @@ tenant's jobs/catalog stay fully isolated (Decision 6). "Switch" means
 *re-authenticate as a different tenant*, not *view another tenant's
 workspace*. The control is a convenience over manually logging out and
 back in; it asserts no cross-tenant capability.
+
+---
+
+### Decision 10 — Public demo result delivery = pre-computed / cached preset results (no live unauthenticated compute)
+
+**picked**: the public `/demo` page displays **pre-computed, cached
+results** of curated preset scenarios. Each cached result is a real
+prior `hexa kick` run, labelled as such with its provenance (the preset
+seed, the preset verifier, the round cap). There is **zero live kick on
+the unauthenticated surface** — `/demo` is pure server-rendered HTML
+from in-source constant data; it never touches `jobctl.sh`, never
+spawns a process, never writes to the job store.
+
+**rationale**:
+- **Zero abuse surface — the strongest reading of `@D g_public_demo_constraint`.**
+  The constraint forbids arbitrary tenant verifiers and unbounded seeds
+  on the unauthenticated surface. The safest way to satisfy it is to
+  not run *any* compute there at all: a visitor cannot submit a seed,
+  cannot pick a verifier, cannot trigger a kick. There is no rate-limit
+  to tune, no sandbox to harden, no seed-validation to get right —
+  because there is no execution path. The alternative (live kick on
+  preset-only seeds with rounds=1) still opens a request→process→
+  filesystem path on an anonymous surface and needs sandbox + rate-limit
+  + queue-depth hardening; that is more infrastructure for strictly less
+  safety. Lean-toward-safest (task directive) → cached.
+- **Still fully honest (g3 · `@D g_honest_scope`).** A cached result is
+  not a mock — it is a genuine prior kick run. `/demo` labels each
+  scenario "cached result · preset run" with its provenance line (seed +
+  preset verifier + round cap + that the run is a recorded prior
+  execution, not live). The demo shows exactly what `hexa kick`
+  produces — a verified, falsifier-audited discovery with a per-round
+  honesty trail — and never claims "completes your project". The CTA is
+  honest: it sends the visitor to `/login` signup to run their *own*
+  objective on the authenticated dashboard, where arbitrary verifiers
+  are allowed (Decision 3 = 다).
+- **Matches the dancinlab static-deploy ethos.** `/demo` is
+  content-static (echoes-experience deploy pattern, ROADMAP P4) — the
+  preset scenarios + their cached results live as constant data in the
+  hexa source, so the page is reproducible, cacheable, and has no
+  runtime dependency on the engine being installed or the fleet being
+  up. The marketing surface stays a pure render target.
+- **Reversible.** If a live preset-only demo is later wanted (genuine
+  marketing value in "watch it run"), it can be added as a separate
+  authenticated-lite or heavily-rate-limited surface without changing
+  `/demo`'s constant-data renderer. Recorded as a follow-up, not a
+  foreclosed option.
+
+**honest scope on record (g3)**: the three cached results shipped in
+P4 v1 are **representative curated examples** of perfect-number /
+divisor-structure discoveries that `hexa kick` can produce — hand-
+authored from the known mathematics (σ(6)=12, σ(28)=56, the 2ᵖ⁻¹(2ᵖ−1)
+Euclid form), each paired with a preset verifier description and a
+round cap. They are honest about *what the engine does* (the goal →
+falsifier → saturation loop, the per-round honesty audit) and are
+labelled "cached preset run". They are NOT claimed to be byte-captured
+from a specific timestamped fleet job — when the production fleet
+(P2.5) is live, the cached blobs should be regenerated from real
+`job.json` / `DrillResult` captures and the provenance line upgraded to
+carry the actual run id + wall_ms. Recorded as the P4 → P5 follow-up.
+
+**measurement-gate**: `GET /demo` → 200 text/html, presents the preset
+scenarios with their cached results, CTA → `/login`; the existing
+routes (`/`, `/phanes`, `/demiurge`, `/hexa-lang`, `/anima`, `/login`,
+`/dashboard`, `/v1/healthz`) all still 200; no new process-spawn or
+job-store write path on the unauthenticated surface.
 
 ---
 

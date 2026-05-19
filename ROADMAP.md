@@ -208,12 +208,54 @@ exportable); billing/metering console. Sits entirely on the P1 API.
     cookies or per-row signed handles (P3.x).
   - Single tenant per page; multi-tenant org switcher = P3.x.
 
-## P4 — Public demo funnel (Decision 3 = 가)
+## P4 — Public demo funnel (Decision 3 = 가) · DONE measured (2026-05-19)
 
 Static landing (echoes-experience deploy pattern) + **preset/curated
 objective+verifier scenarios only**, round-capped, sandboxed
 (`@D g_public_demo_constraint` — NO arbitrary verifier on the
 unauthenticated surface). CTA → dashboard signup.
+
+**P4 status — DONE, measured (2026-05-19, hexa-native HTTP server):**
+- **Decision 10 LOCKED** (`design.md`): the public demo displays
+  **pre-computed / cached** results of curated preset scenarios — zero
+  live compute on the unauthenticated surface. The strongest reading of
+  `@D g_public_demo_constraint`: there is no execution path on `/demo`
+  at all (no jobctl call, no process spawn, no job-store write), so
+  there is no abuse surface to rate-limit or sandbox.
+- New unauthenticated route `GET /demo` in `service/http_phanes.hexa` —
+  Palantir Titanium design system (reuses `render_nav` /
+  `render_site_footer` / `render_cta` / `_sections_css` / `:root`
+  tokens). 5 sections: hero · what-this-demo-is · curated preset
+  scenarios · honest scope · CTA → `/login` signup.
+- Helpers added: `render_demo_page`, `render_demo_scenarios`,
+  `render_demo_scenario`, `render_demo_round`, `_demo_css`,
+  `handle_demo_page`.
+- **3 curated preset scenarios** (constant data — perfect-number /
+  divisor-structure discoveries `hexa kick` genuinely produces):
+  - `01` — σ(6)=12, the smallest perfect number (2 rounds).
+  - `02` — σ(28)=56, the next perfect number, with a no-gap scan
+    falsifier (2 rounds).
+  - `03` — Euclid's even-perfect form 2ᵖ⁻¹(2ᵖ−1), falsifier
+    instantiates p=5 → verifies 496 as a fresh case (2 rounds).
+  Each scenario shows: fixed objective + fixed preset verifier + round
+  cap + the goal→falsifier→saturation round trail + the verified
+  result + `verifier rc=0` (the verifier is the sole authority).
+- `/demo` wired into the topnav (`Demo` link), the cosmogony landing
+  closer (`see the demo` CTA), and the footer platform column.
+- **Measured smoke (2026-05-19, arm64 macOS local, port 8813)**:
+  `GET /demo` → 200 text/html; all 3 scenarios + their cached results
+  + CTA → `/login` present; all existing routes (`/`, `/phanes`,
+  `/demiurge`, `/hexa-lang`, `/anima`, `/login`, `/dashboard`,
+  `/v1/healthz`) still 200; build clean.
+- **Honest gaps on record (g3)**: the 3 cached results are
+  representative curated examples hand-authored from the known
+  mathematics, labelled "cached preset run" — NOT byte-captured from a
+  specific timestamped fleet job. When the production fleet (P2.5) is
+  live, the cached blobs should be regenerated from real `job.json` /
+  `DrillResult` captures and the provenance line upgraded with the
+  actual run id + wall_ms. Recorded as the P4 → P5 follow-up. A live
+  preset-only demo surface stays a reversible follow-up option
+  (Decision 10).
 
 ## P5 — Pre-public-launch gates
 
