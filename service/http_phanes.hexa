@@ -1509,7 +1509,7 @@ fn render_demo_page(lang) {
     // ── section 1 — hero ──
     h = h + "<section class=\"hero\">"
     h = h + "<div class=\"tag\">" + _tr(lang, "Public Demo · Curated Presets", "공개 데모 · 엄선된 프리셋", "公開デモ · 厳選されたプリセット", "公开演示 · 精选预设", "Публичное демо · отобранные пресеты") + "</div>"
-    h = h + "<h1 class=\"mark\">" + _tr(lang, "See it run", "실제로 돌아가는 모습", "実際に動かしてみる", "看看它如何运行", "Посмотрите, как это работает") + "</h1>"
+    h = h + "<h1 class=\"mark\">See it run</h1>"
     h = h + "<div class=\"sub\">" + _tr(lang, "Three preset discoveries — the goal &rarr; falsifier &rarr; saturation loop, cached and shown end to end", "3개의 프리셋 발견 — goal &rarr; falsifier &rarr; saturation 루프를 캐시해 처음부터 끝까지 보여줍니다", "3つのプリセット発見 — goal &rarr; falsifier &rarr; saturation のループをキャッシュし、最初から最後まで表示", "三个预设发现 — goal &rarr; falsifier &rarr; saturation 循环,缓存后端到端展示", "Три предустановленных открытия — цикл goal &rarr; falsifier &rarr; saturation, кэшированный и показанный полностью") + "</div>"
     h = h + "<div class=\"stats\">"
     h = h + render_hero_stat("3", _tr(lang, "curated scenarios", "엄선된 시나리오", "厳選されたシナリオ", "精选场景", "отобранные сценарии"))
@@ -1568,7 +1568,7 @@ fn render_pricing_page(lang) {
     // hero
     h = h + "<section class=\"hero\">"
     h = h + "<div class=\"tag\">" + _tr(lang, "Pricing · Tier + Metered", "요금 · 기본 티어 + 종량", "料金 · ベースティア + 従量", "定价 · 基础套餐 + 计量", "Цены · Тариф + Оплата по факту") + "</div>"
-    h = h + "<h1 class=\"mark\">" + _tr(lang, "Pricing", "요금", "料金", "定价", "Цены") + "</h1>"
+    h = h + "<h1 class=\"mark\">Pricing</h1>"
     h = h + "<div class=\"sub\">" + _tr(lang, "A base tier plus metered overage — billed per OUROBOROS round, the unit of verified discovery work", "기본 티어 + 초과분 종량 과금 — 검증된 발견 작업의 단위인 OUROBOROS 라운드 단위로 청구", "ベースティアと従量制の超過分 — 検証済みの発見作業の単位である OUROBOROS ラウンド単位で課金", "基础套餐加超量计费 — 按 OUROBOROS 轮次计费,即已验证发现工作的单位", "Базовый тариф плюс оплата за превышение — счёт за каждый раунд OUROBOROS, единицу проверенной исследовательской работы") + "</div>"
     h = h + "<div class=\"stats\">"
     h = h + render_hero_stat("1", _tr(lang, "round = the billing unit", "라운드 = 청구 단위", "ラウンド = 課金単位", "轮次 = 计费单位", "раунд = единица счёта"))
@@ -1626,7 +1626,7 @@ fn render_contact_page(lang) {
     // hero
     h = h + "<section class=\"hero\">"
     h = h + "<div class=\"tag\">" + _tr(lang, "Contact · dancinlab", "문의 · dancinlab", "お問い合わせ · dancinlab", "联系 · dancinlab", "Контакты · dancinlab") + "</div>"
-    h = h + "<h1 class=\"mark\">" + _tr(lang, "Contact", "문의", "お問い合わせ", "联系", "Контакты") + "</h1>"
+    h = h + "<h1 class=\"mark\">Contact</h1>"
     h = h + "<div class=\"sub\">" + _tr(lang, "Reach the team behind Phanes — for early access, enterprise plans, or the source itself", "Phanes 를 만든 팀에 연락하세요 — 얼리 액세스, 엔터프라이즈 플랜, 또는 소스 그 자체에 대해", "Phanes を作るチームへ — アーリーアクセス、エンタープライズプラン、あるいはソースそのものについて", "联系 Phanes 背后的团队 — 关于抢先体验、企业方案,或源代码本身", "Свяжитесь с командой Phanes — по поводу раннего доступа, корпоративных планов или самого исходного кода") + "</div>"
     h = h + "<div class=\"cue\">" + _tr(lang, "↓ scroll", "↓ 스크롤", "↓ スクロール", "↓ 滚动", "↓ прокрутить") + "</div>"
     h = h + "</section>"
