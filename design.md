@@ -1328,6 +1328,33 @@ Worker?) is **falsified — it can.**
   every piece is locally measured and the deploy is the explicit
   remaining user action.
 
+**B3 FULL-CHAIN CLOSURE (2026-05-19, measured end-to-end, live CF):**
+
+The Decision 22 (2-tier) + 23 (R2 record / Queue pointer) + 24 (REST)
+architecture is now proven working through phanes' real code on live
+Cloudflare R2 + Queues — not a paper design:
+
+- **Producer** (`http_phanes.hexa::q_send`, commit `3f7f728`): submit
+  → HTTP-push `{tenant,job_id}` → measured byte-exact in a real queue.
+- **R2 job spec** (`jobctl.sh` submit, commit `96790da`): writes
+  `{status,tenant,seed,rounds}` to `tenants/<t>/jobs/<jid>/job.json`
+  so the pointer-only message resolves to the full spec.
+- **Consumer** (`service/queue_worker.sh`, commit `96790da`): REST pull
+  (scoped Bearer token) → R2 GetObject spec → `job_runner.sh` one real
+  kick → R2 PutObject terminal status → batch-ack.
+- **Measured chain** (scoped token, rounds=1): `submit→queued`
+  (R2 spec) → `queue_worker --once` drained 1 → R2 spec `status:"done"
+  rc:0` (queued→done verified) → re-pull `0 remaining` (ack verified).
+  Real kick ran rc=0.
+
+Closed + measured: queue transport, R2 record storage, pointer
+resolution, kick execution, status transition, ack. **Follow-ons (not
+blocking, honestly scoped):** `overlay.n6` → R2 copy; web tier reading
+job status back from R2 (`handle_get_or_result` still filesystem);
+production scoped-token rotation; and the user-gated live Cloudflare
+Containers deploy. The architecture itself is no longer a risk — it is
+measured.
+
 ---
 
 ## All product gates closed (2026-05-19)
