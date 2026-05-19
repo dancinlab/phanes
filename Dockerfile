@@ -30,9 +30,16 @@ WORKDIR /src
 # upstream toolchain — pinned clone (pointer, not vendored)
 RUN git clone --filter=blob:none https://github.com/dancinlab/hexa-lang.git \
     && git -C hexa-lang checkout "$HEXALANG_SHA"
-# self-hosted bootstrap transpiler from source (hexa-native path)
-RUN clang -O2 -std=c11 -D_GNU_SOURCE -I hexa-lang -I hexa-lang/self \
-      hexa-lang/self/native/hexa_cc.c -o hexa-lang/self/native/hexa_v2 -lm
+# self-hosted bootstrap transpiler from source (hexa-native path).
+# Measured-correct recipe (2026-05-19): hexa_cc.c #includes only
+# runtime.h (declarations); the definitions live in self/runtime.c —
+# it MUST be on the clang line. (The single-file recipe in
+# tool/config/build_toolchain.json:527 / cross_compile_linux.hexa:180
+# is stale — it link-fails on undefined hexa_str/rt_read_file/… on mac
+# and linux alike. runtime.c added here is the verified fix.)
+RUN clang -O2 -std=c11 -D_GNU_SOURCE -I hexa-lang/self \
+      hexa-lang/self/native/hexa_cc.c hexa-lang/self/runtime.c \
+      -o hexa-lang/self/native/hexa_v2 -lm
 # the compiled module loader (cmd_build flatten needs it; absence ⇒
 # silent raw-src mis-flatten — see hexa-lang build-harness note)
 RUN if [ -f hexa-lang/Makefile ]; then \

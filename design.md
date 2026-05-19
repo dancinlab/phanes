@@ -1376,21 +1376,42 @@ LIVE + measured:
 - `dancinlab.org`: active CF zone (6c41a072…), 8 records all mail, no
   web record — cutover is purely additive (mail untouched).
 
-**Measured wall (honest, g3):** the container image is **not** rolled
-out. `wrangler deploy` builds the image with the **local Docker CLI**
-(absent here; podman absent; the wilson-pool hosts ssh-timed-out all
-session) — so the `Dockerfile` linux hexa-bootstrap was never
-exercised; the wall is *upstream of it*, at image build, an
-environment/tooling fact, not a phanes or hexa defect. The Worker
-URL therefore times out (fetch → container that isn't rolled out).
+**Docker wall — CLEARED (2026-05-19):** no local Docker → installed
+`colima` + `docker` + `docker-buildx` via brew (CLI-only, no Docker
+Desktop GUI); colima runs a linux VM + dockerd (Docker 29.2.1). The
+container image build now runs.
 
-**The single remaining user action:** provide a Docker-capable
-context (Docker Desktop locally, or a reachable Docker host via
-`WRANGLER_DOCKER_BIN`/`DOCKER_HOST`), then `bash deploy.sh` builds +
-rolls out the two container images; smoke the `*.workers.dev` URL;
-then `bash cutover-domain.sh dancinlab.org` for the deliberate DNS
-bind. Everything up to the Docker-gated image build is done and
-measured; nothing is faked as deployed.
+**Container build — measured progress + the real wall (honest, g3):**
+The `docker buildx` build of the `Dockerfile` proceeds and surfaced
+two genuine hexa-lang findings:
+- The documented `clang … hexa_cc.c -o hexa_v2` single-file bootstrap
+  recipe is **stale** — it link-fails (undefined `hexa_str` /
+  `rt_read_file` / … the C runtime). Fixed in the Dockerfile:
+  `+ self/runtime.c` on the clang line. With that, **`hexa_v2`
+  (the transpiler) builds clean on linux/amd64** (~405 s) — measured.
+- `service/build.sh`'s `hexa build http_phanes.hexa` then **SIGSEGVs**:
+  `hexa_v2` is transpile-only (`hexa-cc <in> <out.c>`); the `build`
+  subcommand (import-flatten + clang orchestration) lives in
+  `self/main.hexa`, a separate driver with no documented pure-linux
+  from-source bootstrap (the genesis `hexa_cc.c` doesn't carry it;
+  `tool/ubu_bootstrap.sh` transpiles `main.hexa` on macOS and
+  references interpreter sources deleted by `@D g_interp_deprecated`).
+
+This is the **real wall: hexa-lang's linux self-host story** — an
+upstream concern, filed precisely (with both measured findings + the
+corrected recipe) at
+`hexa-lang/inbox/patches/phanes-linux-self-host-build-driver-for-containerization.md`
+(`@D g7`). It is **not** a phanes defect: phanes builds, runs, and is
+measured end-to-end on macOS (Decisions 21–24).
+
+**State:** everything except the container *image* is live + measured —
+R2 plane, `phanes-jobs` queue, scoped tokens, the Worker
+(`phanes.dancinlife.workers.dev`) + bindings + 7 secrets, the local
+Docker build env. The image build gets `hexa_v2` and stops at the
+driver gap. **Remaining:** upstream closes the linux `hexa build`
+self-host gap → `bash deploy.sh` completes the image + rollout →
+smoke `*.workers.dev` → `bash cutover-domain.sh dancinlab.org`.
+Nothing is faked as deployed.
 
 ---
 
