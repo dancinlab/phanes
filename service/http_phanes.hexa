@@ -1003,7 +1003,7 @@ fn render_phanes_page(lang) {
     c["mark"] = "PHANES"
     c["phonetic"] = _t("phanes_phonetic", lang)
     c["hero_tag"] = "Autonomous Discovery · SaaS"
-    c["hero_sub"] = "Palantir-grade autonomous discovery — for any measurable objective"
+    c["hero_sub"] = "Enterprise-grade autonomous discovery — for any measurable objective"
     c["s1v"] = "6"
     c["s1l"] = "stage discovery chain"
     c["s2v"] = "100%"
