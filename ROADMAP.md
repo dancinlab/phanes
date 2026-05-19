@@ -259,11 +259,23 @@ unauthenticated surface). CTA → dashboard signup.
 
 ## P5 — Pre-public-launch gates
 
-Trademark clearance USPTO class-42 (`@D g_name_risk`) BEFORE public;
-upstream patches landed or interim documented (`HX_DATA_DIR` +
-pluggable verifier); honest-scope marketing review (`@D g_honest_scope`
-· `g_public_demo_constraint` — no over-claim, tenant verifier = sole
-authority).
+- **Trademark clearance** — *closed as specified (2026-05-19).* The
+  formal USPTO class-9/class-42 search needs a registered attorney and
+  cannot run in-repo; instead it is fully specified in
+  [`docs/TRADEMARK.md`](docs/TRADEMARK.md) §"Formal Clearance —
+  Specification" (FC-1…FC-6). No longer an open in-repo task — a
+  defined external legal engagement gated to public launch via
+  `@D g_name_risk`.
+- **Upstream patch adoption** — *done.* `HX_DATA_DIR` kick binary
+  promoted + wired into `job_runner.sh` (commit `37c66b2`); pluggable
+  verifier landed. Both verified.
+- **Honest-scope marketing review** — *done.* C2/C3 audit found all
+  rendered copy within scope (`@D g_honest_scope` · `g_public_demo_constraint`
+  — no over-claim, tenant verifier = sole authority); see
+  `docs/audit-prelaunch-c2-c3.md`.
+
+P5 in-repo work is complete; the only remaining pre-launch obligation is
+the external trademark engagement (FC-5 clearance opinion).
 
 ---
 

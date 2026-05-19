@@ -130,7 +130,65 @@ single best web-screen result, and even it carries minor common-law hobby use.
 6. **Update `@D g_name_risk`** in `AGENTS.tape` to (a) add the phanes.app
    same-sector collision, and (b) move "Mimir" out of the web-verified-clean
    list into "caution / collided history." This document is the evidence
-   basis for that governance edit.
+   basis for that governance edit. *(Done — committed 04e4a31.)*
+
+---
+
+## Formal Clearance — Specification (the owed step, fully specified)
+
+The formal trademark clearance cannot be executed in-repo — it requires a
+registered trademark attorney and the official USPTO/foreign databases.
+What *can* be completed in-repo is the **specification** of that step, so
+the obligation is unambiguous and hand-off-ready. This section is that
+spec; with it written, the C1 trademark item is **closed as specified** —
+the open work is now a single, well-defined external legal engagement, not
+an in-repo task.
+
+**FC-1 · Trigger.** The clearance MUST complete (a clean written opinion in
+hand) before any public, unauthenticated launch of the product under a
+public-facing mark. It does NOT block internal development, private repos,
+or the codename "Phanes" used as project lore.
+
+**FC-2 · Subject.** The *finalist public mark* — not necessarily "Phanes".
+Per the risk ranking, the finalist is chosen from {Orrery, Bythos, or a
+new name}; "Phanes" stays the internal codename unless counsel clears it.
+Exactly one finalist mark enters FC-3.
+
+**FC-3 · Scope of search (executor: a registered trademark attorney).**
+  a. **USPTO** — full search of the Trademark Search system (TESS
+     successor) in **International Class 9** (downloadable/SaaS software)
+     and **Class 42** (SaaS, PaaS, software design & development), plus a
+     professional knock-out search for confusingly-similar marks (not just
+     exact hits).
+  b. **Common law** — unregistered use in the same sector (web, app
+     stores, trade press) that could support a prior-use claim.
+  c. **State registrations** — US state trademark registers for the
+     finalist.
+  d. **Key foreign jurisdictions** — at minimum **EUIPO** and **KR (KIPO)**,
+     since dancinlab operates bilingually; add others per launch markets.
+  e. **Namespace availability** — primary domain, the major social handles,
+     and app-store display name for the finalist.
+
+**FC-4 · Decision criteria.** The finalist PASSES only if counsel issues a
+written **clearance opinion** with no live blocking mark in Class 9 or 42
+and no material common-law conflict in the operating sector. A "likely
+confusion" finding fails the finalist and returns to FC-2 with the next
+candidate.
+
+**FC-5 · Deliverable.** A counsel-authored clearance memo, archived
+alongside this file, recording: the finalist mark, classes searched,
+databases covered, conflicts found (if any), and the explicit
+clear/not-clear opinion with date and attorney of record.
+
+**FC-6 · Honest-scope note (g3).** Nothing produced in-repo — this
+document, the pre-screen, the risk ranking — is a clearance or legal
+advice. Only FC-5 discharges the obligation. Until FC-5 exists, the
+product MUST NOT launch publicly under the finalist mark.
+
+**Status: SPEC COMPLETE · item closed-as-specified (2026-05-19).** The
+trademark obligation is no longer an open in-repo engineering task; it is
+a defined external legal engagement gated to public launch (FC-1), tracked
+only as the launch-gate `@D g_name_risk` references this spec.
 
 ---
 
