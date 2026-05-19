@@ -1237,6 +1237,29 @@ quick `_kv_*` mirror:**
   jobs/overlays follow in B3. No over-claim: Decision 23 fixes the
   *design*; B3 + F-D23 is the measured execution.
 
+**B3 progress (2026-05-19, measured — storage primitive only):**
+- Landed the **R2 object CLI op** in `http_phanes.hexa`
+  (`PHANES_R2_OP=get|put|del|list`, stdin/stdout, exit-coded) so the
+  bash substrate reuses the *one measured signer* (`r2_*`/`_kv_*`)
+  instead of hand-rolling SigV4 in bash (would duplicate
+  `stdlib/aws/sigv4.hexa`, against `@D g_stdlib_ownership`). Same
+  filesystem degrade as B2 step-3.
+- Live R2 round-trip measured: `put`/`get`(byte-eq)/`del`/`get-after-del`
+  (absent) all **exit-correct ✅** — this is exactly what B3 tenant-token
+  + job-record storage needs, so that half is unblocked.
+- **`list` (ListObjectsV2) FAILS** — measured exit 1. Root cause:
+  `stdlib/aws/sigv4.hexa` explicitly punted SigV4 `UriEncode()` +
+  query-parameter canonicalization (quoted in its own §"Not done").
+  no-query ops pass, the query op fails — conclusive. Filed upstream per
+  `@D g7`/`@D g_stdlib_ownership`:
+  `inbox/patches/phanes-sigv4-uriencode-query-canonicalization-for-s3-list.md`.
+  Interim for newest-N jobs (if upstream lingers): a maintained
+  `tenants/<t>/jobs/_index.json` object — **not built; preference is the
+  upstream fix.** No downstream signer copy (governance).
+- Still pending B3: jobctl/job_runner rewired to the CLI op for
+  tenant/job records; web tier Queue emit; worker Queue-consumer loop
+  (F-D23-gated). Decision 23 design holds; execution is honestly partial.
+
 Sub-gate still deferred (not batched): worker autoscaling trigger
 (candidate: CF Queue backlog depth → instance count).
 

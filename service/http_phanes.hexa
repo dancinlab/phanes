@@ -2199,8 +2199,45 @@ fn r2_selftest_session(stamp) {
     println("R2-SELFTEST: PASS")
 }
 
+// R2 object CLI op (Phase B3 storage primitive). Lets the bash
+// substrate (jobctl.sh / job_runner.sh) read+write tenant/job records
+// to R2 *through the already-measured r2_*/_kv_* code* — one SigV4
+// signer SSOT, no hand-rolled bash curl+signing (which would duplicate
+// stdlib/aws/sigv4.hexa, against @D g_stdlib_ownership). Queue-
+// independent: this is storage only; the CF-Queue consumer loop is the
+// F-D23-gated remainder of B3.
+//   PHANES_R2_OP=get   PHANES_R2_KEY=k     -> stdout = body, exit 0; 1 if absent
+//   PHANES_R2_OP=put   PHANES_R2_KEY=k     -> body from stdin, exit 0/1
+//   PHANES_R2_OP=del   PHANES_R2_KEY=k     -> exit 0
+//   PHANES_R2_OP=list  PHANES_R2_KEY=prefix-> stdout = ListObjectsV2 XML, exit 0/1
+// Honours the same _kv_* degrade (filesystem when R2 creds absent).
+fn r2_op() {
+    let op  = env("PHANES_R2_OP")
+    let key = env("PHANES_R2_KEY")
+    if op == "get" {
+        let v = _kv_get(key)
+        if v == nil { exit(1) }
+        print(v)
+        exit(0)
+    }
+    if op == "put" {
+        if _kv_put(key, read_stdin()) { exit(0) }
+        exit(1)
+    }
+    if op == "del" { _kv_del(key); exit(0) }
+    if op == "list" {
+        let r = r2_list(key)
+        if !r["ok"] { exit(1) }
+        print(r["body"])
+        exit(0)
+    }
+    eprintln("phanes r2-op: unknown PHANES_R2_OP '" + op + "' (get|put|del|list)")
+    exit(2)
+}
+
 fn main() {
     if env("PHANES_R2_SELFTEST") == "1" { r2_selftest(); return }
+    if len(env("PHANES_R2_OP")) > 0 { r2_op(); return }
     let mut host = env("PHANES_BIND_HOST")
     if len(host) == 0 { host = "127.0.0.1" }
     let port_s = env("PHANES_BIND_PORT")
