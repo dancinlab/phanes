@@ -33,7 +33,12 @@ function _phanesEnv(role, env) {
 
 export class PhanesWeb extends Container {
   defaultPort = 8787;            // phanes-http binds 0.0.0.0:8787
-  sleepAfter = "10m";            // HTTP tier may idle between requests
+  // sleepAfter widened from 10m → 1h: the CF Containers wake-from-sleep
+  // path (containers#162) can wedge — observed 2026-05-20, hung after a
+  // 10h overnight idle. 6× fewer sleep-wake cycles = 6× less exposure
+  // to the wedge while keeping cost bounded (still sleeps when truly
+  // unused). Matches the spirit of PhanesWorker's 30m for the kick tier.
+  sleepAfter = "1h";
   constructor(ctx, env) {
     super(ctx, env);
     this.envVars = _phanesEnv("web", env);

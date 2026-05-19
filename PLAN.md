@@ -85,3 +85,15 @@ serve 200. Redeploy = `bash deploy.sh` (colima Docker + the
   cut over to the `phanes` Worker (all routes 200), and
   `hello@dancinlab.org` wired into the Contact page. Remaining work
   catalogued above as P-A…P-E.
+- **2026-05-20** — site-down incident + fix. `https://dancinlab.org` was
+  unreachable after ~10 h overnight idle: TLS handshake fine, HTTP/2
+  `GET /` sent, no bytes returned (`wrangler tail` showed the worker
+  invocation hitting `Canceled` — the worker fetched the container DO
+  but the response never came). Root cause: the PhanesWeb container had
+  slept (sleepAfter `10m`) and the CF Containers wake-from-sleep path
+  (containers#162) wedged. Two-step recovery: (1) `wrangler deploy` to
+  cycle the container revision restored the site (200 in 350 ms); (2)
+  one-line `src/worker.js` patch bumped PhanesWeb `sleepAfter` from
+  `10m` → `1h` — 6× fewer sleep-wake cycles → 6× less exposure to the
+  wedge, cost still bounded. Re-deployed + smoke-verified
+  workers.dev + dancinlab.org both 200.
