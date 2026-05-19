@@ -1053,6 +1053,126 @@ The `secret` keys move to the `r2.phanes.*` namespace
 
 ---
 
+### Decision 22 — Compute host = (나) Cloudflare Containers, 2-tier (stateless web + scalable worker pool)
+
+**picked**: `(나) Cloudflare Containers` — **not** EC2 (Decision 11 is
+superseded for the compute host; the AWS account is no longer needed at
+all). Topology: **two container classes**, web and worker, **decoupled
+through an R2-backed job queue**, with the **worker class horizontally
+scalable to N instances**. User directive 2026-05-19 (think-aloud
+convergence): "나" → "웹서버하고 분리" → "2 컨테이너 (웹/워커 분리)" →
+"워커는 여러개 존재할 수 있게 구현" → "아키텍처 검증 필요 · 실제 돌려 보자".
+
+```
+              Cloudflare edge (dancinlab.org, Decision 20)
+                          │
+                  ┌───────┴────────┐
+            web container       (R2 job queue)        worker pool ×N
+            ┌──────────┐        jobs/queued/<id>     ┌────────────┐
+            │ phanes-  │  enqueue ─────────────────▶ │ kick /     │
+            │ http     │        jobs/running/<id>    │ OUROBOROS  │
+            │ (ms reqs)│  ◀──── status/overlay ───── │ (minutes)  │
+            └──────────┘        jobs/done/<id>       └────────────┘
+             stateless          (Decision 21 R2)      stateless,
+             (sessions=R2)                            interchangeable
+```
+
+**why 2-tier, not 1 container** (the user's own derivation, measured-honest):
+- Web requests are **milliseconds**; an OUROBOROS cycle is **minutes+**.
+  Co-locating them means a long job pins the instance's CPU/RAM and
+  starves web latency.
+- A container runtime cap (CPU-time / wall) hit by a long kick job in a
+  **single** container **takes the web tier down with it** — the exact
+  opposite of the zero-downtime (무중단) goal that motivated Decision 22.
+- **Redeploy of a 1-container app kills in-flight discovery jobs.** Split
+  + queue lets the web tier roll with zero downtime while workers drain
+  and the queue preserves not-yet-finished jobs.
+- Worker pool ×N: the select-loop web server is single-threaded (known
+  constraint) and OUROBOROS is the heavy axis — scaling is a *worker*
+  concern, so the worker class must be independently replicable.
+
+**rationale**:
+- **Single provider with the datastore.** Decision 21 put all data on
+  Cloudflare R2; compute on Cloudflare Containers keeps data+compute on
+  one provider (low latency, zero egress, one credential surface). AWS
+  drops out entirely — Decision 11's last reason (the VM) is gone.
+- **Zero-downtime is provider-managed.** Cloudflare Containers roll
+  deployments by design; the stateless web tier (sessions on R2 via B2
+  step-3, already measured PASS) makes web instances interchangeable, so
+  a rollout has no session-affinity downtime.
+- **Failure isolation + independent scale.** Web and worker fail, scale,
+  and deploy independently. A stuck/over-cap kick job degrades only the
+  worker that ran it; the queue and other workers are unaffected.
+
+**honest scope (g3) — DECISION IS PROVISIONAL UNTIL THE FALSIFIER RUNS**:
+- The load-bearing risk I flagged is **unverified**: whether a real
+  OUROBOROS kick cycle (heavy, multi-minute, subprocess-spawning native
+  binary) fits within Cloudflare Containers' actual CPU-time / wall /
+  memory / process-model caps. This is **measured, not assumed** — per
+  the user's "아키텍처 검증 필요 · 실제 돌려 보자" and the project's
+  instrument-first methodology.
+- **Falsifier F-D22 (must pass before this decision locks):**
+  1. Pin Cloudflare Containers' *current* hard limits (instance sizes,
+     max CPU-time per request/invocation, wall-time, memory ceiling,
+     whether `fork`/subprocess + long-lived processes are permitted).
+  2. Measure a representative real kick/drill cycle locally: wall-time,
+     peak RSS, subprocess fan-out, disk-temp footprint.
+  3. Compare. **PASS** → worker container fits, lock Decision 22 as-is.
+     **FAIL** (kick exceeds a container cap) → the worker tier cannot be
+     a Cloudflare Container; fall back to **Decision 22'** = web on
+     Cloudflare Containers, worker pool on EC2/VM (the earlier hybrid
+     "다"), queue seam unchanged. Either way the 2-tier + queue + N-worker
+     shape and the web tier hold; only the worker substrate is at stake.
+- Sub-gates deferred (not batched here): the **queue mechanism**
+  (R2-object polling vs Cloudflare Queues) and the **worker autoscaling
+  trigger** are their own decisions, opened after F-D22 resolves.
+- Decision 11 (EC2 host) is **superseded** for compute, kept on record.
+
+**F-D22 RESULT — falsifier RAN, decision LOCKS (2026-05-19, measured + cited):**
+
+Per the user's "아키텍처 검증 필요 · 실제 돌려 보자" the falsifier was
+executed, not reasoned on paper.
+
+- **Workload profile (measured, real seed, `bin/hexa-absorbed-kick`):**
+  `--rounds 5`, seed *"minimize wirelength in a degree-6 hex mesh router
+  under Bekenstein bound"*, `HEXA_VAL_ARENA=0`, arm64:
+  `rc=0 · wall = 75.0 s · peak RSS = 4,315,201,536 B ≈ 4.02 GiB ·
+  overlay 2893 lines · total=3277`. (Baseline cross-check: job_runner's
+  recorded rounds=1 contract ≈ 1 s — the engine is light per round,
+  ~15 s/round, **not** the multi-GB full-compiler-flatten workload that
+  OOMs ≤31 GB hosts — a different program.)
+- **Cloudflare Containers instance types** (docs, current 2026): lite
+  256 MiB / basic 1 GiB / standard-1 4 GiB / standard-2 6 GiB /
+  standard-3 8 GiB / standard-4 12 GiB (≤4 vCPU, ≤20 GB disk).
+- **Compare:** 4.02 GiB peak RSS ⇒ lite/basic/**standard-1 (4 GiB) are
+  measured-infeasible** (4.02 > 4.0 → OOM-kill once container/OS
+  overhead is added). **standard-2 (6 GiB) is the worker floor**;
+  standard-3/4 give headroom. Disk (overlay ~tens of KB) and wall (75 s)
+  are non-issues.
+- **Lifetime model (cited):** Cloudflare Containers are **not
+  request-scoped** — they run long-lived processes; `sleepAfter`
+  governs idle shutdown and `renewActivityTimeout()` keeps a container
+  alive during background/long work. Known issue cloudflare/containers#162:
+  a long operation can be sleep-killed if `sleepAfter` < operation
+  wall-time.
+
+**Verdict: F-D22 PASS — Decision 22 locks as written** (2-tier, worker =
+Cloudflare Container ×N). The EC2-worker fallback (Decision 22') is **not
+triggered** — the workload fits Cloudflare Containers. Two binding
+implementation constraints fall out of the measurement/citation:
+
+1. **Worker sizing floor = `standard-2` (≥6 GiB)**, never standard-1.
+   Re-measure peak RSS before raising `PHANES_ROUNDS_MAX` or accepting
+   heavier seed classes — 4.02 GiB is the rounds=5 figure, not a ceiling.
+2. **Worker must set `sleepAfter` > max job wall-time** (and/or call
+   `renewActivityTimeout()` from the job loop), per containers#162, so a
+   long kick is never sleep-killed mid-cycle.
+
+Sub-gates still deferred (not batched): queue mechanism (R2-object
+polling vs Cloudflare Queues) · worker autoscaling trigger.
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
