@@ -19,6 +19,14 @@ ROOT="${PHANES_ENDPOINT:-http://127.0.0.1:8788}"
 TENANT="${PHANES_TENANT:-demo}"
 TOK="${PHANES_TOKEN:-}"
 N="${1:-4}"
+# Guard: N must be >= 1. With N=0 the fire loop runs zero times, leaving
+# PIDS/OUTS/JIDS empty — and a bare `"${arr[@]}"` on an empty array is an
+# "unbound variable" fatal under `set -u` on bash < 4.4 (macOS ships 3.2).
+# Failing cleanly here beats a cryptic bash error mid-test.
+case "$N" in
+  ''|*[!0-9]*) echo "concurrency_test: N must be a positive integer" >&2; exit 2;;
+esac
+[ "$N" -ge 1 ] || { echo "concurrency_test: N must be >= 1 (got $N)" >&2; exit 2; }
 SEED='prove sigma(6)=12 perfect-number divisor structure'
 
 # PHANES_STORE always needed (poll_to_done reads job.json from it),
