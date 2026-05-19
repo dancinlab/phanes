@@ -826,6 +826,154 @@ not about every deployment helper being hexa.
 
 ---
 
+### Decision 18 — DynamoDB table schema = single-table, on-demand
+
+**picked**: `(가)` — a **single DynamoDB table** `phanes` with composite
+primary key `PK` + `SK`, holding sessions, tenants, and jobs as
+heterogeneous items keyed by a type-prefix convention; **on-demand**
+billing mode. Decision 15's S3 bucket still holds the overlay blobs.
+
+**Item layout (one table, prefix-discriminated):**
+
+| Entity  | PK                  | SK                    | Notes                                    |
+|---------|---------------------|-----------------------|------------------------------------------|
+| Session | `SESSION#<sid>`     | `SESSION`             | + `ttl` attr → native DynamoDB TTL       |
+| Tenant  | `TENANT#<name>`     | `TENANT`              | tenant row                               |
+| Job     | `TENANT#<name>`     | `JOB#<ts>#<job_id>`   | newest-first via reverse Query on SK     |
+
+**rationale**:
+- **The one non-KV access pattern (jobs newest-N per tenant) maps
+  directly to a Query.** PK=`TENANT#name`, SK begins_with `JOB#`,
+  ScanIndexForward=false, Limit=N — no GSI, no scan, no extra cost.
+  Multi-table would still need an SK design on a jobs table; this
+  collapses the design into one table.
+- **Native TTL on sessions retires the GC code.** A `ttl` attribute
+  (epoch seconds) on session items lets DynamoDB auto-delete expired
+  sessions — `session_destroy` on logout is still useful for immediacy
+  but no longer load-bearing for stale sessions.
+- **AWS / DynamoDB best practice for SaaS access patterns** (Houlihan /
+  DeBrie consensus). For phanes's heterogeneous-but-bounded access
+  surface, single-table is the canonical pick.
+- **On-demand = zero idle cost.** No paying users yet (Decision 11's
+  measure-first posture). On-demand scales with actual requests;
+  provisioned would charge for unused capacity.
+- **One table = one IAM policy, one CloudWatch dashboard, one backup
+  plan.** Multi-table triples the operational surface for marginal
+  schema clarity.
+
+**honest scope (g3)**: Items have heterogeneous shapes — session ≠
+tenant ≠ job. Code must keep the type-prefix discipline (`SESSION#` /
+`TENANT#` / `JOB#`). For v1 a single IAM role for phanes-http suffices;
+per-entity permission split (if ever needed) is via attribute
+conditions, not separate tables. The table name is `phanes` (one prod);
+local dev can use a separate name via env if a DynamoDB Local layer
+ever gets added.
+
+---
+
+### Decision 19 — Discovery absorption → hexa-lang atlas (direction pinned)
+
+**direction (pinned, not yet implemented)**: per user directive
+2026-05-19 "kick 사용으로 발견되는 방정식들도 흡수해야되" — discoveries
+that phanes' OUROBOROS engine produces should feed back **upstream into
+hexa-lang's atlas** (the same atlas the strict-lint citations point at),
+closing the loop ecosystem-wide. phanes is the SaaS that runs OUROBOROS
+for tenants; absorbing the validated discoveries upstream makes phanes a
+genuine **discovery feeder** for hexa-lang, mirroring how qrng / qmirror
+/ sim-universe were absorbed.
+
+**not yet decided — open sub-questions (Decision 19a–c, to be gated
+before implementation):**
+
+- **19a Opt-in policy.** Tenant data is theirs (scope B, `@D
+  g_honest_scope.scope_b`). Absorption MUST be tenant-opted-in per job
+  (a dashboard toggle / per-tenant default), with explicit IP /
+  attribution terms. No silent absorption.
+- **19b Eligibility.** What qualifies? Likely "verifier-passed +
+  saturated" only — discoveries the tenant verifier (the sole
+  authority) declared correct. Failed / advisory rounds do not absorb.
+- **19c Pipeline.** Path = phanes job result (DynamoDB job row + S3
+  overlay) → an absorption serializer → hexa-lang `inbox/notes/` (or
+  a dedicated `inbox/discoveries/`) → upstream review → atlas
+  citation entry. Same pattern as the qrng / qmirror absorbs — a
+  measured handoff, not a direct write.
+
+**dependencies**:
+- Decision 18 (DynamoDB job rows + S3 overlay) — must be in place so
+  there is a structured discovery record to absorb.
+- An update to scope-B language: the catalog is the tenant's; with
+  opt-in, a *copy* of the validated discovery may travel upstream.
+
+**rationale for pinning now (not full Decision yet)**:
+- The direction is the right one — closes the OUROBOROS loop at the
+  ecosystem layer, makes phanes a feeder not just a consumer.
+- The implementation has real privacy / IP weight and needs the
+  opt-in / eligibility / pipeline sub-gates resolved before code.
+- Pinning it on record means it travels with the project and is not
+  forgotten when the migration finishes.
+
+**honest scope (g3)**: nothing about absorption ships yet. Decision 18
+unblocks 19 mechanically (jobs become structured DynamoDB rows), but 19
+itself stays a direction-with-open-sub-decisions until the opt-in /
+eligibility / pipeline are gated. Recorded now per user directive so it
+is not lost.
+
+---
+
+### Decision 20 — Domain & DNS = `dancinliab.org` on Cloudflare
+
+**picked**: per user directive 2026-05-19, the production domain is
+**`dancinliab.org`** *(as typed — see honest-scope flag below)*, with
+**DNS managed at Cloudflare**. This concretises the Cloudflare
+front-proxy option already named in Decision 11: Cloudflare sits in
+front of the EC2 origin, terminating TLS, fronting the CDN, and
+absorbing DDoS at the edge.
+
+```
+  https://<dancinliab.org>
+            │
+            ▼
+   ☁️  Cloudflare  (DNS · free TLS · CDN · WAF · /static cache)
+            │  origin pull (HTTPS or HTTP, internal)
+            ▼
+   🖥️  AWS EC2  (Decision 11)  phanes-http :8787
+            └── DynamoDB + S3  (Decision 15/18)
+```
+
+**rationale**:
+- **Cloudflare is free for the layer phanes needs.** DNS + free TLS
+  cert + global CDN + basic DDoS absorb — at $0 on Cloudflare's free
+  plan. This is the standard "Cloudflare in front of a VM origin"
+  pattern and was already named as the recommended front-proxy in
+  Decision 11.
+- **Operationally separates concerns.** AWS holds compute + data
+  (compute plane); Cloudflare holds DNS + edge (front plane). No
+  single-vendor lock-in for both layers.
+- **TLS handled at the edge (closes the Decision 16 / earlier A2
+  task).** phanes-http on EC2 can listen plain HTTP on the internal
+  port; Cloudflare terminates the public HTTPS. The session cookie's
+  `Secure` flag becomes practical because the public surface is HTTPS.
+- **Cloudflare also enables a future-path to CF Containers.** If
+  phanes ever does the durable-store rewrite to fit Cloudflare's
+  serverless model (the option named in Decision 11), the domain +
+  DNS layer is already on Cloudflare — only the origin changes.
+
+**honest scope (g3)**:
+- Brand spelling — the dancinlab GitHub org and brand mark across the
+  site is **`dancinlab`** (no 'i' between 'l' and 'a'); the domain as
+  typed is **`dancinliab.org`** (extra 'i'). This may be intentional
+  (the `dancinlab.org` name could have been taken at registration) or
+  a typo. Recorded verbatim per user input; flagged for confirmation
+  before any user-facing copy references it.
+- This Decision picks the public-facing domain + DNS provider only.
+  Registration / NS records / the Cloudflare zone setup itself remain
+  the user's account-side action (out-of-repo, like EC2 + Stripe).
+- The `Secure` cookie flag and the HTTP→HTTPS upgrade redirect become
+  fix items when the deploy lands behind Cloudflare; recorded as
+  execution work, not gated on a new Decision.
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
