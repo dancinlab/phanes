@@ -22,7 +22,6 @@
 import "stdlib/net/http_server.hexa"
 import "stdlib/net/http_request.hexa"
 import "stdlib/net/http_response.hexa"
-import "stdlib/net/socket.hexa"
 
 // ── small helpers ────────────────────────────────────────────────
 
@@ -1324,97 +1323,6 @@ fn dispatch(handler_name, request) {
     return json_error(500, "unknown handler: " + handler_name)
 }
 
-// ── phanes_serve — select-driven accept loop (idle-socket safe) ──
-// stdlib `server_serve()` calls `socket_read()` immediately after
-// `accept()`, which BLOCKS forever on a connected-but-silent socket.
-// Chrome opens speculative "preconnect" sockets on link hover and only
-// sends the GET when the user actually clicks — so a serial accept loop
-// that blocks on read deadlocks: one idle speculative socket starves
-// every real navigation queued behind it (measured: 1 idle socket =>
-// all subsequent requests hang ~indefinitely; closing it => instant
-// 3 ms recovery).
-//
-// Fix: a single-threaded select() event loop. We watch the listener +
-// every accepted-but-not-yet-readable connection together. A connection
-// is handed to `server_handle_conn()` only once select() reports it
-// readable — so the internal `socket_read()` never blocks. A speculative
-// socket that stays silent is reaped after ~8 s. Real requests (bytes
-// already buffered) pass select() instantly with zero added latency and
-// with no head-of-line blocking between connections.
-//
-// This is the stdlib-documented roadmap-62 pattern (socket_select +
-// socket_set_nonblock) applied at the phanes layer; stdlib/net itself
-// stays untouched (downstream-direct-edit rule, hexa-lang @D g7/f3).
-fn phanes_serve(s, dispatch_fn) {
-    let listener = s["listener"]
-    let mut running = true
-    let mut pend = []      // accepted fds awaiting their first byte
-    let mut age = []       // select ticks each pend fd has waited
-    while running {
-        if file_exists(s["stop_flag_path"]) {
-            running = false
-        } else {
-            // watch list = listener + all pending connections
-            let mut watch = [listener]
-            let mut i = 0
-            while i < len(pend) {
-                watch = watch + [pend[i]]
-                i = i + 1
-            }
-            let ready = socket_select(watch, 1000)
-            // is the listener readable this tick?
-            let mut listener_ready = false
-            let mut j = 0
-            while j < len(ready) {
-                if ready[j] == listener { listener_ready = true }
-                j = j + 1
-            }
-            let mut next_pend = []
-            let mut next_age = []
-            // 1) accept a freshly-arrived connection
-            if listener_ready {
-                let conn = socket_accept(listener)
-                if conn >= 0 {
-                    next_pend = next_pend + [conn]
-                    next_age = next_age + [0]
-                }
-            }
-            // 2) service / age / reap each pending connection
-            i = 0
-            while i < len(pend) {
-                let fd = pend[i]
-                let mut fd_ready = false
-                j = 0
-                while j < len(ready) {
-                    if ready[j] == fd { fd_ready = true }
-                    j = j + 1
-                }
-                if fd_ready {
-                    // readable — server_handle_conn's socket_read won't block
-                    let keep = server_handle_conn(s, fd, dispatch_fn)
-                    if keep == false { running = false }
-                } else {
-                    let a = age[i] + 1
-                    if a >= 8 {
-                        // ~8 s silent — speculative/idle socket, reap it
-                        socket_close(fd)
-                    } else {
-                        next_pend = next_pend + [fd]
-                        next_age = next_age + [a]
-                    }
-                }
-                i = i + 1
-            }
-            pend = next_pend
-            age = next_age
-        }
-    }
-    socket_close(listener)
-    if file_exists(s["stop_flag_path"]) {
-        delete_file(s["stop_flag_path"])
-    }
-}
-
 // ── main ─────────────────────────────────────────────────────────
 
 fn main() {
@@ -1446,5 +1354,5 @@ fn main() {
     server_mount(s, "GET",  "/dashboard/jobs/", "dash_get_job")
     server_listen(s)
     println("phanes-http listening on " + host + ":" + to_string(port))
-    phanes_serve(s, dispatch)
+    server_serve(s, dispatch)
 }
