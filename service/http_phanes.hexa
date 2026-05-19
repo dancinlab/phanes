@@ -654,11 +654,16 @@ fn render_nav(current, lang, current_path) {
     if current == "contact"   { cct = " class=\"current\"" }
     let mut n = "<nav class=\"topnav\">"
     n = n + "<a class=\"brand\" href=\"/?lang=" + lang + "\"" + cco + ">dancinlab</a>"
-    // Links wrapped in a <details> — on desktop CSS force-shows them
-    // inline and hides the ☰ summary; on a phone the 7-link row would
-    // overflow, so the summary becomes a hamburger and the links drop
-    // as an absolute panel. Same JS-free pattern as the lang switcher.
-    n = n + "<details class=\"navmenu\"><summary>☰</summary>"
+    // Responsive nav via the checkbox hack (no JS): a hidden checkbox +
+    // a ☰ <label> toggle + the plain .links div. Desktop CSS hides the
+    // checkbox/label and shows .links inline; mobile CSS shows the ☰ and
+    // reveals .links as a dropdown panel via `.nav-cb:checked ~ .links`.
+    // (A <details> is the wrong tool here — modern browsers hide a
+    // closed <details>'s content with content-visibility, which an
+    // author display rule cannot override, so the links vanished on
+    // desktop. The checkbox sibling-combinator is robust everywhere.)
+    n = n + "<input type=\"checkbox\" id=\"nav-toggle\" class=\"nav-cb\">"
+    n = n + "<label for=\"nav-toggle\" class=\"nav-burger\" aria-label=\"menu\">☰</label>"
     n = n + "<div class=\"links\">"
     n = n + "<a href=\"/phanes?lang=" + lang + "\"" + cph + ">Phanes</a>"
     n = n + "<a href=\"/demiurge?lang=" + lang + "\"" + cde + ">Demiurge</a>"
@@ -667,7 +672,7 @@ fn render_nav(current, lang, current_path) {
     n = n + "<a href=\"/demo?lang=" + lang + "\"" + cdm + ">Demo</a>"
     n = n + "<a href=\"/pricing?lang=" + lang + "\"" + cpr + ">Pricing</a>"
     n = n + "<a href=\"/contact?lang=" + lang + "\"" + cct + ">Contact</a>"
-    n = n + "</div></details>"
+    n = n + "</div>"
     // Reusable components: lang switcher + nav CTA
     n = n + render_lang_switcher(lang, current_path)
     n = n + render_nav_cta(_t("log_in", lang), "/login")
@@ -741,15 +746,13 @@ fn _shared_css() {
     c = c + ".topnav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-items:center;padding:0 36px;background:rgba(30,33,36,0.95);backdrop-filter:saturate(140%) blur(8px);z-index:100}"
     c = c + ".topnav .brand{font-size:var(--fs-nav-brand);letter-spacing:0;font-weight:var(--fw-medium);opacity:0.95;line-height:var(--lh-tight);display:inline-flex;align-items:center}"
     c = c + ".topnav .brand.current{opacity:1}"
-    // nav links — wrapped in <details class=navmenu>. Desktop: the ☰
-    // summary is hidden and .links shows inline (an author display rule
-    // overrides the UA's closed-<details> hiding). Mobile rules in the
-    // _sections_css @media block turn it into a hamburger dropdown.
-    c = c + ".topnav .navmenu{margin-left:56px;position:relative}"
-    c = c + ".topnav .navmenu>summary{display:none;list-style:none;cursor:pointer}"
-    c = c + ".topnav .navmenu>summary::-webkit-details-marker{display:none}"
-    c = c + ".topnav .navmenu>summary::marker{display:none}"
-    c = c + ".topnav .links{display:flex;align-items:center;gap:32px}"
+    // nav links — checkbox-hack responsive. Desktop: the checkbox and ☰
+    // label are hidden, .links is a plain always-visible inline row.
+    // Mobile rules in the _sections_css @media block reveal the ☰ and
+    // turn .links into a `.nav-cb:checked ~ .links` dropdown panel.
+    c = c + ".topnav .nav-cb{display:none}"
+    c = c + ".topnav .nav-burger{display:none}"
+    c = c + ".topnav .links{margin-left:56px;display:flex;align-items:center;gap:32px}"
     c = c + ".topnav .links a{font-size:var(--fs-nav-link);letter-spacing:0;font-weight:var(--fw-regular);opacity:0.65;transition:var(--t-fast);padding:2px 0;line-height:var(--lh-tight)}"
     c = c + ".topnav .links a:hover{opacity:1}"
     c = c + ".topnav .links a.current{opacity:1;text-decoration:underline;text-underline-offset:6px;text-decoration-color:var(--line-bold)}"
@@ -859,14 +862,13 @@ fn _sections_css() {
     // fold behind a ☰ hamburger. The bar stays a single fixed-height row
     // (brand · ☰ · lang · login); ☰ drops the links as an absolute panel.
     c = c + ".topnav{padding:0 var(--sp-4)}"
-    c = c + ".topnav .navmenu{margin-left:auto;position:static}"
-    c = c + ".topnav .navmenu>summary{display:inline-flex;align-items:center;padding:10px 16px;border:1px solid var(--fg);font-size:var(--fs-nav-cta);font-weight:var(--fw-medium);line-height:var(--lh-tight)}"
-    c = c + ".topnav .navmenu>summary:hover{background:var(--fg);color:var(--bg)}"
-    c = c + ".topnav .navmenu[open]>summary{background:var(--fg);color:var(--bg)}"
+    c = c + ".topnav .nav-burger{display:inline-flex;align-items:center;margin-left:auto;padding:10px 16px;border:1px solid var(--fg);font-size:var(--fs-nav-cta);font-weight:var(--fw-medium);line-height:var(--lh-tight);cursor:pointer}"
+    c = c + ".topnav .nav-burger:hover{background:var(--fg);color:var(--bg)}"
+    c = c + ".topnav .nav-cb:checked ~ .nav-burger{background:var(--fg);color:var(--bg)}"
     c = c + ".topnav .links{display:none}"
-    c = c + ".topnav .navmenu[open] .links{display:flex;flex-direction:column;align-items:stretch;gap:0;position:absolute;top:var(--nav-h);left:0;right:0;background:var(--bg);border-bottom:1px solid var(--fg)}"
-    c = c + ".topnav .navmenu[open] .links a{padding:15px var(--sp-4);border-top:1px solid var(--line);opacity:0.85}"
-    c = c + ".topnav .navmenu[open] .links a.current{text-decoration:none;background:var(--hover-bg-soft);opacity:1}"
+    c = c + ".topnav .nav-cb:checked ~ .links{display:flex;flex-direction:column;align-items:stretch;gap:0;margin-left:0;position:absolute;top:var(--nav-h);left:0;right:0;background:var(--bg);border-bottom:1px solid var(--fg)}"
+    c = c + ".topnav .nav-cb:checked ~ .links a{padding:15px var(--sp-4);border-top:1px solid var(--line);opacity:0.85}"
+    c = c + ".topnav .nav-cb:checked ~ .links a.current{text-decoration:none;background:var(--hover-bg-soft);opacity:1}"
     c = c + ".topnav .langsw{margin-left:var(--sp-3)}"
     c = c + ".topnav .right .cta{padding:10px 14px}"
     c = c + ".topnav .langsw summary{padding:10px 14px}}"
