@@ -654,6 +654,11 @@ fn render_nav(current, lang, current_path) {
     if current == "contact"   { cct = " class=\"current\"" }
     let mut n = "<nav class=\"topnav\">"
     n = n + "<a class=\"brand\" href=\"/?lang=" + lang + "\"" + cco + ">dancinlab</a>"
+    // Links wrapped in a <details> — on desktop CSS force-shows them
+    // inline and hides the ☰ summary; on a phone the 7-link row would
+    // overflow, so the summary becomes a hamburger and the links drop
+    // as an absolute panel. Same JS-free pattern as the lang switcher.
+    n = n + "<details class=\"navmenu\"><summary>☰</summary>"
     n = n + "<div class=\"links\">"
     n = n + "<a href=\"/phanes?lang=" + lang + "\"" + cph + ">Phanes</a>"
     n = n + "<a href=\"/demiurge?lang=" + lang + "\"" + cde + ">Demiurge</a>"
@@ -662,7 +667,7 @@ fn render_nav(current, lang, current_path) {
     n = n + "<a href=\"/demo?lang=" + lang + "\"" + cdm + ">Demo</a>"
     n = n + "<a href=\"/pricing?lang=" + lang + "\"" + cpr + ">Pricing</a>"
     n = n + "<a href=\"/contact?lang=" + lang + "\"" + cct + ">Contact</a>"
-    n = n + "</div>"
+    n = n + "</div></details>"
     // Reusable components: lang switcher + nav CTA
     n = n + render_lang_switcher(lang, current_path)
     n = n + render_nav_cta(_t("log_in", lang), "/login")
@@ -736,7 +741,15 @@ fn _shared_css() {
     c = c + ".topnav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-items:center;padding:0 36px;background:rgba(30,33,36,0.95);backdrop-filter:saturate(140%) blur(8px);z-index:100}"
     c = c + ".topnav .brand{font-size:var(--fs-nav-brand);letter-spacing:0;font-weight:var(--fw-medium);opacity:0.95;line-height:var(--lh-tight);display:inline-flex;align-items:center}"
     c = c + ".topnav .brand.current{opacity:1}"
-    c = c + ".topnav .links{margin-left:56px;display:flex;align-items:center;gap:32px}"
+    // nav links — wrapped in <details class=navmenu>. Desktop: the ☰
+    // summary is hidden and .links shows inline (an author display rule
+    // overrides the UA's closed-<details> hiding). Mobile rules in the
+    // _sections_css @media block turn it into a hamburger dropdown.
+    c = c + ".topnav .navmenu{margin-left:56px;position:relative}"
+    c = c + ".topnav .navmenu>summary{display:none;list-style:none;cursor:pointer}"
+    c = c + ".topnav .navmenu>summary::-webkit-details-marker{display:none}"
+    c = c + ".topnav .navmenu>summary::marker{display:none}"
+    c = c + ".topnav .links{display:flex;align-items:center;gap:32px}"
     c = c + ".topnav .links a{font-size:var(--fs-nav-link);letter-spacing:0;font-weight:var(--fw-regular);opacity:0.65;transition:var(--t-fast);padding:2px 0;line-height:var(--lh-tight)}"
     c = c + ".topnav .links a:hover{opacity:1}"
     c = c + ".topnav .links a.current{opacity:1;text-decoration:underline;text-underline-offset:6px;text-decoration-color:var(--line-bold)}"
@@ -842,14 +855,21 @@ fn _sections_css() {
     c = c + ".foot-legal{max-width:var(--container);margin:var(--sp-6) auto 0;padding:var(--sp-4) 36px 0;border-top:1px solid var(--line);font-size:var(--fs-tiny);letter-spacing:var(--ls-x);text-transform:uppercase;opacity:0.35}"
     // responsive collapse
     c = c + "@media (max-width:760px){.cards{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.hero .stats{flex-direction:column}.hero .stat{border-right:0;border-bottom:1px solid var(--line);width:100%}.hero .stat:last-child{border-bottom:0}.sec{padding:var(--sp-6) 0}.foot-grid{flex-direction:column;gap:var(--sp-5)}.sec-in{padding:0 var(--sp-4)}.hero{padding:var(--nav-h) var(--sp-4) var(--sp-7)}.foot-grid,.foot-legal{padding-left:var(--sp-4);padding-right:var(--sp-4)}"
-    // topnav collapse — fixed-height bar overflows a phone: shrink padding,
-    // wrap nav links, drop oversized inter-link gap, pull lang switcher off
-    // margin-auto so the row reflows instead of pushing the CTA off-screen.
-    c = c + ".topnav{padding:0 var(--sp-4);height:auto;min-height:var(--nav-h);flex-wrap:wrap;gap:var(--sp-3) var(--sp-4);padding-top:var(--sp-3);padding-bottom:var(--sp-3)}"
-    c = c + ".topnav .links{margin-left:0;gap:var(--sp-4);flex-wrap:wrap}"
-    c = c + ".topnav .langsw{margin-left:auto}"
-    c = c + ".topnav .right .cta{padding:10px 18px}"
-    c = c + ".topnav .langsw summary{padding:10px 18px}}"
+    // topnav collapse — the 7-link row cannot fit a phone, so the links
+    // fold behind a ☰ hamburger. The bar stays a single fixed-height row
+    // (brand · ☰ · lang · login); ☰ drops the links as an absolute panel.
+    c = c + ".topnav{padding:0 var(--sp-4)}"
+    c = c + ".topnav .navmenu{margin-left:auto;position:static}"
+    c = c + ".topnav .navmenu>summary{display:inline-flex;align-items:center;padding:10px 16px;border:1px solid var(--fg);font-size:var(--fs-nav-cta);font-weight:var(--fw-medium);line-height:var(--lh-tight)}"
+    c = c + ".topnav .navmenu>summary:hover{background:var(--fg);color:var(--bg)}"
+    c = c + ".topnav .navmenu[open]>summary{background:var(--fg);color:var(--bg)}"
+    c = c + ".topnav .links{display:none}"
+    c = c + ".topnav .navmenu[open] .links{display:flex;flex-direction:column;align-items:stretch;gap:0;position:absolute;top:var(--nav-h);left:0;right:0;background:var(--bg);border-bottom:1px solid var(--fg)}"
+    c = c + ".topnav .navmenu[open] .links a{padding:15px var(--sp-4);border-top:1px solid var(--line);opacity:0.85}"
+    c = c + ".topnav .navmenu[open] .links a.current{text-decoration:none;background:var(--hover-bg-soft);opacity:1}"
+    c = c + ".topnav .langsw{margin-left:var(--sp-3)}"
+    c = c + ".topnav .right .cta{padding:10px 14px}"
+    c = c + ".topnav .langsw summary{padding:10px 14px}}"
     return c
 }
 
