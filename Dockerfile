@@ -30,30 +30,35 @@ WORKDIR /src
 # upstream toolchain — pinned clone (pointer, not vendored)
 RUN git clone --filter=blob:none https://github.com/dancinlab/hexa-lang.git \
     && git -C hexa-lang checkout "$HEXALANG_SHA"
-# self-hosted bootstrap transpiler from source (hexa-native path).
-# Measured-correct recipe (2026-05-19): hexa_cc.c #includes only
-# runtime.h (declarations); the definitions live in self/runtime.c —
-# it MUST be on the clang line. (The single-file recipe in
-# tool/config/build_toolchain.json:527 / cross_compile_linux.hexa:180
-# is stale — it link-fails on undefined hexa_str/rt_read_file/… on mac
-# and linux alike. runtime.c added here is the verified fix.)
-RUN clang -O2 -std=c11 -D_GNU_SOURCE -I hexa-lang/self \
-      hexa-lang/self/native/hexa_cc.c hexa-lang/self/runtime.c \
-      -o hexa-lang/self/native/hexa_v2 -lm
-# the compiled module loader (cmd_build flatten needs it; absence ⇒
-# silent raw-src mis-flatten — see hexa-lang build-harness note)
-RUN if [ -f hexa-lang/Makefile ]; then \
-      make -C hexa-lang build/hexa_module_loader 2>/dev/null || true ; fi
+# ── linux self-host bootstrap — verified 4-step chain (2026-05-19) ──
+# Measured working on mac arm64 + linux/amd64. The single-file recipes
+# in tool/config/build_toolchain.json:527 / cross_compile_linux.hexa:180
+# are stale (link-fail: hexa_cc.c #includes only runtime.h decls; the
+# defs are in self/runtime.c — it MUST be on the clang line). And
+# hexa_v2 is transpile-only; the `build` driver is self/main.hexa,
+# which is import-free → hexa_v2 can transpile it standalone.
+WORKDIR /src/hexa-lang
+# [1] genesis: bootstrap transpiler  (hexa_cc.c + runtime.c)
+RUN clang -O2 -std=c11 -D_GNU_SOURCE -I self \
+      self/native/hexa_cc.c self/runtime.c -o self/native/hexa_v2 -lm
+# [2] transpile the build driver  (main.hexa is standalone — no flatten)
+RUN ./self/native/hexa_v2 self/main.hexa /tmp/hexa_main.c
+# [3] link the full `hexa` driver (build subcommand + import flatten).
+# -D_GNU_SOURCE: runtime.c uses POSIX (nanosleep/fdopen/kill/fileno) —
+# strict -std=c11 hides them on linux glibc (implicit-decl errors);
+# macOS headers are laxer so this only surfaces on the real linux build.
+RUN clang -O2 -std=c11 -D_GNU_SOURCE -I self /tmp/hexa_main.c self/runtime.c \
+      -o self/native/hexa -lm
 
 # phanes source (this build context)
 COPY . /src/phanes
 WORKDIR /src/phanes
-# build the hexa-native HTTP binary against the pinned upstream toolchain
+# [4] build the hexa-native HTTP binary via the from-source driver
 RUN HEXA_MAC_BUILD_OK=1 \
     PHANES_HEXA_HOME=/src/hexa-lang \
     HEXA_LANG=/src/hexa-lang \
-    HEXA_MODULE_LOADER=/src/hexa-lang/build/hexa_module_loader \
-    PHANES_HEXA_BIN=/src/hexa-lang/self/native/hexa_v2 \
+    HEXA_HOME=/src/hexa-lang \
+    PHANES_HEXA_BIN=/src/hexa-lang/self/native/hexa \
     bash service/build.sh /src/phanes/bin/phanes-http
 
 # ── Stage 2: runtime — slim image, the binary + scripts + static ─────
