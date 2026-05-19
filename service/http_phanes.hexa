@@ -1628,17 +1628,17 @@ fn render_contact_page(lang) {
     h = h + "<h2 class=\"eyebrow\">Channels</h2>"
     h = h + "<div class=\"cards\">"
     h = h + render_feat_card("01", "GitHub — Issues",
-        "Bugs, questions, and feature requests.",
-        "Open an issue on the public dancinlab/phanes repository. This is the primary channel — public, tracked, and the same place the source itself lives.")
-    h = h + render_feat_card("02", "GitHub — The Source",
+        "Bugs and feature requests.",
+        "Open an issue on the public <a href=\"https://github.com/dancinlab/phanes/issues\">dancinlab/phanes</a> repository — for anything that should be tracked: a reproducible bug, a concrete feature request, a regression you can point at.")
+    h = h + render_feat_card("02", "GitHub — Discussions",
+        "Questions, ideas, show &amp; tell.",
+        "For open-ended questions — &ldquo;how do I write a verifier for X?&rdquo;, &ldquo;is Phanes a fit for Y?&rdquo;, &ldquo;here is what I built&rdquo; — use <a href=\"https://github.com/dancinlab/phanes/discussions\">GitHub Discussions</a>. Answers stay public and searchable for the next person who asks.")
+    h = h + render_feat_card("03", "GitHub — The Source",
         "Read the code behind the claims.",
-        "Phanes is source-available: every honest-scope claim on this site — verifier-as-sole-authority, no over-claim — is auditable in the repository. Browsing the code is itself a way to evaluate us.")
-    h = h + render_feat_card("03", "Early Access &amp; Enterprise",
-        "Plans, pricing, larger objectives.",
-        "For early-access pricing or a plan sized to your team, email <a href=\"mailto:hello@dancinlab.org\">hello@dancinlab.org</a> with the kind of objective and scale you have in mind, and we will follow up.")
-    h = h + render_feat_card("04", "The Demo",
-        "See it before you ask.",
-        "The public demo runs three curated discovery scenarios end to end — the quickest way to understand what Phanes does before getting in touch.")
+        "Phanes is source-available at <a href=\"https://github.com/dancinlab/phanes\">dancinlab/phanes</a>: every honest-scope claim on this site — verifier-as-sole-authority, no over-claim — is auditable in the repository. Browsing the code is itself a way to evaluate us.")
+    h = h + render_feat_card("04", "Email — hello@dancinlab.org",
+        "Early access, enterprise, private inquiries.",
+        "Anything that does not belong in a public channel — early-access pricing, a plan sized for your team, security disclosures, or larger objectives — goes to <a href=\"mailto:hello@dancinlab.org\">hello@dancinlab.org</a>. Tell us the kind of objective, the verifier you have in mind, and the scale; we will follow up.")
     h = h + "</div></div></section>"
     // closer CTA
     h = h + "<section class=\"sec vf\"><div class=\"sec-in\">"
