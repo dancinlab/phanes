@@ -88,7 +88,12 @@ ENV PHANES_HOME=/app \
     PHANES_BIND_PORT=8787 \
     PHANES_ROLE=web
 EXPOSE 8787
-# role switch (Decision 22): web HTTP tier vs worker queue-consumer loop
+# role switch (Decision 22): web HTTP tier vs worker queue-consumer loop.
+# The container receives R2_* / PHANES_Q_* directly as env vars (set by
+# the Worker's Container.envVars from its bound secrets — src/worker.js).
+# So the web tier execs phanes-http directly; run-phanes.sh is the
+# bare-metal `secret`-CLI bootstrap wrapper and is NOT used in-container
+# (no `secret` CLI in the image — it would exit 3).
 ENTRYPOINT ["/bin/bash","-c","\
   if [ \"$PHANES_ROLE\" = worker ]; then exec /app/service/queue_worker.sh; \
-  else exec /app/service/run-phanes.sh; fi"]
+  else exec /app/bin/phanes-http; fi"]

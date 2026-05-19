@@ -13,12 +13,31 @@
 // wake) are validated at `wrangler deploy`; this encodes the intent.
 import { Container, getContainer } from "@cloudflare/containers";
 
+// The container needs PHANES_ROLE + the R2 / CF-Queue credentials as
+// env vars. The 7 secrets are bound to the *Worker* (wrangler secret
+// put); they are NOT automatically visible inside the container — so
+// each Container subclass copies them from the Worker env into its
+// envVars in the constructor.
+function _phanesEnv(role, env) {
+  return {
+    PHANES_ROLE:          role,
+    R2_ACCESS_KEY_ID:     env.R2_ACCESS_KEY_ID     || "",
+    R2_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY || "",
+    R2_ACCOUNT_ID:        env.R2_ACCOUNT_ID        || "",
+    R2_BUCKET:            env.R2_BUCKET            || "phanes",
+    PHANES_Q_ACCOUNT_ID:  env.PHANES_Q_ACCOUNT_ID  || "",
+    PHANES_Q_ID:          env.PHANES_Q_ID          || "",
+    PHANES_Q_TOKEN:       env.PHANES_Q_TOKEN       || "",
+  };
+}
+
 export class PhanesWeb extends Container {
-  defaultPort = 8787;            // run-phanes.sh binds 0.0.0.0:8787
+  defaultPort = 8787;            // phanes-http binds 0.0.0.0:8787
   sleepAfter = "10m";            // HTTP tier may idle between requests
-  // env to the container (wrangler.jsonc containers[] has no `env`
-  // field — role is set here, read by the Dockerfile ENTRYPOINT).
-  envVars = { PHANES_ROLE: "web" };
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.envVars = _phanesEnv("web", env);
+  }
 }
 
 export class PhanesWorker extends Container {
@@ -27,7 +46,10 @@ export class PhanesWorker extends Container {
   // containers#162 sleep-kill guard → queue_worker also sets a long
   // visibility timeout).
   sleepAfter = "30m";
-  envVars = { PHANES_ROLE: "worker" };
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.envVars = _phanesEnv("worker", env);
+  }
 }
 
 export default {
