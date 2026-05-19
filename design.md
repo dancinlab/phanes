@@ -1438,11 +1438,27 @@ is a user billing authorization, out of autonomous scope.
 - linux phanes-http + both container images — built, measured.
 - `dancinlab.org` — active CF zone, additive cutover ready.
 
-**The one remaining user step:** upgrade the Cloudflare account to the
-Workers Paid plan, then `bash deploy.sh` (it uses
-`CLOUDFLARE_API_TOKEN` = `cloudflare.deploy.token`) pushes the images
-+ rolls out → smoke `*.workers.dev` → `bash cutover-domain.sh
-dancinlab.org`. Nothing is faked as deployed.
+**DEPLOYED — LIVE (2026-05-19).** The user authorized + activated the
+Workers Paid plan; the deploy then completed end-to-end:
+- container images pushed to `registry.cloudflare.com/<acct>/phanes-*`
+  and the `phanes-phanesweb` / `phanes-phanesworker` container
+  applications created (standard-1 ×3 / standard-2 ×5).
+- two container-start fixes measured along the way: the ENTRYPOINT was
+  running `run-phanes.sh` (needs the `secret` CLI, absent in-image →
+  exit 3) — web tier now execs `phanes-http` directly; and the 7
+  R2/Queue secrets are Worker-bound, not container-visible — each
+  `Container` subclass now copies them from the Worker env into
+  `envVars` (`src/worker.js`).
+- **Worker live**: `https://phanes.dancinlife.workers.dev` —
+  `/`, `/v1/healthz`, `/pricing`, `/phanes` all `200`, real HTML.
+- **DNS cutover done**: `dancinlab.org` bound as a Workers Custom
+  Domain → the `phanes` Worker (cert provisioned, `enabled:true`).
+  **`https://dancinlab.org` + all routes serve `200`.** Mail records
+  untouched (the cutover was additive, as measured).
+
+phanes — a hexa-native HTTP service, built on linux by a hexa toolchain
+that bootstrapped itself from source — is live on the internet at its
+own domain. Nothing faked; every step measured.
 
 ---
 
