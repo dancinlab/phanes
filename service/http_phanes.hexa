@@ -1635,7 +1635,7 @@ fn render_contact_page(lang) {
         "Phanes is source-available: every honest-scope claim on this site — verifier-as-sole-authority, no over-claim — is auditable in the repository. Browsing the code is itself a way to evaluate us.")
     h = h + render_feat_card("03", "Early Access &amp; Enterprise",
         "Plans, pricing, larger objectives.",
-        "For early-access pricing or a plan sized to your team, open a GitHub issue tagged \"sales\" with the kind of objective and scale you have in mind, and we will follow up.")
+        "For early-access pricing or a plan sized to your team, email <a href=\"mailto:hello@dancinlab.org\">hello@dancinlab.org</a> with the kind of objective and scale you have in mind, and we will follow up.")
     h = h + render_feat_card("04", "The Demo",
         "See it before you ask.",
         "The public demo runs three curated discovery scenarios end to end — the quickest way to understand what Phanes does before getting in touch.")
