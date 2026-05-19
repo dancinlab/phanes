@@ -71,8 +71,12 @@ EOF
     mv -f "$JOBDIR/job.json.tmp" "$JOBDIR/job.json"
     # Detached engine spawn — submit returns once jobctl's bookkeeping
     # is durable on disk; the kick runs in an OS-level child process.
+    # `${arr[@]+"${arr[@]}"}` — expand to the elements, or to nothing if
+    # the array is empty. A bare `"${EXTRA_ARGS[@]}"` is an "unbound
+    # variable" fatal under `set -u` on bash < 4.4 (macOS ships 3.2), so a
+    # verifier-less submit aborted before spawning job_runner.
     nohup "$HERE/job_runner.sh" --seed "$SEED" --rounds "$ROUNDS" \
-      --jobdir "$JOBDIR" "${EXTRA_ARGS[@]}" \
+      --jobdir "$JOBDIR" ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"} \
       >> "$JOBDIR/submit.log" 2>&1 < /dev/null &
     disown $! 2>/dev/null || true
     echo "$JID"

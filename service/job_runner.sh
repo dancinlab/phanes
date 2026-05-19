@@ -10,10 +10,10 @@
 #   rc=0 · wall≈1s · overlay written ONLY inside the jail · real
 #   ~/.hx/data untouched · stdout last line = JSON DrillResult.
 #
-# Isolation = Decision 6 (가) hybrid: per-job $HOME jail. The canonical
-# path (upstream HX_DATA_DIR) is filed at hexa-lang
-# inbox/patches/phanes-hx-data-dir-per-tenant-isolation; once it lands,
-# swap HOME-jail for HX_DATA_DIR and keep the jail as defense-in-depth.
+# Isolation = Decision 6 (다) hybrid, both layers now live: HX_DATA_DIR
+# (the upstream canonical per-tenant data boundary — kick binary promoted
+# 2026-05-19, probe-verified) is the primary boundary; the per-job $HOME
+# jail is retained as defense-in-depth. Both resolve to $JAIL/.hx/data.
 #
 # Production note: hexa-lang Axis D forbids Mac-native `hexa kick`; the
 # production compute plane runs this on the Linux fleet (P2). This runner
@@ -95,14 +95,17 @@ EOF
 }
 phanes_write_status "running"
 
-# --- run: HOME-jail + cycle-h36 arena fix + ms wall meter (P2.1) ---
-# Note: P2.3 — HX_DATA_DIR upstream RESOLVED-SSOT 2026-05-19 but running
-# binary is pre-promote (probe: NOT honored). We keep $HOME-jail; after
-# the next hexa-lang binary promote we'll add `HX_DATA_DIR="$JAIL/.hx/data"`
-# to this env line, drop the $HOME hijack, and keep the sandbox as DiD.
+# --- run: HX_DATA_DIR + HOME-jail + cycle-h36 arena fix + ms wall meter ---
+# P2.3 — HX_DATA_DIR is now the primary per-tenant data boundary. The
+# hexa-lang patch (overlay::hx_data_dir) landed RESOLVED-SSOT and the kick
+# binary was promoted 2026-05-19 — probe-verified: with HX_DATA_DIR set the
+# engine writes atlas.overlay.n6 + drill_checkpoint.json there, not under
+# $HOME. We set HX_DATA_DIR explicitly AND keep HOME="$JAIL" as
+# defense-in-depth: if any engine path ever falls back to $HOME/.hx/data it
+# still lands inside the jail. Both point at $JAIL/.hx/data, so they agree.
 T0_MS=$(phanes_now_ms)
 set +e
-HOME="$JAIL" HEXA_VAL_ARENA=0 timeout "$TIMEOUT_SEC" \
+HOME="$JAIL" HX_DATA_DIR="$JAIL/.hx/data" HEXA_VAL_ARENA=0 timeout "$TIMEOUT_SEC" \
   "$KICK" --seed "$SEED_TRIM" --rounds "$ROUNDS" --engine "$ENGINE" \
   > "$JOBDIR/stdout.txt" 2> "$JOBDIR/stderr.txt"
 RC=$?
