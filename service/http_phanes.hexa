@@ -288,6 +288,82 @@ fn aws_dynamo_sign(region, target, body, access_key, secret_key, amz_date) {
     return sigv4_sign(req)
 }
 
+// dynamo_request(target, body) — one signed DynamoDB JSON-1.0 API call.
+// Builds the SigV4 Authorization (via aws_dynamo_sign), posts the
+// request via curl (the same shell-out pattern stdlib/net/http_client
+// uses for GET — POST is a stdlib gap, filed upstream as
+// phanes-stdlib-net-http-post.md), parses the response.
+//
+// Returns a dict:
+//   "ok"     : bool   — HTTP 200
+//   "status" : int    — HTTP status code (0 on curl failure)
+//   "body"   : str    — response body (or error stdout)
+//   "error"  : str    — non-empty when ok=false; human-readable cause
+//
+// Reads AWS_REGION (default "us-east-1") + AWS_ACCESS_KEY_ID +
+// AWS_SECRET_ACCESS_KEY from env. Those are populated by
+// service/run-phanes.sh from the `secret` CLI (Decision 17).
+fn dynamo_request(target, body) {
+    let mut region = env("AWS_REGION")
+    if len(region) == 0 { region = "us-east-1" }
+    let ak = env("AWS_ACCESS_KEY_ID")
+    let sk = env("AWS_SECRET_ACCESS_KEY")
+    let mut result = #{}
+    result["ok"]     = false
+    result["status"] = 0
+    result["body"]   = ""
+    result["error"]  = ""
+    if len(ak) == 0 || len(sk) == 0 {
+        result["error"] = "AWS credentials missing — `secret set aws/phanes/access_key_id <v>` + secret_access_key, relaunch via service/run-phanes.sh"
+        return result
+    }
+    let now_r = exec_with_status("date -u +%Y%m%dT%H%M%SZ")
+    if now_r[1] != 0 { result["error"] = "date(1) failed"; return result }
+    let amz_date = now_r[0].trim()
+    // `sig` not `signed` — `signed` is a C reserved word (type modifier),
+    // and the hexa-to-C transpile emits variable names verbatim.
+    let sig = aws_dynamo_sign(region, target, body, ak, sk, amz_date)
+    let host = "dynamodb." + region + ".amazonaws.com"
+    let url = "https://" + host + "/"
+    let cmd = "curl -sS -X POST --max-time 15"
+        + " -H " + shquote("X-Amz-Date: "    + sig.x_amz_date)
+        + " -H " + shquote("X-Amz-Target: DynamoDB_20120810." + target)
+        + " -H " + shquote("Content-Type: application/x-amz-json-1.0")
+        + " -H " + shquote("Authorization: " + sig.authorization)
+        + " --data-raw " + shquote(body)
+        + " -w " + shquote("\n%{http_code}")
+        + " " + shquote(url)
+    let r = exec_with_status(cmd)
+    let out = r[0]
+    let rc  = r[1]
+    if rc != 0 {
+        result["error"] = "curl rc=" + to_string(rc)
+        result["body"] = out
+        return result
+    }
+    // `-w '\n%{http_code}'` appends the status on its own line; split
+    // on \n and take the last segment as the status, the rest is the
+    // response body (which itself may contain newlines).
+    let lines = out.split("\n")
+    let n = len(lines)
+    if n < 1 { result["body"] = out; return result }
+    let status_str = lines[n - 1].trim()
+    let mut body_buf = ""
+    let mut i = 0
+    while i < n - 1 {
+        if i > 0 { body_buf = body_buf + "\n" }
+        body_buf = body_buf + lines[i]
+        i = i + 1
+    }
+    result["status"] = to_int(status_str)
+    result["body"]   = body_buf
+    if result["status"] == 200 { result["ok"] = true }
+    if result["status"] != 200 && len(result["error"]) == 0 {
+        result["error"] = "DynamoDB status " + status_str
+    }
+    return result
+}
+
 // rate_limit_ok(key, max_hits, window_sec) — records this hit and
 // returns true if the caller is within the limit, false if over it.
 fn rate_limit_ok(key, max_hits, window_sec) {
