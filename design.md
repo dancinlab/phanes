@@ -767,6 +767,65 @@ flip — flagged as a pre-flip task, low practical risk but on record.
 
 ---
 
+### Decision 17 — AWS credentials = startup-wrapper + `secret` CLI
+
+**picked**: AWS credentials are loaded by a **startup wrapper script**
+(`service/run-phanes.sh`) that calls the user's `secret` CLI
+(`~/.local/bin/secret`, `secret get <key>` writes the value to stdout
+with no trailing newline), exports them as the **standard AWS SDK
+environment variables**, and then `exec`s `bin/phanes-http`. The repo
+stays credential-free; phanes-http reads only the AWS env vars and is
+not coupled to any specific secret tool.
+
+**rationale**:
+- **The repo is public source-available (Decision 16) — credentials
+  cannot live in the tree.** They must come from a host-side secret
+  store. The user's existing `secret` CLI is the natural source.
+- **Standard AWS env-var convention keeps phanes-http generic.** The
+  binary reads `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` /
+  `AWS_REGION` / `AWS_SESSION_TOKEN` like any AWS SDK consumer; how the
+  env gets populated is a deployment concern. Swapping `secret` for
+  another vault later (Keychain, 1Password, AWS Secrets Manager,
+  Vault) is a wrapper change only — no code change in phanes.
+- **`exec`-style wrapper means no orphan shell.** `run-phanes.sh` calls
+  `exec "$BIN"`, so the systemd / launchd process tree has one process,
+  not a shell parent + binary child. Clean signals + clean ps output.
+- **Fail-clean on missing secrets.** `_get_required` exits with a
+  pointed "missing secret <key> (run: secret set <key>)" error — the
+  failure mode is explicit, not silent-with-empty-creds (which would
+  produce confusing AWS InvalidSignatureException errors at first call).
+
+**secret key convention (`secret get <key>` → value):**
+- `aws/phanes/access_key_id`     → `AWS_ACCESS_KEY_ID`     (required)
+- `aws/phanes/secret_access_key` → `AWS_SECRET_ACCESS_KEY` (required)
+- `aws/phanes/region`            → `AWS_REGION`            (optional; default `us-east-1`)
+- `aws/phanes/session_token`     → `AWS_SESSION_TOKEN`     (optional; STS only)
+
+**deployment wiring**: the systemd unit `service/phanes-http.service`
+(Decision 11 EC2 host) sets `ExecStart=/home/ubuntu/phanes/service/run-phanes.sh`
+so production picks up the same wrapper path. For local dev, run
+`bash service/run-phanes.sh` in place of `bin/phanes-http`.
+
+**honest scope (g3)**: the wrapper is real and ready; no AWS call site
+in phanes uses these env vars yet (B2 step-1 is just the SigV4 import +
+the `aws_dynamo_sign` seam, no live call). The wrapper ensures that
+when B2 step-2 lands its first DynamoDB op, the credentials are already
+in env. Discussed and rejected the in-process `secret list` approach
+(option 나 of the brainstorm) because it would couple phanes to a
+specific secret tool with no benefit over the wrapper.
+
+**shell-vs-hexa note** (the HEXA_FIRST_WARN hook fired on this `.sh`):
+the wrapper is a process-boundary env-injection — *call `secret` N
+times → export env → exec the binary* — which is the work shells exist
+for. A hexa equivalent would be a second hexa binary that launches the
+first hexa binary, one redundant indirection. phanes' deployment layer
+is already shell-consistent (`build.sh` · `deploy.sh` · `jobctl.sh` ·
+`job_runner.sh` · `concurrency_test.sh`); the hexa-native invariant
+(`@D g5`) is about phanes-http itself emitting its own machine code,
+not about every deployment helper being hexa.
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is

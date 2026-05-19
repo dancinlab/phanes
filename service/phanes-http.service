@@ -20,7 +20,12 @@ WorkingDirectory=/home/ubuntu/phanes
 Environment=PHANES_HOME=/home/ubuntu/phanes
 Environment=PHANES_BIND_HOST=127.0.0.1
 Environment=PHANES_BIND_PORT=8787
-ExecStart=/home/ubuntu/phanes/bin/phanes-http
+# Launched via the startup wrapper (design.md Decision 17): the wrapper
+# fetches AWS credentials from the `secret` CLI and exports them as
+# AWS_ACCESS_KEY_ID / _SECRET_ACCESS_KEY / _REGION before `exec`ing
+# phanes-http. Repo is public + source-available — credentials never
+# enter the tree, only env-var names and `secret get` keys do.
+ExecStart=/home/ubuntu/phanes/service/run-phanes.sh
 Restart=always
 RestartSec=2
 # graceful: the select-loop accept loop exits on its stop-flag; SIGTERM
