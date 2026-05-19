@@ -7,12 +7,15 @@
 # `secret` is the user's unified credential CLI (~/.local/bin/secret);
 # `secret get <key>` writes the value to stdout with no trailing newline.
 #
-# Secret keys read here — dot-separated, matching the existing `secret`
-# store convention (`cloudflare.email`, `postmark.server_token`, ...):
-#   aws.phanes.access_key_id      -> AWS_ACCESS_KEY_ID         (required)
-#   aws.phanes.secret_access_key  -> AWS_SECRET_ACCESS_KEY     (required)
-#   aws.phanes.region             -> AWS_REGION                (optional; default us-east-1)
-#   aws.phanes.session_token      -> AWS_SESSION_TOKEN         (optional; STS only)
+# Datastore = Cloudflare R2 (Decision 21 — S3-compatible, AWS-SigV4).
+# Secret keys, dot-separated per the existing `secret` store convention
+# (`cloudflare.email`, `postmark.server_token`, ...):
+#   r2.phanes.access_key_id      -> R2_ACCESS_KEY_ID      (required)
+#   r2.phanes.secret_access_key  -> R2_SECRET_ACCESS_KEY  (required)
+#   r2.phanes.account_id         -> R2_ACCOUNT_ID         (required; the
+#                                   R2 endpoint host is
+#                                   <account_id>.r2.cloudflarestorage.com)
+#   r2.phanes.bucket             -> R2_BUCKET             (optional; default "phanes")
 #
 # Usage:  bash service/run-phanes.sh
 #         (PHANES_BIND_HOST / PHANES_BIND_PORT honored by phanes-http itself.)
@@ -44,15 +47,15 @@ _get_optional() {
   secret get "$1" 2>/dev/null || true
 }
 
-# AWS credentials — standard SDK env-var names so phanes-http stays
-# generic-AWS-conventional and is not coupled to the secret tool.
-AWS_ACCESS_KEY_ID="$(_get_required aws.phanes.access_key_id)"
-AWS_SECRET_ACCESS_KEY="$(_get_required aws.phanes.secret_access_key)"
-REGION="$(_get_optional aws.phanes.region)"
-AWS_REGION="${REGION:-us-east-1}"
-SESSION="$(_get_optional aws.phanes.session_token)"
-export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION
-[ -n "$SESSION" ] && export AWS_SESSION_TOKEN="$SESSION"
+# R2 credentials (Decision 21). R2 speaks S3 + AWS SigV4; the
+# phanes-http R2 layer reads these env names. account_id determines the
+# endpoint host (<account_id>.r2.cloudflarestorage.com).
+R2_ACCESS_KEY_ID="$(_get_required r2.phanes.access_key_id)"
+R2_SECRET_ACCESS_KEY="$(_get_required r2.phanes.secret_access_key)"
+R2_ACCOUNT_ID="$(_get_required r2.phanes.account_id)"
+R2_BUCKET="$(_get_optional r2.phanes.bucket)"
+R2_BUCKET="${R2_BUCKET:-phanes}"
+export R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_ACCOUNT_ID R2_BUCKET
 
 # PHANES_HOME so the server resolves /web/static, .store/, jobctl.
 export PHANES_HOME="${PHANES_HOME:-$PHANES_ROOT}"

@@ -253,86 +253,102 @@ fn _now_epoch() {
     return to_int(r[0].trim())
 }
 
-// ── AWS request signing (Decision 15 — DynamoDB + S3 datastore) ──
-// Single signing seam over the stdlib SigV4 module (stdlib/aws/sigv4.hexa,
-// landed upstream 2026-05-19 from the phanes-aws-sigv4-signer inbox
-// patch — 9/9 AWS test-vector byte-eq verified). The .store/ → DynamoDB
-// migration's data-access calls route every request through here, so
-// the SigV4 details and the credential plumbing live in one place.
-// aws_dynamo_sign builds the Sigv4Request for a DynamoDB JSON-1.0 API
-// call and returns the signed Sigv4Result (Authorization + x-amz-date
-// + x-amz-content-sha256). Per @D g_stdlib_ownership phanes only points
-// to the upstream signer; it never carries its own copy.
-fn aws_dynamo_sign(region, target, body, access_key, secret_key, amz_date) {
-    let host = "dynamodb." + region + ".amazonaws.com"
-    let headers = [
-        Sigv4Header { name: "host",         value: host },
-        Sigv4Header { name: "content-type", value: "application/x-amz-json-1.0" },
-        Sigv4Header { name: "x-amz-date",   value: amz_date },
-        Sigv4Header { name: "x-amz-target", value: "DynamoDB_20120810." + target }
-    ]
-    let req = Sigv4Request {
-        method:        "POST",
+// ── R2 object store (Decision 21 — ALL Cloudflare R2) ────────────
+// phanes' datastore is Cloudflare R2: S3-compatible object storage,
+// AWS-SigV4-authenticated (service="s3", region="auto", host
+// <account>.r2.cloudflarestorage.com). Replaces the AWS DynamoDB+S3
+// design — the app makes zero AWS calls; the only credential is an R2
+// API token. Signing reuses the upstream stdlib/aws/sigv4.hexa (B2
+// step-1) unchanged. Credentials come from R2_ACCESS_KEY_ID /
+// R2_SECRET_ACCESS_KEY / R2_ACCOUNT_ID, populated by
+// service/run-phanes.sh from the `secret` CLI's r2.phanes.* keys.
+fn _r2_host() {
+    return env("R2_ACCOUNT_ID") + ".r2.cloudflarestorage.com"
+}
+
+// r2_sign — S3 requires `x-amz-content-sha256` to be a *signed* header
+// whose value is the payload hash, but the stdlib signer computes that
+// hash internally and does not auto-attach the header. So: sign once to
+// learn the payload hash from the result, attach it as a header, sign
+// again. Two signings (microseconds each) keep this pure — no shell
+// hashing, only the upstream stdlib signer (@D g_stdlib_ownership).
+fn r2_sign(method, path, query, body, ak, sk, amz_date) {
+    let host = _r2_host()
+    let probe = Sigv4Request {
+        method:        method,
         host:          host,
-        region:        region,
-        service:       "dynamodb",
-        path:          "/",
-        query:         "",
-        headers:       headers,
+        region:        "auto",
+        service:       "s3",
+        path:          path,
+        query:         query,
+        headers:       [ Sigv4Header { name: "host", value: host },
+                         Sigv4Header { name: "x-amz-date", value: amz_date } ],
         payload:       body,
-        access_key:    access_key,
-        secret_key:    secret_key,
+        access_key:    ak,
+        secret_key:    sk,
+        amz_date:      amz_date,
+        session_token: ""
+    }
+    let s1 = sigv4_sign(probe)
+    let phash = s1.x_amz_content_sha256
+    let req = Sigv4Request {
+        method:        method,
+        host:          host,
+        region:        "auto",
+        service:       "s3",
+        path:          path,
+        query:         query,
+        headers:       [ Sigv4Header { name: "host", value: host },
+                         Sigv4Header { name: "x-amz-content-sha256", value: phash },
+                         Sigv4Header { name: "x-amz-date", value: amz_date } ],
+        payload:       body,
+        access_key:    ak,
+        secret_key:    sk,
         amz_date:      amz_date,
         session_token: ""
     }
     return sigv4_sign(req)
 }
 
-// dynamo_request(target, body) — one signed DynamoDB JSON-1.0 API call.
-// Builds the SigV4 Authorization (via aws_dynamo_sign), posts the
-// request via curl (the same shell-out pattern stdlib/net/http_client
-// uses for GET — POST is a stdlib gap, filed upstream as
-// phanes-stdlib-net-http-post.md), parses the response.
-//
-// Returns a dict:
-//   "ok"     : bool   — HTTP 200
-//   "status" : int    — HTTP status code (0 on curl failure)
+// r2_request(method, bucket, key, query, body) — one signed R2 call.
+// Posts via curl (the same shell-out pattern stdlib/net/http_client
+// uses for GET — a generic signed HTTP verb is a stdlib gap). Returns:
+//   "ok"     : bool   — HTTP 2xx
+//   "status" : int    — HTTP status (0 on curl failure)
 //   "body"   : str    — response body (or error stdout)
-//   "error"  : str    — non-empty when ok=false; human-readable cause
-//
-// Reads AWS_REGION (default "us-east-1") + AWS_ACCESS_KEY_ID +
-// AWS_SECRET_ACCESS_KEY from env. Those are populated by
-// service/run-phanes.sh from the `secret` CLI (Decision 17).
-fn dynamo_request(target, body) {
-    let mut region = env("AWS_REGION")
-    if len(region) == 0 { region = "us-east-1" }
-    let ak = env("AWS_ACCESS_KEY_ID")
-    let sk = env("AWS_SECRET_ACCESS_KEY")
+//   "error"  : str    — non-empty when ok=false
+fn r2_request(method, bucket, key, query, body) {
+    let ak   = env("R2_ACCESS_KEY_ID")
+    let sk   = env("R2_SECRET_ACCESS_KEY")
+    let acct = env("R2_ACCOUNT_ID")
     let mut result = #{}
     result["ok"]     = false
     result["status"] = 0
     result["body"]   = ""
     result["error"]  = ""
-    if len(ak) == 0 || len(sk) == 0 {
-        result["error"] = "AWS credentials missing — `secret set aws.phanes.access_key_id <v>` + secret_access_key, relaunch via service/run-phanes.sh"
+    if len(ak) == 0 || len(sk) == 0 || len(acct) == 0 {
+        result["error"] = "R2 credentials missing — `secret set r2.phanes.access_key_id|secret_access_key|account_id`, relaunch via service/run-phanes.sh"
         return result
     }
     let now_r = exec_with_status("date -u +%Y%m%dT%H%M%SZ")
     if now_r[1] != 0 { result["error"] = "date(1) failed"; return result }
     let amz_date = now_r[0].trim()
-    // `sig` not `signed` — `signed` is a C reserved word (type modifier),
-    // and the hexa-to-C transpile emits variable names verbatim.
-    let sig = aws_dynamo_sign(region, target, body, ak, sk, amz_date)
-    let host = "dynamodb." + region + ".amazonaws.com"
-    let url = "https://" + host + "/"
-    let cmd = "curl -sS -X POST --max-time 15"
-        + " -H " + shquote("X-Amz-Date: "    + sig.x_amz_date)
-        + " -H " + shquote("X-Amz-Target: DynamoDB_20120810." + target)
-        + " -H " + shquote("Content-Type: application/x-amz-json-1.0")
-        + " -H " + shquote("Authorization: " + sig.authorization)
-        + " --data-raw " + shquote(body)
-        + " -w " + shquote("\n%{http_code}")
-        + " " + shquote(url)
+    let mut path = "/" + bucket
+    if len(key) > 0 { path = path + "/" + key }
+    // `sig` not `signed` — `signed` is a C reserved word.
+    let sig = r2_sign(method, path, query, body, ak, sk, amz_date)
+    let host = acct + ".r2.cloudflarestorage.com"
+    let mut url = "https://" + host + path
+    if len(query) > 0 { url = url + "?" + query }
+    let mut cmd = "curl -sS -X " + method + " --max-time 20"
+        + " -H " + shquote("Host: "                 + host)
+        + " -H " + shquote("X-Amz-Date: "            + sig.x_amz_date)
+        + " -H " + shquote("X-Amz-Content-Sha256: "  + sig.x_amz_content_sha256)
+        + " -H " + shquote("Authorization: "         + sig.authorization)
+    if method == "PUT" {
+        cmd = cmd + " --data-binary " + shquote(body)
+    }
+    cmd = cmd + " -w " + shquote("\n%{http_code}") + " " + shquote(url)
     let r = exec_with_status(cmd)
     let out = r[0]
     let rc  = r[1]
@@ -341,9 +357,6 @@ fn dynamo_request(target, body) {
         result["body"] = out
         return result
     }
-    // `-w '\n%{http_code}'` appends the status on its own line; split
-    // on \n and take the last segment as the status, the rest is the
-    // response body (which itself may contain newlines).
     let lines = out.split("\n")
     let n = len(lines)
     if n < 1 { result["body"] = out; return result }
@@ -357,12 +370,28 @@ fn dynamo_request(target, body) {
     }
     result["status"] = to_int(status_str)
     result["body"]   = body_buf
-    if result["status"] == 200 { result["ok"] = true }
-    if result["status"] != 200 && len(result["error"]) == 0 {
-        result["error"] = "DynamoDB status " + status_str
+    let st = result["status"]
+    if st >= 200 && st < 300 { result["ok"] = true }
+    if !result["ok"] && len(result["error"]) == 0 {
+        result["error"] = "R2 status " + status_str
     }
     return result
 }
+
+// Convenience object verbs — what the .store/ → R2 migration (B2
+// step-3+) calls. bucket is the phanes R2 bucket name (env
+// R2_BUCKET, default "phanes").
+fn _r2_bucket() {
+    let b = env("R2_BUCKET")
+    if len(b) == 0 { return "phanes" }
+    return b
+}
+fn r2_put(key, body)  { return r2_request("PUT",    _r2_bucket(), key, "", body) }
+fn r2_get(key)        { return r2_request("GET",    _r2_bucket(), key, "", "") }
+fn r2_delete(key)     { return r2_request("DELETE", _r2_bucket(), key, "", "") }
+// r2_list — ListObjectsV2 under a key prefix. Caller sorts/limits the
+// returned XML (newest-first via a reverse-timestamp key prefix).
+fn r2_list(prefix)    { return r2_request("GET", _r2_bucket(), "", "list-type=2&prefix=" + prefix, "") }
 
 // rate_limit_ok(key, max_hits, window_sec) — records this hit and
 // returns true if the caller is within the limit, false if over it.

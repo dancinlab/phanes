@@ -972,6 +972,87 @@ TLS, fronting the CDN, and absorbing DDoS at the edge.
 
 ---
 
+### Decision 21 — Datastore = ALL Cloudflare R2 (supersedes 15 + 18's DynamoDB)
+
+**picked**: `(가) ALL-R2`. The entire datastore — overlay blobs **and**
+the structured records (sessions, tenants, jobs) — lives in **Cloudflare
+R2**, S3-compatible object storage. **DynamoDB is dropped; AWS S3 is
+dropped.** Supersedes Decision 15 (DynamoDB + S3) and Decision 18
+(DynamoDB single-table schema). User directive 2026-05-19: "all r2".
+
+**why this resolves the AWS-IAM friction (answers "ec2, db 두 개 IAM?"):**
+- The whole AWS-bootstrap detour (the braket profile lacking IAM /
+  DynamoDB, the console-IAM step the user was avoiding) **dissolves**.
+  With ALL-R2 the phanes application makes **zero AWS API calls** — no
+  DynamoDB IAM, no S3 IAM. The only storage credential is a **Cloudflare
+  R2 API token** (created in the Cloudflare dashboard the user already
+  owns), not an AWS IAM user.
+- **EC2 (Decision 11) is unchanged but its IAM footprint is ~nil.** EC2
+  is just the Linux VM running the native binary; the running
+  phanes-http process talks only to Cloudflare R2. Provisioning the EC2
+  instance is an AWS-account action, but the app needs no AWS IAM user.
+  So the feared "two IAM scopes (EC2 + DB)" is neither — DB is R2
+  (Cloudflare), EC2 is a bare VM.
+
+**why R2 fits technically:**
+- R2 exposes an **S3-compatible API authenticated with AWS SigV4**
+  (`service = "s3"`, `region = "auto"`, host
+  `<account_id>.r2.cloudflarestorage.com`). The SigV4 signer phanes
+  already imports (`stdlib/aws/sigv4.hexa`, B2 step-1) works against R2
+  unchanged — only service/region/host differ.
+- phanes' access patterns map onto S3 object ops:
+  - session  → `PutObject` / `GetObject` / `DeleteObject`
+    key `sessions/<sid>.json`
+  - tenant   → object `tenants/<name>.json`
+  - job      → object `tenants/<name>/jobs/<reverse-ts>-<job_id>.json`
+  - jobs newest-N per tenant → `ListObjectsV2` with
+    `prefix=tenants/<name>/jobs/`, keys sorted (reverse-ts prefix puts
+    newest first), client-side `Limit=N`. Slower than a DynamoDB Query
+    but at phanes' low volume it is well within budget.
+  - overlay blob → `PutObject` `overlays/<job_id>.n6`
+- Session TTL: DynamoDB native TTL is gone; expiry becomes either an
+  embedded `expires_at` checked on read + lazy delete, or an R2
+  lifecycle rule on the `sessions/` prefix. Recorded as an execution
+  detail, not a new gate.
+
+**rationale**:
+- **Removes AWS entirely from the app credential surface.** One
+  Cloudflare account (already held), one R2 token. No AWS account, no
+  IAM, no DynamoDB. Cuts the single biggest source of setup friction.
+- **Reuses work already done.** The SigV4 signer (B2 step-1) and the
+  signed-HTTP carrier pattern (B2 step-2 `dynamo_request`) generalize
+  to R2 — the carrier becomes S3 REST verbs instead of DynamoDB
+  JSON-1.0, the signer is reused as-is.
+- **Cost.** R2 free tier (10 GB storage + generous Class-A/B ops/month)
+  comfortably covers phanes at launch volume; R2 egress is free
+  (Cloudflare's headline differentiator).
+- **Consistency with Decision 20.** DNS + edge already Cloudflare;
+  storage on Cloudflare too keeps the front+data plane on one provider,
+  EC2 the lone AWS piece (just the VM).
+
+**honest scope (g3)**:
+- `ListObjectsV2 + client-side sort` is genuinely slower than a
+  DynamoDB Query for "newest-N jobs". At phanes' scale (low job
+  volume per tenant) this is fine; if a tenant ever has tens of
+  thousands of jobs, the listing pattern needs an index object
+  (a maintained `tenants/<name>/jobs/_index.json`) — recorded as a
+  future optimization, not built now.
+- Decisions 15 and 18 are **superseded**, not deleted — kept on record
+  with this supersede note so the reasoning trail is intact.
+- The remaining setup action is the user creating one R2 bucket +
+  one R2 API token in the Cloudflare dashboard, then
+  `secret set r2.phanes.access_key_id <v>` / `secret_access_key` /
+  `account_id`. No AWS console, no IAM.
+
+**code follow-on (B2 step-2-rev)**: `aws_dynamo_sign` /
+`dynamo_request` generalize to an R2 object layer — sign with
+`service="s3"`, `region="auto"`, the R2 host; `r2_put` / `r2_get` /
+`r2_delete` / `r2_list` over the same curl-shell signed-request carrier.
+The `secret` keys move to the `r2.phanes.*` namespace
+(`access_key_id` / `secret_access_key` / `account_id`).
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
