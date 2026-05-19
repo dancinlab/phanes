@@ -228,12 +228,6 @@ fn _store_root() {
     return here + "/service/.store"
 }
 
-fn _sessions_dir() {
-    let d = _store_root() + "/sessions"
-    mkdir(d)
-    return d
-}
-
 // ── Rate limiting (fixed-window, file-backed) ────────────────────
 // Caps the cost-bearing / brute-forceable surfaces: login (bearer-token
 // guessing) and job submit (each submit spawns a kick job — real EC2
@@ -425,17 +419,68 @@ fn _new_session_id() {
     return r[0].trim()
 }
 
+// ── KV store seam (Decision 21 — R2 is the datastore) ────────────
+// When R2 is configured the store is Cloudflare R2 objects (stateless
+// EC2 host, horizontally restartable — the architectural intent of
+// Decision 21). When R2 creds are absent it degrades to the .store/
+// filesystem so local dev, the no-creds smoke, and the public-demo
+// path keep working. The seam keeps the routing in one place; the
+// session/tenant/job verbs call _kv_*, never the backend directly.
+fn _r2_enabled() {
+    return len(env("R2_ACCESS_KEY_ID")) > 0
+        && len(env("R2_SECRET_ACCESS_KEY")) > 0
+        && len(env("R2_ACCOUNT_ID")) > 0
+}
+
+fn _kv_put(key, body) {
+    if _r2_enabled() {
+        let r = r2_put(key, body)
+        return r["ok"]
+    }
+    let p = _store_root() + "/" + key
+    // hexa's mkdir(path) is POSIX single-level (codegen_c2 → mkdir(p,0755));
+    // the key may nest (sessions/<sid>), and PHANES_HOME/service/.store
+    // need not pre-exist — so create the full parent chain with mkdir -p
+    // (deployment-glue shellout, same model as the ls -t / date calls).
+    let slash = p.last_index_of("/")
+    if slash > 0 {
+        exec_with_status("mkdir -p " + shquote(p.substring(0, slash)))
+    }
+    write_file(p, body)
+    return true
+}
+
+// _kv_get -> the stored string, or nil when the key is absent.
+fn _kv_get(key) {
+    if _r2_enabled() {
+        let r = r2_get(key)
+        if !r["ok"] { return nil }
+        return r["body"]
+    }
+    let p = _store_root() + "/" + key
+    if !file_exists(p) { return nil }
+    return read_file(p)
+}
+
+fn _kv_del(key) {
+    if _r2_enabled() {
+        r2_delete(key)
+        return
+    }
+    let p = _store_root() + "/" + key
+    if file_exists(p) { delete_file(p) }
+}
+
 fn session_create(tenant, token) {
     let sid = _new_session_id()
-    write_file(_sessions_dir() + "/" + sid, tenant + "\n" + token + "\n")
+    _kv_put("sessions/" + sid, tenant + "\n" + token + "\n")
     return sid
 }
 
 fn session_load(sid) {
     if len(sid) == 0 { return nil }
-    let p = _sessions_dir() + "/" + sid
-    if !file_exists(p) { return nil }
-    let raw = read_file(p)
+    let raw = _kv_get("sessions/" + sid)
+    if raw == nil { return nil }
     let lines = raw.split("\n")
     if len(lines) < 2 { return nil }
     let r = #{}
@@ -446,8 +491,7 @@ fn session_load(sid) {
 
 fn session_destroy(sid) {
     if len(sid) == 0 { return }
-    let p = _sessions_dir() + "/" + sid
-    if file_exists(p) { delete_file(p) }
+    _kv_del("sessions/" + sid)
 }
 
 fn cookie_get(request, name) {
@@ -2107,9 +2151,18 @@ fn dispatch(handler_name, request) {
 // deletes it, asserts the delete took. Prints `R2-SELFTEST: PASS|FAIL`.
 fn r2_selftest() {
     let stamp = env("PHANES_R2_SELFTEST_STAMP")
+    let backend = "filesystem"
+    if _r2_enabled() { backend = "R2(" + _r2_bucket() + "@" + _r2_host() + ")" }
+    println("R2-SELFTEST: kv-backend=" + backend)
+    // Raw-R2 object probe — only when R2 is the backend (no-op under the
+    // filesystem degrade path, where the _kv_* seam below is the test).
+    if !_r2_enabled() {
+        println("  (R2 disabled — skipping raw-object probe, testing _kv_* seam only)")
+        r2_selftest_session(stamp)
+        return
+    }
     let key   = "_selftest/" + stamp + ".txt"
     let body  = "phanes-r2-selftest-" + stamp
-    println("R2-SELFTEST: bucket=" + _r2_bucket() + " host=" + _r2_host() + " key=" + key)
     let p = r2_put(key, body)
     println("  put    -> ok=" + to_string(p["ok"]) + " status=" + to_string(p["status"]) + " err=" + p["error"])
     if !p["ok"] { println("R2-SELFTEST: FAIL (put)"); return }
@@ -2126,6 +2179,23 @@ fn r2_selftest() {
     let g2 = r2_get(key)
     println("  get'   -> status=" + to_string(g2["status"]) + " (expect 404)")
     if g2["ok"] { println("R2-SELFTEST: FAIL (delete did not take)"); return }
+    r2_selftest_session(stamp)
+}
+
+// Session lifecycle through the real _kv_* seam — mode-agnostic, so it
+// proves both the R2-backed and the filesystem-degrade path.
+fn r2_selftest_session(stamp) {
+    let sid = session_create("selftest-tenant", "selftest-token-" + stamp)
+    println("  sess+  -> sid=" + sid.substring(0, 8) + "…")
+    let sl = session_load(sid)
+    if sl == nil { println("R2-SELFTEST: FAIL (session_load nil)"); return }
+    if sl["tenant"] != "selftest-tenant" || sl["token"] != "selftest-token-" + stamp {
+        println("R2-SELFTEST: FAIL (session roundtrip mismatch)"); return
+    }
+    println("  sess=  -> tenant=" + sl["tenant"] + " ok")
+    session_destroy(sid)
+    if session_load(sid) != nil { println("R2-SELFTEST: FAIL (session_destroy did not take)"); return }
+    println("  sess-  -> destroyed ok")
     println("R2-SELFTEST: PASS")
 }
 
