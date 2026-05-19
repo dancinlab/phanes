@@ -604,6 +604,46 @@ paid tiers switch on (g3 measured-first).
 
 ---
 
+### Decision 13 — Payment processor = (가) Stripe
+
+**picked**: `(가)` — **Stripe**. Stripe Billing for the subscription
+base tier + Stripe Metering (usage-based billing) for the per-round
+overage. Integrated by **direct Stripe HTTP API calls** (no Stripe
+SDK — phanes is hexa-native; `stdlib/net` `http_client` is the
+transport). Card data never touches phanes.
+
+**rationale**:
+- **1:1 fit with the Decision 12 hybrid model.** Stripe Billing handles
+  the fixed base-tier subscription; Stripe Metering handles the
+  per-round overage natively. The "base tier + metered round overage"
+  shape maps directly onto Stripe's data model — the existing
+  `job.json` round aggregation becomes one Stripe usage-record API call
+  per billing window. No model translation.
+- **Small integration surface, zero PCI burden.** The whole integration
+  is three HTTP touchpoints: a Stripe Checkout redirect URL, one
+  webhook endpoint, and the usage-report API. Card numbers are entered
+  on Stripe-hosted Checkout and never pass through phanes-http — so
+  phanes carries no PCI-DSS scope. All three touchpoints are plain
+  HTTP, which the hexa-native server already does.
+- **Global fit.** phanes ships a 5-language switcher and is aimed at a
+  global B2B market; Stripe is the global default. A Korean-only PG
+  (option 다) would constrain the market; a Merchant-of-Record
+  (option 나, Paddle/Lemon Squeezy) carries a higher fee (~5%+) that is
+  premature for early B2B — its tax-handling value is revisitable later
+  if foreign-tax volume grows.
+- **Non-foreclosing on the free/trial interim.** Decision 12's
+  measure-demand-first free tier still works: Stripe is wired but the
+  paid tiers can switch on after demand is measured (g3).
+
+**honest scope (g3)**: there is **no Stripe SDK for hexa** — the
+integration is hand-written direct HTTP API calls (Checkout session
+create, webhook signature verify, usage records) over `stdlib/net`.
+That is real implementation work, tracked as a future ROADMAP item, not
+done by this decision. This decision fixes the processor choice only;
+it does not implement billing.
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
