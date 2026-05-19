@@ -1173,6 +1173,75 @@ polling vs Cloudflare Queues) · worker autoscaling trigger.
 
 ---
 
+### Decision 23 — Job queue = (둘 다) R2 system-of-record + Cloudflare Queues dispatch signal
+
+**picked**: `(둘 다 / hybrid)`. User directive 2026-05-19: "both" — to
+the R2-polling-vs-Cloudflare-Queues question. The two are **not
+competing storage choices**; they are different layers, so the answer is
+to use each for what it is:
+
+- **Cloudflare R2 = system of record.** Durable job state + artifacts
+  live as R2 objects (already mandated by Decision 21):
+  `tenants/<name>/token`, `tenants/<name>/jobs/<reverse-ts>-<id>.json`
+  (status: queued→running→done/failed), `overlays/<id>.n6`.
+- **Cloudflare Queues = the dispatch signal only.** On submit the web
+  tier writes the durable job record to R2 **then** sends a tiny
+  `{tenant, job_id}` message to a Cloudflare Queue. Workers are queue
+  **consumers** — woken on demand (no R2 list-polling latency), pull the
+  full record from R2, run kick, write status/overlay back to R2. The
+  queue carries a *pointer*, never the data or the result.
+
+```
+web container ──(1) PutObject job.json ─▶ R2 (system of record)
+              └─(2) send {tenant,job_id} ─▶ CF Queue ──▶ worker ×N
+                                                          │ (3) GetObject
+                                                          │ (4) run kick
+                                            R2 ◀─(5) Put status/overlay
+```
+
+**rationale**:
+- **No false dichotomy.** R2 is the durable store Decision 21 already
+  requires; a queue is a message bus, not a store. "Either/or" was the
+  wrong frame — R2 holds truth, Queues removes the only weakness of
+  R2-only (list-poll latency / wasted Class-A ops).
+- **At-least-once + visibility timeout fits the job model.** CF Queues
+  redelivers on consumer failure; kick is effectively idempotent per
+  job_id (re-running overwrites the same R2 keys), so a redelivered
+  message is safe. Pure R2-polling would need a hand-rolled lease/lock.
+- **Decouples web↔worker cleanly (Decision 22).** The queue is the only
+  cross-tier coupling; both tiers stay stateless and independently
+  scalable. Worker autoscaling can later key off queue depth (its own
+  deferred sub-gate, not decided here).
+
+**honest scope (g3) — this reshapes the shell substrate, it is NOT a
+quick `_kv_*` mirror:**
+- Tenants and jobs are **not** stored by `http_phanes.hexa` — they are
+  owned by the bash substrate (`jobctl.sh` writes
+  `$STORE/tenants/<t>/token`; `job_runner.sh` writes job dirs). The
+  clean hexa `_kv_*` seam (B2 step-3, sessions) does **not** cover them.
+  Moving tenants/jobs to R2 + wiring the Queue is a **substrate
+  rewrite** of jobctl/job_runner (R2 reads/writes from bash via signed
+  curl, or via a small hexa helper the shell calls), plus the web tier
+  emitting Queue messages. This is the **worker-tier rearchitecture**,
+  properly its own phase, **not** claimed done here.
+- **Phase B3 (defined, not yet executed):** (1) jobctl/job_runner read
+  tenant token + write job records to R2 instead of `$STORE`; (2) web
+  tier sends a Queue message on submit; (3) worker is a Queue consumer
+  loop. **Falsifier F-D23 first:** a measured end-to-end submit→queue→
+  worker→R2-status round-trip on a real (or wrangler-local) Queue before
+  B3 locks — same instrument-first discipline as F-D22. Cloudflare
+  Queues' own limits (message size ≤128 KB, batch, retention) to be
+  pinned at F-D23 time (pointer-only payload keeps us far under 128 KB
+  by design).
+- Sessions (B2 step-3) remain the only store fully on R2 today; tenants/
+  jobs/overlays follow in B3. No over-claim: Decision 23 fixes the
+  *design*; B3 + F-D23 is the measured execution.
+
+Sub-gate still deferred (not batched): worker autoscaling trigger
+(candidate: CF Queue backlog depth → instance count).
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
