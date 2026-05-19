@@ -32,6 +32,13 @@ command -v secret >/dev/null|| { echo "deploy: 'secret' CLI required" >&2; exit 
 _get() { secret get "$1" 2>/dev/null || true; }
 _req() { local v; v="$(_get "$1")"; [ -n "$v" ] || { echo "deploy: missing secret '$1' (deploy-infra step not run?)" >&2; exit 4; }; printf '%s' "$v"; }
 
+# wrangler auth — CLOUDFLARE_API_TOKEN (a Bearer token), NOT the legacy
+# global key: the Cloudflare Containers / cloudchamber API (/containers/me)
+# rejects global-key auth with 401. The token (scoped: Workers Scripts +
+# Workers Containers + Cloudchamber + Images + Account Settings) is in the
+# `secret` store; the deploy-infra step created it.
+export CLOUDFLARE_API_TOKEN="$(_req cloudflare.deploy.token)"
+
 echo "deploy: preflight — prod Cloudflare resources"
 R2_AK="$(_req r2.phanes.access_key_id)"
 R2_SK="$(_req r2.phanes.secret_access_key)"

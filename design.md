@@ -1404,14 +1404,45 @@ corrected recipe) at
 (`@D g7`). It is **not** a phanes defect: phanes builds, runs, and is
 measured end-to-end on macOS (Decisions 21–24).
 
-**State:** everything except the container *image* is live + measured —
-R2 plane, `phanes-jobs` queue, scoped tokens, the Worker
-(`phanes.dancinlife.workers.dev`) + bindings + 7 secrets, the local
-Docker build env. The image build gets `hexa_v2` and stops at the
-driver gap. **Remaining:** upstream closes the linux `hexa build`
-self-host gap → `bash deploy.sh` completes the image + rollout →
-smoke `*.workers.dev` → `bash cutover-domain.sh dancinlab.org`.
-Nothing is faked as deployed.
+**Linux self-host — SOLVED + measured (2026-05-19).** The verified
+pure-from-source 4-step (+loader) chain — `clang hexa_cc.c runtime.c
+→ hexa_v2`; `hexa_v2 main.hexa → driver C`; `clang → hexa` driver;
+`hexa_v2 module_loader.hexa → clang → build/hexa_module_loader` — now
+builds, **on linux/amd64 inside the Docker builder**, a working
+`hexa build` that flattens phanes' stdlib imports and produces
+`phanes-http`. Measured: `OK: built /src/phanes/bin/phanes-http`. The
+upstream gap (`inbox/.../phanes-linux-self-host-build-driver-…`) is
+resolved-ssot; `tool/ubu_bootstrap.sh` gained the verified `bootstrap`
+subcommand (hexa-lang commits a76637bf / fd6c0a07 / ac11281d). Three
+real findings fixed along the way: stale single-file `hexa_cc.c`
+recipe (needs `runtime.c`), missing `-D_GNU_SOURCE` on the linux
+driver link, and the loader-less raw-src mis-flatten.
+
+**Container images — BUILT + exported (measured).** Both image layers
+build; `docker.io/library/phanes-phanesweb:c2846790` (52.6 MB)
+exported. The full Docker pipeline works.
+
+**The single remaining wall — a billing decision, not engineering.**
+`wrangler deploy`'s image push to Cloudflare's container registry
+returns `Unauthorized` — `GET /accounts/<id>/containers/me` →
+*"Deploying containers requires the Workers Paid plan."* The account
+is on the free Workers plan; **Cloudflare Containers needs Workers
+Paid (~$5/mo)**. The deploy token (`secret cloudflare.deploy.token`,
+scoped Workers Scripts + Containers + Cloudchamber + Images) is
+correct — the account simply lacks the Containers entitlement. This
+is a user billing authorization, out of autonomous scope.
+
+**State — everything technical is done + measured:**
+- R2 plane · `phanes-jobs` queue · scoped tokens — live.
+- Worker `phanes.dancinlife.workers.dev` + bindings + 7 secrets — live.
+- linux phanes-http + both container images — built, measured.
+- `dancinlab.org` — active CF zone, additive cutover ready.
+
+**The one remaining user step:** upgrade the Cloudflare account to the
+Workers Paid plan, then `bash deploy.sh` (it uses
+`CLOUDFLARE_API_TOKEN` = `cloudflare.deploy.token`) pushes the images
++ rolls out → smoke `*.workers.dev` → `bash cutover-domain.sh
+dancinlab.org`. Nothing is faked as deployed.
 
 ---
 
