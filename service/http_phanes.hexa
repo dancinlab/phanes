@@ -813,6 +813,18 @@ fn _lang_path(current_path, lang) {
     return current_path + "?lang=" + lang
 }
 
+// Inline 5-language string picker. Marketing prose is translated; code
+// identifiers and technical terms (OUROBOROS, hexa kick, falsifier,
+// saturation, verifier, Phanes, Demiurge, Stripe, GitHub, …) stay in
+// their original Latin form inside every translation.
+fn _tr(lang, en, ko, ja, zh, ru) {
+    if lang == "ko" { return ko }
+    if lang == "ja" { return ja }
+    if lang == "zh" { return zh }
+    if lang == "ru" { return ru }
+    return en
+}
+
 // ── Reusable CTA component ───────────────────────────────────────
 // One funnel for every link/button-shaped action. `variant` selects
 // the .btn modifier; href starting with "http" auto-gets external
@@ -916,9 +928,9 @@ fn render_nav(current, lang, current_path) {
     n = n + "<a href=\"/demiurge?lang=" + lang + "\"" + cde + ">Demiurge</a>"
     n = n + "<a href=\"/hexa-lang?lang=" + lang + "\"" + chx + ">hexa-lang</a>"
     n = n + "<a href=\"/anima?lang=" + lang + "\"" + can + ">Anima</a>"
-    n = n + "<a href=\"/demo?lang=" + lang + "\"" + cdm + ">Demo</a>"
-    n = n + "<a href=\"/pricing?lang=" + lang + "\"" + cpr + ">Pricing</a>"
-    n = n + "<a href=\"/contact?lang=" + lang + "\"" + cct + ">Contact</a>"
+    n = n + "<a href=\"/demo?lang=" + lang + "\"" + cdm + ">" + _tr(lang, "Demo", "데모", "デモ", "演示", "Демо") + "</a>"
+    n = n + "<a href=\"/pricing?lang=" + lang + "\"" + cpr + ">" + _tr(lang, "Pricing", "요금", "料金", "定价", "Цены") + "</a>"
+    n = n + "<a href=\"/contact?lang=" + lang + "\"" + cct + ">" + _tr(lang, "Contact", "문의", "お問い合わせ", "联系", "Контакты") + "</a>"
     n = n + "</div>"
     // Reusable components: lang switcher + nav CTA
     n = n + render_lang_switcher(lang, current_path)
@@ -1156,28 +1168,28 @@ fn render_site_footer(lang) {
     let mut f = "<footer class=\"site-foot\">"
     f = f + "<div class=\"foot-grid\">"
     f = f + "<div class=\"foot-brand\">dancinlab"
-    f = f + "<div class=\"fb-sub\">discovery · design · substrate · consciousness</div></div>"
+    f = f + "<div class=\"fb-sub\">" + _tr(lang, "discovery · design · substrate · consciousness", "발견 · 설계 · 기반 · 의식", "発見 · 設計 · 基盤 · 意識", "发现 · 设计 · 底层 · 意识", "открытие · проектирование · субстрат · сознание") + "</div></div>"
     // products
-    f = f + "<div class=\"foot-col\"><h4>products</h4>"
+    f = f + "<div class=\"foot-col\"><h4>" + _tr(lang, "products", "제품", "製品", "产品", "Продукты") + "</h4>"
     f = f + "<a href=\"/phanes?lang=" + lang + "\">Phanes</a>"
     f = f + "<a href=\"/demiurge?lang=" + lang + "\">Demiurge</a>"
     f = f + "<a href=\"/hexa-lang?lang=" + lang + "\">hexa-lang</a>"
     f = f + "<a href=\"/anima?lang=" + lang + "\">Anima</a></div>"
     // source
-    f = f + "<div class=\"foot-col\"><h4>source</h4>"
+    f = f + "<div class=\"foot-col\"><h4>" + _tr(lang, "source", "소스", "ソース", "源码", "Исходный код") + "</h4>"
     f = f + "<a href=\"https://github.com/dancinlab/phanes\" target=\"_blank\" rel=\"noopener\">GitHub · phanes</a>"
     f = f + "<a href=\"https://github.com/dancinlab/demiurge\" target=\"_blank\" rel=\"noopener\">GitHub · demiurge</a>"
     f = f + "<a href=\"https://github.com/dancinlab/hexa-lang\" target=\"_blank\" rel=\"noopener\">GitHub · hexa-lang</a>"
     f = f + "<a href=\"https://github.com/dancinlab/anima\" target=\"_blank\" rel=\"noopener\">GitHub · anima</a></div>"
     // platform
-    f = f + "<div class=\"foot-col\"><h4>platform</h4>"
-    f = f + "<a href=\"/demo?lang=" + lang + "\">demo</a>"
-    f = f + "<a href=\"/pricing?lang=" + lang + "\">pricing</a>"
-    f = f + "<a href=\"/contact?lang=" + lang + "\">contact</a>"
+    f = f + "<div class=\"foot-col\"><h4>" + _tr(lang, "platform", "플랫폼", "プラットフォーム", "平台", "Платформа") + "</h4>"
+    f = f + "<a href=\"/demo?lang=" + lang + "\">" + _tr(lang, "demo", "데모", "デモ", "演示", "демо") + "</a>"
+    f = f + "<a href=\"/pricing?lang=" + lang + "\">" + _tr(lang, "pricing", "요금", "料金", "定价", "цены") + "</a>"
+    f = f + "<a href=\"/contact?lang=" + lang + "\">" + _tr(lang, "contact", "문의", "お問い合わせ", "联系", "контакты") + "</a>"
     f = f + "<a href=\"/login\">" + _t("log_in", lang) + "</a>"
-    f = f + "<a href=\"/dashboard\">dashboard</a></div>"
+    f = f + "<a href=\"/dashboard\">" + _tr(lang, "dashboard", "대시보드", "ダッシュボード", "仪表板", "панель") + "</a></div>"
     f = f + "</div>"
-    f = f + "<div class=\"foot-legal\">© 2026 dancinlab · all rights reserved · proprietary</div>"
+    f = f + "<div class=\"foot-legal\">" + _tr(lang, "© 2026 dancinlab · all rights reserved · proprietary", "© 2026 dancinlab · 모든 권리 보유 · 독점 소프트웨어", "© 2026 dancinlab · 全著作権所有 · プロプライエタリ", "© 2026 dancinlab · 保留所有权利 · 专有软件", "© 2026 dancinlab · все права защищены · проприетарное ПО") + "</div>"
     f = f + "</footer>"
     return f
 }
@@ -1555,45 +1567,45 @@ fn render_pricing_page(lang) {
     h = h + render_nav("pricing", lang, "/pricing")
     // hero
     h = h + "<section class=\"hero\">"
-    h = h + "<div class=\"tag\">Pricing · Tier + Metered</div>"
-    h = h + "<h1 class=\"mark\">Pricing</h1>"
-    h = h + "<div class=\"sub\">A base tier plus metered overage — billed per OUROBOROS round, the unit of verified discovery work</div>"
+    h = h + "<div class=\"tag\">" + _tr(lang, "Pricing · Tier + Metered", "요금 · 기본 티어 + 종량", "料金 · ベースティア + 従量", "定价 · 基础套餐 + 计量", "Цены · Тариф + Оплата по факту") + "</div>"
+    h = h + "<h1 class=\"mark\">" + _tr(lang, "Pricing", "요금", "料金", "定价", "Цены") + "</h1>"
+    h = h + "<div class=\"sub\">" + _tr(lang, "A base tier plus metered overage — billed per OUROBOROS round, the unit of verified discovery work", "기본 티어 + 초과분 종량 과금 — 검증된 발견 작업의 단위인 OUROBOROS 라운드 단위로 청구", "ベースティアと従量制の超過分 — 検証済みの発見作業の単位である OUROBOROS ラウンド単位で課金", "基础套餐加超量计费 — 按 OUROBOROS 轮次计费,即已验证发现工作的单位", "Базовый тариф плюс оплата за превышение — счёт за каждый раунд OUROBOROS, единицу проверенной исследовательской работы") + "</div>"
     h = h + "<div class=\"stats\">"
-    h = h + render_hero_stat("1", "round = the billing unit")
-    h = h + render_hero_stat("2", "layers: base + metered")
-    h = h + render_hero_stat("0", "charge without measured work")
+    h = h + render_hero_stat("1", _tr(lang, "round = the billing unit", "라운드 = 청구 단위", "ラウンド = 課金単位", "轮次 = 计费单位", "раунд = единица счёта"))
+    h = h + render_hero_stat("2", _tr(lang, "layers: base + metered", "계층: 기본 + 종량", "層: ベース + 従量", "层级:基础 + 计量", "уровни: база + по факту"))
+    h = h + render_hero_stat("0", _tr(lang, "charge without measured work", "측정 안 된 작업엔 과금 없음", "計測されない作業に課金なし", "未计量的工作不收费", "счетов за неизмеренную работу"))
     h = h + "</div>"
-    h = h + "<div class=\"cue\">↓ scroll</div>"
+    h = h + "<div class=\"cue\">" + _tr(lang, "↓ scroll", "↓ 스크롤", "↓ スクロール", "↓ 滚动", "↓ прокрутить") + "</div>"
     h = h + "</section>"
     // overview — the model
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
-    h = h + "<h2 class=\"eyebrow\">How Phanes Is Priced</h2>"
-    h = h + "<p class=\"lead\">Phanes charges for the discovery work the engine measurably performs — nothing else. A base tier bundles an included quota of OUROBOROS rounds; usage beyond the bundle is metered, per round.</p>"
-    h = h + "<p class=\"ov-p2\">A round is one turn of the loop — a goal proposed, a falsifier fired against it, a saturation check — and it is already a first-class, measured quantity in every job's result. Billing per round means your invoice maps exactly to the verified work done: no seats, no opaque bundles, no charge for a round the engine did not run. Payments are processed by Stripe; card data never touches Phanes.</p>"
+    h = h + "<h2 class=\"eyebrow\">" + _tr(lang, "How Phanes Is Priced", "Phanes 요금 산정 방식", "Phanes の料金の仕組み", "Phanes 如何定价", "Как формируется цена Phanes") + "</h2>"
+    h = h + "<p class=\"lead\">" + _tr(lang, "Phanes charges for the discovery work the engine measurably performs — nothing else. A base tier bundles an included quota of OUROBOROS rounds; usage beyond the bundle is metered, per round.", "Phanes 는 엔진이 측정 가능하게 수행한 발견 작업에만 과금합니다 — 그 외엔 없습니다. 기본 티어에는 일정량의 OUROBOROS 라운드가 포함되며, 포함량을 초과한 사용분은 라운드 단위로 종량 과금됩니다.", "Phanes はエンジンが計測可能な形で実行した発見作業にのみ課金します — それ以外には課金しません。ベースティアには一定量の OUROBOROS ラウンドが含まれ、含有量を超えた使用分はラウンド単位で従量課金されます。", "Phanes 只对引擎可计量地完成的发现工作收费 — 仅此而已。基础套餐包含一定额度的 OUROBOROS 轮次;超出额度的使用按轮次计量收费。", "Phanes взимает плату только за исследовательскую работу, которую движок измеримо выполнил, — и ни за что больше. Базовый тариф включает квоту раундов OUROBOROS; использование сверх квоты оплачивается за каждый раунд.") + "</p>"
+    h = h + "<p class=\"ov-p2\">" + _tr(lang, "A round is one turn of the loop — a goal proposed, a falsifier fired against it, a saturation check — and it is already a first-class, measured quantity in every job's result. Billing per round means your invoice maps exactly to the verified work done: no seats, no opaque bundles, no charge for a round the engine did not run. Payments are processed by Stripe; card data never touches Phanes.", "라운드는 루프의 한 번의 순환입니다 — 목표 제안, 그에 대한 falsifier 발사, saturation 검사 — 그리고 이미 모든 작업 결과에 일급(first-class)으로 측정되어 있는 수치입니다. 라운드 단위 청구는 청구서가 수행된 검증 작업과 정확히 일치한다는 뜻입니다: 좌석 과금 없음, 불투명한 묶음 없음, 엔진이 실행하지 않은 라운드에 대한 과금 없음. 결제는 Stripe 가 처리하며, 카드 정보는 Phanes 에 닿지 않습니다.", "ラウンドはループの一巡です — 目標の提案、それに対する falsifier の発火、saturation の検査 — そしてすべてのジョブ結果にすでに一級の計測値として記録されています。ラウンド単位の課金は、請求書が実行された検証作業と正確に対応することを意味します:席数課金なし、不透明なバンドルなし、エンジンが実行しなかったラウンドへの課金なし。決済は Stripe が処理し、カード情報が Phanes に渡ることはありません。", "一个轮次是循环的一次运转 — 提出目标、对其发起 falsifier、进行 saturation 检查 — 而它已经是每个任务结果中一等的、可计量的量。按轮次计费意味着账单与已完成的已验证工作精确对应:无席位费、无不透明套餐、不为引擎未运行的轮次收费。支付由 Stripe 处理,卡数据从不接触 Phanes。", "Раунд — это один оборот цикла: предложенная цель, запущенный против неё falsifier, проверка saturation — и он уже является полноценной измеренной величиной в результате каждой задачи. Оплата за раунд означает, что счёт точно соответствует выполненной проверенной работе: без оплаты за места, без непрозрачных пакетов, без счёта за раунд, который движок не запускал. Платежи обрабатывает Stripe; данные карты никогда не попадают в Phanes.") + "</p>"
     h = h + "</div></section>"
     // key features — what you pay for
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
-    h = h + "<h2 class=\"eyebrow\">What You Pay For</h2>"
+    h = h + "<h2 class=\"eyebrow\">" + _tr(lang, "What You Pay For", "무엇에 비용을 지불하는가", "何に対して支払うのか", "你为什么付费", "За что вы платите") + "</h2>"
     h = h + "<div class=\"feats\">"
-    h = h + render_feat_bullet("The round, not the seat:",
-        "the OUROBOROS round is the unit — the actual unit of discovery work. You are not billed per user or per project; you are billed for the rounds the engine ran.")
-    h = h + render_feat_bullet("A predictable base:",
-        "each tier bundles a fixed quota of included rounds, so the recurring cost is known up front — no open-ended exposure for finance to sign off.")
-    h = h + render_feat_bullet("Metered overage only:",
-        "beyond the bundle, usage is metered per round. The metered component aligns the bill with the compute actually consumed — heavy use costs more, light use costs less, and an idle account costs nothing extra.")
+    h = h + render_feat_bullet(_tr(lang, "The round, not the seat:", "라운드이지 좌석이 아니다:", "席ではなくラウンド:", "为轮次,而非席位:", "Раунд, а не место:"),
+        _tr(lang, "the OUROBOROS round is the unit — the actual unit of discovery work. You are not billed per user or per project; you are billed for the rounds the engine ran.", "OUROBOROS 라운드가 단위입니다 — 발견 작업의 실제 단위. 사용자별·프로젝트별로 청구하지 않습니다. 엔진이 실행한 라운드에 대해 청구합니다.", "OUROBOROS ラウンドが単位です — 発見作業の実際の単位。ユーザーごと・プロジェクトごとには課金しません。エンジンが実行したラウンドに対して課金します。", "OUROBOROS 轮次就是单位 — 发现工作的实际单位。不按用户或项目计费;按引擎运行的轮次计费。", "Единица — раунд OUROBOROS, фактическая единица исследовательской работы. Счёт выставляется не за пользователя или проект, а за раунды, которые выполнил движок."))
+    h = h + render_feat_bullet(_tr(lang, "A predictable base:", "예측 가능한 기본:", "予測可能なベース:", "可预测的基础:", "Предсказуемая база:"),
+        _tr(lang, "each tier bundles a fixed quota of included rounds, so the recurring cost is known up front — no open-ended exposure for finance to sign off.", "각 티어에는 고정된 포함 라운드 할당량이 묶여 있어, 반복 비용을 사전에 알 수 있습니다 — 재무팀이 승인해야 할 무한정 지출 노출이 없습니다.", "各ティアには固定の含有ラウンド枠が付くため、継続コストを事前に把握できます — 財務が承認すべき青天井の支出はありません。", "每个套餐捆绑固定的包含轮次额度,因此经常性成本事先可知 — 没有需要财务审批的开放式支出敞口。", "Каждый тариф включает фиксированную квоту раундов, поэтому регулярные расходы известны заранее — никаких неограниченных трат, требующих одобрения финансов."))
+    h = h + render_feat_bullet(_tr(lang, "Metered overage only:", "초과분만 종량:", "超過分のみ従量:", "仅超量计费:", "Оплата только за превышение:"),
+        _tr(lang, "beyond the bundle, usage is metered per round. The metered component aligns the bill with the compute actually consumed — heavy use costs more, light use costs less, and an idle account costs nothing extra.", "포함량을 넘어선 사용분은 라운드 단위로 측정됩니다. 종량 부분은 청구서를 실제로 소비한 컴퓨팅과 일치시킵니다 — 많이 쓰면 더 내고, 적게 쓰면 덜 내며, 유휴 계정은 추가 비용이 없습니다.", "含有量を超えた使用分はラウンド単位で計測されます。従量部分は請求を実際に消費したコンピュートと一致させます — 多く使えば多く、少なく使えば少なく、アイドル状態のアカウントに追加費用はかかりません。", "超出额度后,使用按轮次计量。计量部分使账单与实际消耗的算力一致 — 用得多花得多,用得少花得少,闲置账户不产生额外费用。", "Сверх квоты использование измеряется по раундам. Измеряемая часть приводит счёт в соответствие с фактически потреблёнными вычислениями — больше нагрузка стоит дороже, меньше — дешевле, а простаивающий аккаунт не стоит ничего сверх того."))
     h = h + "</div></div></section>"
     // honest — numbers not yet published
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
-    h = h + "<h2 class=\"eyebrow\">Tiers &amp; Numbers</h2>"
-    h = h + "<p class=\"lead\">Concrete tier names, included quotas, and the per-round price are being finalized against measured infrastructure cost.</p>"
-    h = h + "<p class=\"ov-p2\">Phanes does not publish a number it has not verified — the same real-limits-first honesty that governs the engine governs the price list. For early-access pricing, or to size a plan for your team, get in touch.</p>"
+    h = h + "<h2 class=\"eyebrow\">" + _tr(lang, "Tiers &amp; Numbers", "티어 &amp; 가격", "ティアと価格", "套餐与价格", "Тарифы и цифры") + "</h2>"
+    h = h + "<p class=\"lead\">" + _tr(lang, "Concrete tier names, included quotas, and the per-round price are being finalized against measured infrastructure cost.", "구체적인 티어 이름, 포함 할당량, 라운드당 가격은 측정된 인프라 비용을 기준으로 확정하는 중입니다.", "具体的なティア名、含有枠、ラウンドあたりの価格は、計測されたインフラコストに照らして最終調整中です。", "具体的套餐名称、包含额度和每轮价格正根据实测的基础设施成本最终确定。", "Конкретные названия тарифов, включённые квоты и цена за раунд дорабатываются на основе измеренной стоимости инфраструктуры.") + "</p>"
+    h = h + "<p class=\"ov-p2\">" + _tr(lang, "Phanes does not publish a number it has not verified — the same real-limits-first honesty that governs the engine governs the price list. For early-access pricing, or to size a plan for your team, get in touch.", "Phanes 는 검증하지 않은 숫자를 공개하지 않습니다 — 엔진을 지배하는 real-limits-first 정직성이 가격표도 똑같이 지배합니다. 얼리 액세스 가격이나 팀에 맞는 플랜 산정은 문의해 주세요.", "Phanes は検証していない数字を公開しません — エンジンを律する real-limits-first の誠実さが価格表も律します。アーリーアクセス価格やチームに合ったプランの見積もりはお問い合わせください。", "Phanes 不会公布未经验证的数字 — 支配引擎的 real-limits-first 诚实原则同样支配价目表。如需抢先体验定价,或为团队规划方案,请与我们联系。", "Phanes не публикует цифру, которую не проверил, — та же честность real-limits-first, что управляет движком, управляет и прайс-листом. По вопросам цен раннего доступа или подбора плана для вашей команды свяжитесь с нами.") + "</p>"
     h = h + "</div></section>"
     // closer CTA → contact
     h = h + "<section class=\"sec vf\"><div class=\"sec-in\">"
-    h = h + "<h2 class=\"eyebrow\">Get Early-Access Pricing</h2>"
-    h = h + "<p class=\"lead\">Tell us the kind of objective you want to run and the scale you have in mind — we will follow up with an early-access plan.</p>"
-    h = h + "<div class=\"vf-cta\">" + render_cta("/contact?lang=" + lang, "contact", "primary-lg")
-    h = h + "<span class=\"vf-sister\">try it first — <a href=\"/demo?lang=" + lang + "\">see the demo</a></span>"
+    h = h + "<h2 class=\"eyebrow\">" + _tr(lang, "Get Early-Access Pricing", "얼리 액세스 가격 받기", "アーリーアクセス価格を受け取る", "获取抢先体验定价", "Узнать цены раннего доступа") + "</h2>"
+    h = h + "<p class=\"lead\">" + _tr(lang, "Tell us the kind of objective you want to run and the scale you have in mind — we will follow up with an early-access plan.", "어떤 종류의 목표를 돌리고 싶은지, 그리고 염두에 둔 규모를 알려주시면 — 얼리 액세스 플랜으로 회신드리겠습니다.", "どのような目標を実行したいか、想定している規模をお知らせください — アーリーアクセスプランをご返信します。", "告诉我们你想运行的目标类型以及设想的规模 — 我们会以抢先体验方案跟进。", "Расскажите, какую цель вы хотите запустить и какой масштаб планируете, — мы вернёмся к вам с планом раннего доступа.") + "</p>"
+    h = h + "<div class=\"vf-cta\">" + render_cta("/contact?lang=" + lang, _tr(lang, "contact", "문의", "お問い合わせ", "联系", "Контакты"), "primary-lg")
+    h = h + "<span class=\"vf-sister\">" + _tr(lang, "try it first — ", "먼저 체험해 보세요 — ", "まずは試す — ", "先试试看 — ", "сначала попробуйте — ") + "<a href=\"/demo?lang=" + lang + "\">" + _tr(lang, "see the demo", "데모 보기", "デモを見る", "查看演示", "посмотреть демо") + "</a></span>"
     h = h + "</div></div></section>"
     h = h + render_site_footer(lang)
     h = h + "</body></html>"
@@ -1613,40 +1625,40 @@ fn render_contact_page(lang) {
     h = h + render_nav("contact", lang, "/contact")
     // hero
     h = h + "<section class=\"hero\">"
-    h = h + "<div class=\"tag\">Contact · dancinlab</div>"
-    h = h + "<h1 class=\"mark\">Contact</h1>"
-    h = h + "<div class=\"sub\">Reach the team behind Phanes — for early access, enterprise plans, or the source itself</div>"
-    h = h + "<div class=\"cue\">↓ scroll</div>"
+    h = h + "<div class=\"tag\">" + _tr(lang, "Contact · dancinlab", "문의 · dancinlab", "お問い合わせ · dancinlab", "联系 · dancinlab", "Контакты · dancinlab") + "</div>"
+    h = h + "<h1 class=\"mark\">" + _tr(lang, "Contact", "문의", "お問い合わせ", "联系", "Контакты") + "</h1>"
+    h = h + "<div class=\"sub\">" + _tr(lang, "Reach the team behind Phanes — for early access, enterprise plans, or the source itself", "Phanes 를 만든 팀에 연락하세요 — 얼리 액세스, 엔터프라이즈 플랜, 또는 소스 그 자체에 대해", "Phanes を作るチームへ — アーリーアクセス、エンタープライズプラン、あるいはソースそのものについて", "联系 Phanes 背后的团队 — 关于抢先体验、企业方案,或源代码本身", "Свяжитесь с командой Phanes — по поводу раннего доступа, корпоративных планов или самого исходного кода") + "</div>"
+    h = h + "<div class=\"cue\">" + _tr(lang, "↓ scroll", "↓ 스크롤", "↓ スクロール", "↓ 滚动", "↓ прокрутить") + "</div>"
     h = h + "</section>"
     // overview
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
-    h = h + "<h2 class=\"eyebrow\">Get In Touch</h2>"
-    h = h + "<p class=\"lead\">Phanes is a dancinlab product, built downstream of the open hexa-lang toolchain. The source is public and source-available — the fastest way to reach us is through the repository.</p>"
-    h = h + "<p class=\"ov-p2\">Whether you want early-access pricing, a plan sized for your team, to report something, or just to read the code that backs every honesty claim on this site — the channels below are the way in.</p>"
+    h = h + "<h2 class=\"eyebrow\">" + _tr(lang, "Get In Touch", "연락하기", "お問い合わせ", "取得联系", "Связаться с нами") + "</h2>"
+    h = h + "<p class=\"lead\">" + _tr(lang, "Phanes is a dancinlab product, built downstream of the open hexa-lang toolchain. The source is public and source-available — the fastest way to reach us is through the repository.", "Phanes 는 오픈 hexa-lang 툴체인의 다운스트림으로 만들어진 dancinlab 제품입니다. 소스는 공개되어 있고 source-available 입니다 — 가장 빠른 연락 방법은 저장소를 통하는 것입니다.", "Phanes はオープンな hexa-lang ツールチェーンのダウンストリームとして作られた dancinlab 製品です。ソースは公開され source-available です — 最も速い連絡方法はリポジトリ経由です。", "Phanes 是一款 dancinlab 产品,构建于开放的 hexa-lang 工具链下游。源代码公开且 source-available — 联系我们最快的方式是通过代码仓库。", "Phanes — продукт dancinlab, созданный ниже по течению от открытого инструментария hexa-lang. Исходный код открыт и source-available — быстрее всего связаться с нами через репозиторий.") + "</p>"
+    h = h + "<p class=\"ov-p2\">" + _tr(lang, "Whether you want early-access pricing, a plan sized for your team, to report something, or just to read the code that backs every honesty claim on this site — the channels below are the way in.", "얼리 액세스 가격이든, 팀에 맞춘 플랜이든, 무언가를 신고하는 것이든, 아니면 그저 이 사이트의 모든 정직성 주장을 뒷받침하는 코드를 읽는 것이든 — 아래 채널들이 그 입구입니다.", "アーリーアクセス価格、チームに合ったプラン、何かの報告、あるいはこのサイトのあらゆる誠実さの主張を裏付けるコードを読むこと — いずれの場合も、下記のチャネルが入口です。", "无论你想要抢先体验定价、为团队定制的方案、报告某个问题,还是只想阅读支撑本站每一项诚实声明的代码 — 下面的渠道就是入口。", "Хотите ли вы узнать цены раннего доступа, план под размер вашей команды, сообщить о чём-то или просто почитать код, который подкрепляет каждое заявление о честности на этом сайте, — каналы ниже и есть путь внутрь.") + "</p>"
     h = h + "</div></section>"
     // channels — cards
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
-    h = h + "<h2 class=\"eyebrow\">Channels</h2>"
+    h = h + "<h2 class=\"eyebrow\">" + _tr(lang, "Channels", "채널", "チャネル", "渠道", "Каналы") + "</h2>"
     h = h + "<div class=\"cards\">"
-    h = h + render_feat_card("01", "GitHub — Issues",
-        "Bugs, questions, and feature requests.",
-        "Open an issue on the public <a href=\"https://github.com/dancinlab/phanes/issues\">dancinlab/phanes</a> repository. This is the primary channel — public, tracked, and the same place the source itself lives. A reproducible bug, a concrete feature request, an open-ended question: all of it goes here.")
-    h = h + render_feat_card("02", "GitHub — The Source",
-        "Read the code behind the claims.",
-        "Phanes is source-available at <a href=\"https://github.com/dancinlab/phanes\">dancinlab/phanes</a>: every honest-scope claim on this site — verifier-as-sole-authority, no over-claim — is auditable in the repository. Browsing the code is itself a way to evaluate us.")
-    h = h + render_feat_card("03", "Email — hello@dancinlab.org",
-        "Early access, enterprise, private inquiries.",
-        "Anything that does not belong in a public channel — early-access pricing, a plan sized for your team, security disclosures, or larger objectives — goes to <a href=\"mailto:hello@dancinlab.org\">hello@dancinlab.org</a>. Tell us the kind of objective, the verifier you have in mind, and the scale; we will follow up.")
-    h = h + render_feat_card("04", "The Demo",
-        "See it before you ask.",
-        "The public demo runs three curated discovery scenarios end to end — the quickest way to understand what Phanes does before getting in touch.")
+    h = h + render_feat_card("01", "GitHub · Issues",
+        _tr(lang, "Bugs, questions, and feature requests.", "버그, 질문, 기능 요청.", "バグ、質問、機能リクエスト。", "缺陷、问题与功能请求。", "Баги, вопросы и запросы функций."),
+        _tr(lang, "Open an issue on the public <a href=\"https://github.com/dancinlab/phanes/issues\">dancinlab/phanes</a> repository. This is the primary channel — public, tracked, and the same place the source itself lives. A reproducible bug, a concrete feature request, an open-ended question: all of it goes here.", "공개 <a href=\"https://github.com/dancinlab/phanes/issues\">dancinlab/phanes</a> 저장소에 이슈를 등록하세요. 이곳이 주 채널입니다 — 공개되어 있고, 추적되며, 소스 자체가 있는 바로 그 장소입니다. 재현 가능한 버그, 구체적인 기능 요청, 열린 질문: 전부 여기로 옵니다.", "公開 <a href=\"https://github.com/dancinlab/phanes/issues\">dancinlab/phanes</a> リポジトリに issue を作成してください。ここが主要なチャネルです — 公開され、追跡され、ソースそのものが置かれている場所です。再現可能なバグ、具体的な機能リクエスト、自由形式の質問:すべてここへ。", "在公开的 <a href=\"https://github.com/dancinlab/phanes/issues\">dancinlab/phanes</a> 仓库提交 issue。这是主要渠道 — 公开、可追踪,也正是源代码所在之处。可复现的缺陷、具体的功能请求、开放式问题:全部到这里。", "Создайте issue в публичном репозитории <a href=\"https://github.com/dancinlab/phanes/issues\">dancinlab/phanes</a>. Это основной канал — публичный, отслеживаемый, и там же находится сам исходный код. Воспроизводимый баг, конкретный запрос функции, открытый вопрос — всё сюда."))
+    h = h + render_feat_card("02", _tr(lang, "GitHub · The Source", "GitHub · 소스", "GitHub · ソース", "GitHub · 源码", "GitHub · Исходный код"),
+        _tr(lang, "Read the code behind the claims.", "주장 뒤의 코드를 읽어보세요.", "主張の裏にあるコードを読む。", "阅读声明背后的代码。", "Прочитайте код за заявлениями."),
+        _tr(lang, "Phanes is source-available at <a href=\"https://github.com/dancinlab/phanes\">dancinlab/phanes</a>: every honest-scope claim on this site — verifier-as-sole-authority, no over-claim — is auditable in the repository. Browsing the code is itself a way to evaluate us.", "Phanes 는 <a href=\"https://github.com/dancinlab/phanes\">dancinlab/phanes</a> 에서 source-available 입니다: 이 사이트의 모든 honest-scope 주장 — verifier 가 유일한 권위, over-claim 없음 — 은 저장소에서 감사할 수 있습니다. 코드를 둘러보는 것 자체가 우리를 평가하는 한 방법입니다.", "Phanes は <a href=\"https://github.com/dancinlab/phanes\">dancinlab/phanes</a> で source-available です:このサイトのあらゆる honest-scope の主張 — verifier が唯一の権威、over-claim なし — はリポジトリで監査できます。コードを読むこと自体が私たちを評価する手段です。", "Phanes 在 <a href=\"https://github.com/dancinlab/phanes\">dancinlab/phanes</a> 上 source-available:本站每一项 honest-scope 声明 — verifier 为唯一权威、绝不 over-claim — 都可在仓库中审计。浏览代码本身就是评估我们的一种方式。", "Phanes доступен как source-available по адресу <a href=\"https://github.com/dancinlab/phanes\">dancinlab/phanes</a>: каждое заявление honest-scope на этом сайте — verifier как единственный авторитет, без over-claim — можно проверить в репозитории. Просмотр кода — это уже способ оценить нас."))
+    h = h + render_feat_card("03", _tr(lang, "Email — hello@dancinlab.org", "이메일 — hello@dancinlab.org", "メール — hello@dancinlab.org", "邮箱 — hello@dancinlab.org", "Эл. почта — hello@dancinlab.org"),
+        _tr(lang, "Early access, enterprise, private inquiries.", "얼리 액세스, 엔터프라이즈, 비공개 문의.", "アーリーアクセス、エンタープライズ、非公開のお問い合わせ。", "抢先体验、企业合作、私密咨询。", "Ранний доступ, корпоративные и частные запросы."),
+        _tr(lang, "Anything that does not belong in a public channel — early-access pricing, a plan sized for your team, security disclosures, or larger objectives — goes to <a href=\"mailto:hello@dancinlab.org\">hello@dancinlab.org</a>. Tell us the kind of objective, the verifier you have in mind, and the scale; we will follow up.", "공개 채널에 어울리지 않는 것은 무엇이든 — 얼리 액세스 가격, 팀 규모에 맞춘 플랜, 보안 제보, 또는 더 큰 목표 — <a href=\"mailto:hello@dancinlab.org\">hello@dancinlab.org</a> 으로 보내주세요. 목표의 종류, 염두에 둔 verifier, 그리고 규모를 알려주시면 회신드립니다.", "公開チャネルにそぐわないものは何でも — アーリーアクセス価格、チーム規模に合わせたプラン、セキュリティの報告、より大きな目標 — <a href=\"mailto:hello@dancinlab.org\">hello@dancinlab.org</a> へ。目標の種類、想定している verifier、規模をお知らせください。ご返信します。", "任何不适合公开渠道的事项 — 抢先体验定价、为你的团队定制的方案、安全披露,或更大的目标 — 请发送至 <a href=\"mailto:hello@dancinlab.org\">hello@dancinlab.org</a>。告诉我们目标类型、你设想的 verifier 以及规模;我们会跟进。", "Всё, чему не место в публичном канале, — цены раннего доступа, план под размер вашей команды, сообщения о безопасности или более крупные цели — пишите на <a href=\"mailto:hello@dancinlab.org\">hello@dancinlab.org</a>. Опишите вид цели, предполагаемый verifier и масштаб; мы свяжемся с вами."))
+    h = h + render_feat_card("04", _tr(lang, "The Demo", "데모", "デモ", "演示", "Демо"),
+        _tr(lang, "See it before you ask.", "묻기 전에 먼저 보세요.", "尋ねる前に、まず見る。", "在询问之前先看看。", "Сначала посмотрите, потом спрашивайте."),
+        _tr(lang, "The public demo runs three curated discovery scenarios end to end — the quickest way to understand what Phanes does before getting in touch.", "공개 데모는 엄선된 발견 시나리오 3개를 처음부터 끝까지 실행합니다 — 연락하기 전에 Phanes 가 무엇을 하는지 가장 빠르게 이해하는 방법입니다.", "公開デモは厳選された発見シナリオを3つ、最初から最後まで実行します — お問い合わせの前に Phanes が何をするかを最も速く理解する方法です。", "公开演示完整运行三个精选的发现场景 — 在联系我们之前,这是理解 Phanes 能做什么的最快方式。", "Публичное демо полностью прогоняет три тщательно отобранных сценария открытия — самый быстрый способ понять, что делает Phanes, до обращения к нам."))
     h = h + "</div></div></section>"
     // closer CTA
     h = h + "<section class=\"sec vf\"><div class=\"sec-in\">"
-    h = h + "<h2 class=\"eyebrow\">Start Here</h2>"
-    h = h + "<p class=\"lead\">New to Phanes? Run the demo first, then reach out — or jump straight to the dashboard if you already have access.</p>"
+    h = h + "<h2 class=\"eyebrow\">" + _tr(lang, "Start Here", "여기서 시작", "ここから始める", "从这里开始", "Начните здесь") + "</h2>"
+    h = h + "<p class=\"lead\">" + _tr(lang, "New to Phanes? Run the demo first, then reach out — or jump straight to the dashboard if you already have access.", "Phanes 가 처음이신가요? 데모를 먼저 돌려본 다음 연락하세요 — 이미 액세스 권한이 있다면 바로 대시보드로 가셔도 됩니다.", "Phanes は初めてですか?まずデモを実行してからお問い合わせください — すでにアクセス権がある場合は、そのままダッシュボードへ。", "初次接触 Phanes?先运行演示,再联系我们 — 若你已有访问权限,可直接前往仪表板。", "Впервые в Phanes? Сначала запустите демо, затем свяжитесь с нами — или сразу переходите в панель, если у вас уже есть доступ.") + "</p>"
     h = h + "<div class=\"vf-cta\">" + render_github_cta("dancinlab/phanes", "GitHub")
-    h = h + "<span class=\"vf-sister\">or — <a href=\"/demo?lang=" + lang + "\">see the demo</a></span>"
+    h = h + "<span class=\"vf-sister\">" + _tr(lang, "or — ", "또는 — ", "または — ", "或者 — ", "или — ") + "<a href=\"/demo?lang=" + lang + "\">" + _tr(lang, "see the demo", "데모 보기", "デモを見る", "查看演示", "посмотреть демо") + "</a></span>"
     h = h + "</div></div></section>"
     h = h + render_site_footer(lang)
     h = h + "</body></html>"
