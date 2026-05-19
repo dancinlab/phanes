@@ -920,17 +920,16 @@ is not lost.
 
 ---
 
-### Decision 20 — Domain & DNS = `dancinliab.org` on Cloudflare
+### Decision 20 — Domain & DNS = `dancinlab.org` on Cloudflare
 
 **picked**: per user directive 2026-05-19, the production domain is
-**`dancinliab.org`** *(as typed — see honest-scope flag below)*, with
-**DNS managed at Cloudflare**. This concretises the Cloudflare
-front-proxy option already named in Decision 11: Cloudflare sits in
-front of the EC2 origin, terminating TLS, fronting the CDN, and
-absorbing DDoS at the edge.
+**`dancinlab.org`**, with **DNS managed at Cloudflare**. This
+concretises the Cloudflare front-proxy option already named in
+Decision 11: Cloudflare sits in front of the EC2 origin, terminating
+TLS, fronting the CDN, and absorbing DDoS at the edge.
 
 ```
-  https://<dancinliab.org>
+  https://dancinlab.org
             │
             ▼
    ☁️  Cloudflare  (DNS · free TLS · CDN · WAF · /static cache)
@@ -959,12 +958,10 @@ absorbing DDoS at the edge.
   DNS layer is already on Cloudflare — only the origin changes.
 
 **honest scope (g3)**:
-- Brand spelling — the dancinlab GitHub org and brand mark across the
-  site is **`dancinlab`** (no 'i' between 'l' and 'a'); the domain as
-  typed is **`dancinliab.org`** (extra 'i'). This may be intentional
-  (the `dancinlab.org` name could have been taken at registration) or
-  a typo. Recorded verbatim per user input; flagged for confirmation
-  before any user-facing copy references it.
+- Brand and domain both spell **`dancinlab`** (no extra 'i') —
+  consistent across the GitHub org, the brand mark on the site, and
+  the registered domain. An earlier transcription showed
+  `dancinliab.org`, confirmed as a typo and corrected here.
 - This Decision picks the public-facing domain + DNS provider only.
   Registration / NS records / the Cloudflare zone setup itself remain
   the user's account-side action (out-of-repo, like EC2 + Stripe).
