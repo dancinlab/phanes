@@ -86,6 +86,12 @@ fn handle_submit(request) {
     let token  = bearer_token(request)
     if len(tenant) == 0 { return json_error(401, "X-Phanes-Tenant header required") }
     if len(token)  == 0 { return json_error(401, "Authorization: Bearer <token> required") }
+    // Rate limit: each submit spawns a kick job (real EC2 compute) —
+    // 20 submits / 60 s per tenant caps a leaked/buggy client from
+    // running the cost up. Generous for legitimate interactive use.
+    if !rate_limit_ok("submit:" + tenant, 20, 60) {
+        return json_error(429, "rate limit exceeded — too many submits, slow down")
+    }
     // JSON body: { "seed": "<>=10 char>", "rounds": <int> }
     // Form-encoded body is not used (stdlib parse_query splits naively on
     // every '=' — measured to truncate seeds containing '=' in P1b smoke).
@@ -227,6 +233,52 @@ fn _sessions_dir() {
     return d
 }
 
+// ── Rate limiting (fixed-window, file-backed) ────────────────────
+// Caps the cost-bearing / brute-forceable surfaces: login (bearer-token
+// guessing) and job submit (each submit spawns a kick job — real EC2
+// compute). The counter lives under .store/ratelimit/ — same store
+// model as sessions. The select-loop server is single-threaded, so the
+// file read-modify-write inside one check is race-free. Fixed window:
+// the count resets once window_sec has elapsed since the window opened.
+fn _ratelimit_dir() {
+    let d = _store_root() + "/ratelimit"
+    mkdir(d)
+    return d
+}
+
+fn _now_epoch() {
+    let r = exec_with_status("date +%s")
+    if r[1] != 0 { return 0 }
+    return to_int(r[0].trim())
+}
+
+// rate_limit_ok(key, max_hits, window_sec) — records this hit and
+// returns true if the caller is within the limit, false if over it.
+fn rate_limit_ok(key, max_hits, window_sec) {
+    let safe = key.replace("/", "_").replace(":", "_").replace(" ", "_").replace(".", "_")
+    let p = _ratelimit_dir() + "/" + safe
+    let now = _now_epoch()
+    let mut win_start = now
+    let mut count = 0
+    if file_exists(p) {
+        let raw = read_file(p).trim()
+        let parts = raw.split(" ")
+        if len(parts) == 2 {
+            let ws = to_int(parts[0])
+            let c  = to_int(parts[1])
+            if now < ws + window_sec {
+                win_start = ws
+                count = c
+            }
+            // else: window expired — fall through to a fresh window
+        }
+    }
+    count = count + 1
+    write_file(p, to_string(win_start) + " " + to_string(count))
+    if count > max_hits { return false }
+    return true
+}
+
 fn _new_session_id() {
     let r = exec_with_status("head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \\n'")
     return r[0].trim()
@@ -342,6 +394,7 @@ fn _html_resp(status, content_type, body) {
 fn _html_ok(body)    { return _html_resp(200, "text/html; charset=utf-8", body) }
 fn _html_400(body)   { return _html_resp(400, "text/html; charset=utf-8", body) }
 fn _html_401(body)   { return _html_resp(401, "text/html; charset=utf-8", body) }
+fn _html_429(body)   { return _html_resp(429, "text/html; charset=utf-8", body) }
 fn _html_500(body)   { return _html_resp(500, "text/html; charset=utf-8", body) }
 
 // Render one <li> job row. If status ∈ {done, failed} no hx-trigger
@@ -1721,6 +1774,12 @@ fn handle_login_post(request) {
     if len(tenant) == 0 || len(token) == 0 {
         return _html_ok(render_login_page("tenant and token required"))
     }
+    // Rate limit: cap bearer-token guessing — 5 attempts / 5 min per
+    // tenant name. The dominant attack (brute-forcing one tenant's
+    // token) shares a key, so it is throttled.
+    if !rate_limit_ok("login:" + tenant, 5, 300) {
+        return _html_429(render_login_page("too many attempts — wait a few minutes"))
+    }
     // Validate via jobctl get on a sentinel job: rc=4 means auth failed;
     // rc=5 (job not found) means tenant+token are valid.
     let cmd = jobctl_cmd() + " get --tenant " + shquote(tenant)
@@ -1801,6 +1860,12 @@ fn handle_dash_submit(request) {
     }
     let tenant = to_string(sess["tenant"])
     let token  = to_string(sess["token"])
+    // Rate limit: same kick-job compute cost as the API submit — shares
+    // the per-tenant "submit:" counter so the API and dashboard paths
+    // are capped together (20 / 60 s).
+    if !rate_limit_ok("submit:" + tenant, 20, 60) {
+        return _html_429("<li style=\"color:var(--accent-red)\">rate limit — too many submits, wait a moment</li>")
+    }
     let body = request["body"]
     if body == nil { body = "" }
     let q = parse_query(body)
