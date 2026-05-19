@@ -54,9 +54,10 @@
   @> AGENTS.md
 
 @D g_name_risk := "brand-token trademark risk acknowledged" :: governance [required d=2026-05-19 active]
-  rule = "The token 'Phanes' has adjacent collisions — Phanes Technologies (autonomous multi-agent AI) + Phanes Therapeutics (USPTO-registered TMs). User chose Phanes with this on record (2026-05-19)."
-  remedy = "Treat Phanes as project narrative/lore; before any public launch run a formal USPTO/class-42 clearance and reconsider the public-facing mark."
-  alternatives = "Manteia (user also favors, 2026-05-19) is ALSO collided — Manteia Technologies Co Ltd, active AI/software startup, registered TMs in the computer/software class; recorded, NOT a clean fallback. Web-verified clean so far = ONLY Orrery, Mimir. Ouro/Kythera/Haechi/Bythos were brainstorm-asserted, NOT search-verified — do not call clean until actually searched (g3: brainstorm-clean != search-clean)."
+  rule = "The token 'Phanes' has adjacent collisions — Phanes Technologies (autonomous multi-agent AI) + Phanes Therapeutics (USPTO-registered TMs, Reg. 5,577,009) + phanes.app (live 'Economic Operating System for AI Agents' SaaS — a DIRECT same-word same-sector collision, surfaced 2026-05-19 by the docs/TRADEMARK.md pre-screen). User chose Phanes with this on record (2026-05-19)."
+  remedy = "Treat Phanes as project narrative/lore; before any public launch run a formal USPTO class-9/class-42 clearance via a registered trademark attorney and reconsider the public-facing mark."
+  alternatives = "Manteia (user also favors, 2026-05-19) is ALSO collided — Manteia Technologies Co Ltd, active AI/software startup, registered TMs in the computer/software class; NOT a clean fallback. Per docs/TRADEMARK.md open-web pre-screen (2026-05-19): Ouro/Kythera/Haechi ALL collided (active software/AI companies on the bare word); Bythos is the only brainstorm name with no obvious software-space hit (uncertain-but-lower-risk). Mimir is NOT clean — documented prior commercial software use (Mimir Classroom, acquired by HackerRank 2019) — downgraded from the earlier 'web-verified clean' list. Orrery remains the single cleanest web result (minor unofficial hobby-brand use only). g3: open-web pre-screen != USPTO TESS search != legal clearance."
+  evidence = "docs/TRADEMARK.md — informal open-web pre-screen, per-name confidence levels, not legal advice (filed 2026-05-19)."
   authority = "user directive 2026-05-19 '파네스 go' (override of assistant ownability caveat, logged in design.md Decision 2)"
   @> AGENTS.md
 

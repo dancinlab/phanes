@@ -48,17 +48,24 @@ clearance precedes any public launch.
 ## Naming (on record)
 
 - **Phanes · 파네스** — the chosen brand (design.md Decision 2). Lore as
-  above. Collision on record: Phanes Technologies (autonomous multi-agent
-  AI) + Phanes Therapeutics (USPTO-registered TMs).
+  above. Collisions on record: Phanes Technologies (autonomous multi-agent
+  AI) + Phanes Therapeutics (USPTO-registered TMs) + **phanes.app** (live
+  "Economic Operating System for AI Agents" SaaS — a direct same-word,
+  same-sector collision surfaced by the 2026-05-19 pre-screen).
 - **Manteia · 만테이아** — Greek "the power of divination / prophecy"
   (root of *-mancy*); a discovery-oracle name the user also favors,
   recorded per request. **Also collided**: Manteia Technologies Co., Ltd.
   — active AI/software startup (adaptive radiotherapy), **registered
   trademarks in the computer/software class**.
-- Web-verified clean so far: **only Orrery, Mimir**. Other brainstormed
-  names (Ouro / Kythera / Haechi / Bythos) are *not yet* search-verified —
-  do not call them clean until checked. Public-launch mark + USPTO
-  class-42 clearance remains an open obligation (`@D g_name_risk`).
+- Open-web pre-screen ([`docs/TRADEMARK.md`](docs/TRADEMARK.md),
+  2026-05-19): of the brainstormed names, **Ouro / Kythera / Haechi all
+  collided** (active software/AI companies on the bare word); **Bythos**
+  is the only one with no obvious software-space hit (uncertain, lower
+  risk). **Mimir is NOT clean** — prior commercial software use (Mimir
+  Classroom, acquired by HackerRank 2019); **Orrery** remains the single
+  cleanest web result. This is a pre-screen, not a USPTO TESS search:
+  a formal class-9/class-42 clearance via a trademark attorney remains
+  an open pre-launch obligation (`@D g_name_risk`).
 - **Sibling brand (paired cosmology)**: **`Demiurge` · 데미우르지** —
   sibling repo [`dancinlab/demiurge`](https://github.com/dancinlab/demiurge)
   (created 2026-05-18 as `hexa-arch`, renamed to `Demiurge` on
