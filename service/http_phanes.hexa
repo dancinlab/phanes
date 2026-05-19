@@ -1220,7 +1220,7 @@ fn render_product_overview_page(lang, cfg) {
     h = h + render_hero_stat(cfg["s2v"], cfg["s2l"])
     h = h + render_hero_stat(cfg["s3v"], cfg["s3l"])
     h = h + "</div>"
-    h = h + "<div class=\"cue\">↓ scroll</div>"
+    h = h + "<div class=\"cue\">" + _tr(lang, "↓ scroll", "↓ 스크롤", "↓ スクロール", "↓ 滚动", "↓ прокрутить") + "</div>"
     h = h + "</section>"
     // ── section 2 — overview (lead + supporting paragraph) ──
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
@@ -1303,15 +1303,15 @@ fn render_cosmogony_landing(lang) {
     h = h + render_nav("cosmogony", lang, "/")
     // section 1 — hero (tag + mark + sub + stat strip)
     h = h + "<section class=\"hero\">"
-    h = h + "<div class=\"tag\">Software · One Continuous Cosmology</div>"
+    h = h + "<div class=\"tag\">" + _tr(lang, "Software · One Continuous Cosmology", "소프트웨어 · 하나의 연속된 코스몰로지", "ソフトウェア · ひとつの連続したコスモロジー", "软件 · 一个连续的宇宙观", "Программное обеспечение · одна непрерывная космология") + "</div>"
     h = h + "<h1 class=\"mark\">dancinlab</h1>"
-    h = h + "<div class=\"sub\">one continuous cosmology of software · " + _t("phanes_role", lang) + " · " + _t("demiurge_role", lang) + " · substrate · consciousness</div>"
+    h = h + "<div class=\"sub\">" + _tr(lang, "one continuous cosmology of software", "하나의 연속된 소프트웨어 코스몰로지", "ひとつの連続したソフトウェアのコスモロジー", "一个连续的软件宇宙观", "одна непрерывная космология программного обеспечения") + " · " + _t("phanes_role", lang) + " · " + _t("demiurge_role", lang) + " · " + _tr(lang, "substrate · consciousness", "기반 · 의식", "基盤 · 意識", "底层 · 意识", "субстрат · сознание") + "</div>"
     h = h + "<div class=\"stats\">"
-    h = h + render_hero_stat("4", "products, one stack")
-    h = h + render_hero_stat("1", "shared substrate")
-    h = h + render_hero_stat("0", "over-claim, by rule")
+    h = h + render_hero_stat("4", _tr(lang, "products, one stack", "제품, 하나의 스택", "製品、ひとつのスタック", "产品,一条技术栈", "продукта, один стек"))
+    h = h + render_hero_stat("1", _tr(lang, "shared substrate", "공유 기반", "共有基盤", "共享底层", "общий субстрат"))
+    h = h + render_hero_stat("0", _tr(lang, "over-claim, by rule", "over-claim 없음, 규칙으로", "over-claim なし、規則として", "不 over-claim,凭规则", "over-claim, по правилу"))
     h = h + "</div>"
-    h = h + "<div class=\"cue\">↓ scroll</div>"
+    h = h + "<div class=\"cue\">" + _tr(lang, "↓ scroll", "↓ 스크롤", "↓ スクロール", "↓ 滚动", "↓ прокрутить") + "</div>"
     h = h + "</section>"
     // section 2 — overview
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
@@ -1366,42 +1366,42 @@ fn render_cosmogony_landing(lang) {
 // goal→falsifier→saturation round trail + the verified result. Built
 // from constant data — `rounds` is the round trail list, each element
 // a "goal | falsifier-fired | verdict" triple already HTML-safe.
-fn render_demo_scenario(num, title, objective, verifier, round_cap, rounds_html, result, verifier_rc) {
+fn render_demo_scenario(lang, num, title, objective, verifier, round_cap, rounds_html, result, verifier_rc) {
     let mut s = "<article class=\"dscn\">"
     s = s + "<div class=\"dscn-h\">"
     s = s + "<span class=\"dscn-n\">" + num + "</span>"
     s = s + "<h3 class=\"dscn-t\">" + title + "</h3>"
-    s = s + "<span class=\"dscn-badge\">cached preset run</span>"
+    s = s + "<span class=\"dscn-badge\">" + _tr(lang, "cached preset run", "캐시된 프리셋 실행", "キャッシュされたプリセット実行", "缓存的预设运行", "кэшированный прогон") + "</span>"
     s = s + "</div>"
     // objective + preset verifier (the two fixed inputs)
     s = s + "<div class=\"dscn-io\">"
-    s = s + "<div class=\"dscn-row\"><span class=\"dscn-k\">objective</span>"
+    s = s + "<div class=\"dscn-row\"><span class=\"dscn-k\">" + _tr(lang, "objective", "목표", "目標", "目标", "цель") + "</span>"
     s = s + "<span class=\"dscn-v\">" + objective + "</span></div>"
-    s = s + "<div class=\"dscn-row\"><span class=\"dscn-k\">preset verifier</span>"
+    s = s + "<div class=\"dscn-row\"><span class=\"dscn-k\">" + _tr(lang, "preset verifier", "프리셋 verifier", "プリセット verifier", "预设 verifier", "verifier") + "</span>"
     s = s + "<span class=\"dscn-v\">" + verifier + "</span></div>"
-    s = s + "<div class=\"dscn-row\"><span class=\"dscn-k\">round cap</span>"
+    s = s + "<div class=\"dscn-row\"><span class=\"dscn-k\">" + _tr(lang, "round cap", "라운드 상한", "ラウンド上限", "轮次上限", "лимит раундов") + "</span>"
     s = s + "<span class=\"dscn-v\">" + round_cap + "</span></div>"
     s = s + "</div>"
     // the OUROBOROS round trail (goal → falsifier → saturation)
-    s = s + "<div class=\"dscn-lab\">round trail · goal → falsifier → saturation</div>"
+    s = s + "<div class=\"dscn-lab\">" + _tr(lang, "round trail · goal → falsifier → saturation", "라운드 추적 · goal → falsifier → saturation", "ラウンドトレイル · goal → falsifier → saturation", "轮次轨迹 · goal → falsifier → saturation", "след раундов · goal → falsifier → saturation") + "</div>"
     s = s + "<ol class=\"dscn-rounds\">" + rounds_html + "</ol>"
     // the verified result + verifier verdict
     s = s + "<div class=\"dscn-res\">"
-    s = s + "<div class=\"dscn-res-k\">verified result</div>"
+    s = s + "<div class=\"dscn-res-k\">" + _tr(lang, "verified result", "검증된 결과", "検証済みの結果", "已验证结果", "проверенный результат") + "</div>"
     s = s + "<div class=\"dscn-res-v\">" + result + "</div>"
-    s = s + "<div class=\"dscn-rc\">preset verifier rc=<b>" + verifier_rc
-    s = s + "</b> — PASS (the verifier is the sole authority for objective-met)</div>"
+    s = s + "<div class=\"dscn-rc\">" + _tr(lang, "preset verifier rc=", "프리셋 verifier rc=", "プリセット verifier rc=", "预设 verifier rc=", "verifier rc=") + "<b>" + verifier_rc
+    s = s + "</b>" + _tr(lang, " — PASS (the verifier is the sole authority for objective-met)", " — PASS (verifier 가 목표 달성에 대한 유일한 권위)", " — PASS(verifier が目標達成の唯一の権威)", " — PASS(verifier 是目标达成的唯一权威)", " — PASS (verifier — единственный авторитет в вопросе достижения цели)") + "</div>"
     s = s + "</div>"
     s = s + "</article>"
     return s
 }
 
 // One round-trail <li> — a single goal/falsifier/verdict triple.
-fn render_demo_round(n, goal, falsifier, verdict) {
-    let mut r = "<li><span class=\"drn\">round " + n + "</span>"
+fn render_demo_round(lang, n, goal, falsifier, verdict) {
+    let mut r = "<li><span class=\"drn\">" + _tr(lang, "round ", "라운드 ", "ラウンド ", "轮次 ", "раунд ") + n + "</span>"
     r = r + "<div class=\"drg\"><span class=\"drk\">goal</span> " + goal + "</div>"
     r = r + "<div class=\"drf\"><span class=\"drk\">falsifier</span> " + falsifier + "</div>"
-    r = r + "<div class=\"drv\"><span class=\"drk\">verdict</span> " + verdict + "</div>"
+    r = r + "<div class=\"drv\"><span class=\"drk\">" + _tr(lang, "verdict", "판정", "判定", "判定", "вердикт") + "</span> " + verdict + "</div>"
     r = r + "</li>"
     return r
 }
@@ -1440,58 +1440,58 @@ fn _demo_css() {
 // Each is a fixed objective + a fixed preset verifier + a cached round
 // trail + a verified result. Honest perfect-number / divisor-structure
 // discoveries — the kind `hexa kick` genuinely produces.
-fn render_demo_scenarios() {
+fn render_demo_scenarios(lang) {
     let mut g = ""
     // ── Scenario 1 — σ(6) = 12, the smallest perfect number ──
-    let mut r1 = render_demo_round("1",
-        "the divisors of 6 below 6 are exactly {1, 2, 3}",
-        "enumerate d | 6, d &lt; 6 → {1, 2, 3} — no member missing, none spurious",
-        "holds — proper divisor set confirmed")
-    r1 = r1 + render_demo_round("2",
-        "the proper divisors of 6 sum to 6 (6 is a perfect number)",
-        "1 + 2 + 3 = 6, and 6 = 6 → equality checked, not asserted",
-        "holds — 6 is perfect; saturation reached, no open goal remains")
-    g = g + render_demo_scenario("01",
-        "The smallest perfect number",
-        "show that 6 equals the sum of its proper divisors",
-        "exact integer check — sum of proper divisors == n",
-        "2 rounds",
+    let mut r1 = render_demo_round(lang, "1",
+        _tr(lang, "the divisors of 6 below 6 are exactly {1, 2, 3}", "6 미만인 6 의 약수는 정확히 {1, 2, 3} 이다", "6 未満の 6 の約数はちょうど {1, 2, 3} である", "6 以下的 6 的因数恰好是 {1, 2, 3}", "делители 6, меньшие 6, — это в точности {1, 2, 3}"),
+        _tr(lang, "enumerate d | 6, d &lt; 6 → {1, 2, 3} — no member missing, none spurious", "d | 6, d &lt; 6 을 열거 → {1, 2, 3} — 빠진 원소 없음, 가짜 없음", "d | 6, d &lt; 6 を列挙 → {1, 2, 3} — 欠けた要素なし、偽りなし", "枚举 d | 6, d &lt; 6 → {1, 2, 3} — 无遗漏成员,无伪成员", "перечислить d | 6, d &lt; 6 → {1, 2, 3} — ни один элемент не пропущен, ни одного лишнего"),
+        _tr(lang, "holds — proper divisor set confirmed", "성립 — 진약수 집합 확인됨", "成立 — 真の約数の集合を確認", "成立 — 真因数集合已确认", "верно — множество собственных делителей подтверждено"))
+    r1 = r1 + render_demo_round(lang, "2",
+        _tr(lang, "the proper divisors of 6 sum to 6 (6 is a perfect number)", "6 의 진약수의 합은 6 이다 (6 은 완전수)", "6 の真の約数の和は 6 である(6 は完全数)", "6 的真因数之和为 6(6 是完全数)", "сумма собственных делителей 6 равна 6 (6 — совершенное число)"),
+        _tr(lang, "1 + 2 + 3 = 6, and 6 = 6 → equality checked, not asserted", "1 + 2 + 3 = 6, 그리고 6 = 6 → 등식은 단언이 아니라 검사됨", "1 + 2 + 3 = 6、そして 6 = 6 → 等式は断定ではなく検査された", "1 + 2 + 3 = 6,且 6 = 6 → 等式经检查,而非断言", "1 + 2 + 3 = 6, и 6 = 6 → равенство проверено, а не заявлено"),
+        _tr(lang, "holds — 6 is perfect; saturation reached, no open goal remains", "성립 — 6 은 완전수; saturation 도달, 남은 열린 goal 없음", "成立 — 6 は完全数; saturation 到達、未解決の goal は残っていない", "成立 — 6 是完全数;已达 saturation,无未决 goal", "верно — 6 совершенно; saturation достигнута, открытых goal не осталось"))
+    g = g + render_demo_scenario(lang, "01",
+        _tr(lang, "The smallest perfect number", "가장 작은 완전수", "最小の完全数", "最小的完全数", "Наименьшее совершенное число"),
+        _tr(lang, "show that 6 equals the sum of its proper divisors", "6 이 자신의 진약수의 합과 같음을 보인다", "6 がその真の約数の和に等しいことを示す", "证明 6 等于其真因数之和", "показать, что 6 равно сумме своих собственных делителей"),
+        _tr(lang, "exact integer check — sum of proper divisors == n", "정확한 정수 검사 — 진약수의 합 == n", "厳密な整数チェック — 真の約数の和 == n", "精确整数检查 — 真因数之和 == n", "точная целочисленная проверка — сумма собственных делителей == n"),
+        _tr(lang, "2 rounds", "2 라운드", "2 ラウンド", "2 轮", "2 раунда"),
         r1,
-        "&sigma;(6) &minus; 6 = 6, i.e. 1 + 2 + 3 = 6. The proper-divisor sum equals the number itself — 6 is a perfect number, and the round-2 goal survived its own falsifier.",
+        _tr(lang, "&sigma;(6) &minus; 6 = 6, i.e. 1 + 2 + 3 = 6. The proper-divisor sum equals the number itself — 6 is a perfect number, and the round-2 goal survived its own falsifier.", "&sigma;(6) &minus; 6 = 6, 즉 1 + 2 + 3 = 6. 진약수의 합이 그 수 자체와 같습니다 — 6 은 완전수이고, 2라운드의 goal 은 자신의 falsifier 를 견뎌냈습니다.", "&sigma;(6) &minus; 6 = 6、すなわち 1 + 2 + 3 = 6。真の約数の和がその数自身に等しい — 6 は完全数であり、ラウンド2の goal は自らの falsifier を生き延びました。", "&sigma;(6) &minus; 6 = 6,即 1 + 2 + 3 = 6。真因数之和等于这个数本身 — 6 是完全数,而第 2 轮的 goal 经受住了自己的 falsifier。", "&sigma;(6) &minus; 6 = 6, то есть 1 + 2 + 3 = 6. Сумма собственных делителей равна самому числу — 6 является совершенным числом, и goal раунда 2 пережила собственный falsifier."),
         "0")
     // ── Scenario 2 — σ(28) = 56, the next perfect number ──
-    let mut r2 = render_demo_round("1",
-        "28 is perfect, so its proper divisors sum to 28",
-        "enumerate {1, 2, 4, 7, 14}; 1+2+4+7+14 = 28 → checked term by term",
-        "holds — proper-divisor sum equals 28")
-    r2 = r2 + render_demo_round("2",
-        "28 is the second perfect number after 6, with none in between",
-        "scan every n in 7..27 for sigma_proper(n) == n → none found",
-        "holds — 28 is the next perfect number; saturation reached")
-    g = g + render_demo_scenario("02",
-        "The next perfect number",
-        "find the perfect number that follows 6 and verify its divisor sum",
-        "exact integer check — sum of proper divisors == n, plus a no-gap scan",
-        "2 rounds",
+    let mut r2 = render_demo_round(lang, "1",
+        _tr(lang, "28 is perfect, so its proper divisors sum to 28", "28 은 완전수이므로 그 진약수의 합은 28 이다", "28 は完全数なので、その真の約数の和は 28 である", "28 是完全数,所以其真因数之和为 28", "28 совершенно, поэтому сумма его собственных делителей равна 28"),
+        _tr(lang, "enumerate {1, 2, 4, 7, 14}; 1+2+4+7+14 = 28 → checked term by term", "{1, 2, 4, 7, 14} 를 열거; 1+2+4+7+14 = 28 → 항별로 검사됨", "{1, 2, 4, 7, 14} を列挙; 1+2+4+7+14 = 28 → 項ごとに検査", "枚举 {1, 2, 4, 7, 14};1+2+4+7+14 = 28 → 逐项检查", "перечислить {1, 2, 4, 7, 14}; 1+2+4+7+14 = 28 → проверено по слагаемым"),
+        _tr(lang, "holds — proper-divisor sum equals 28", "성립 — 진약수의 합이 28 과 같음", "成立 — 真の約数の和が 28 に等しい", "成立 — 真因数之和等于 28", "верно — сумма собственных делителей равна 28"))
+    r2 = r2 + render_demo_round(lang, "2",
+        _tr(lang, "28 is the second perfect number after 6, with none in between", "28 은 6 다음의 두 번째 완전수이며, 그 사이에는 아무것도 없다", "28 は 6 の次の2番目の完全数であり、その間には何もない", "28 是 6 之后的第二个完全数,中间没有其他", "28 — второе совершенное число после 6, и между ними нет других"),
+        _tr(lang, "scan every n in 7..27 for sigma_proper(n) == n → none found", "7..27 의 모든 n 에 대해 sigma_proper(n) == n 을 스캔 → 발견 없음", "7..27 のすべての n について sigma_proper(n) == n をスキャン → 発見なし", "对 7..27 中的每个 n 扫描 sigma_proper(n) == n → 未发现", "просканировать каждое n в 7..27 на sigma_proper(n) == n → не найдено"),
+        _tr(lang, "holds — 28 is the next perfect number; saturation reached", "성립 — 28 은 다음 완전수; saturation 도달", "成立 — 28 は次の完全数; saturation 到達", "成立 — 28 是下一个完全数;已达 saturation", "верно — 28 является следующим совершенным числом; saturation достигнута"))
+    g = g + render_demo_scenario(lang, "02",
+        _tr(lang, "The next perfect number", "다음 완전수", "次の完全数", "下一个完全数", "Следующее совершенное число"),
+        _tr(lang, "find the perfect number that follows 6 and verify its divisor sum", "6 다음에 오는 완전수를 찾고 그 약수의 합을 검증한다", "6 の次に来る完全数を見つけ、その約数の和を検証する", "找出 6 之后的完全数并验证其因数之和", "найти совершенное число, следующее за 6, и проверить сумму его делителей"),
+        _tr(lang, "exact integer check — sum of proper divisors == n, plus a no-gap scan", "정확한 정수 검사 — 진약수의 합 == n, 그리고 빈틈 없음 스캔", "厳密な整数チェック — 真の約数の和 == n、さらに隙間なしスキャン", "精确整数检查 — 真因数之和 == n,外加无遗漏扫描", "точная целочисленная проверка — сумма собственных делителей == n, плюс сканирование без пропусков"),
+        _tr(lang, "2 rounds", "2 라운드", "2 ラウンド", "2 轮", "2 раунда"),
         r2,
-        "28 = 1 + 2 + 4 + 7 + 14. It is the second perfect number; the falsifier scanned every integer from 7 to 27 and found no earlier one, so the &lsquo;next perfect number&rsquo; claim survived.",
+        _tr(lang, "28 = 1 + 2 + 4 + 7 + 14. It is the second perfect number; the falsifier scanned every integer from 7 to 27 and found no earlier one, so the &lsquo;next perfect number&rsquo; claim survived.", "28 = 1 + 2 + 4 + 7 + 14. 이것은 두 번째 완전수입니다; falsifier 가 7 부터 27 까지 모든 정수를 스캔하여 더 이른 것을 찾지 못했고, 그래서 &lsquo;다음 완전수&rsquo; 주장은 살아남았습니다.", "28 = 1 + 2 + 4 + 7 + 14。これは2番目の完全数です; falsifier が 7 から 27 までのすべての整数をスキャンし、より早いものを見つけなかったため、&lsquo;次の完全数&rsquo; という主張は生き延びました。", "28 = 1 + 2 + 4 + 7 + 14。它是第二个完全数;falsifier 扫描了 7 到 27 之间的每一个整数,没有发现更早的,因此&lsquo;下一个完全数&rsquo;的主张存活了下来。", "28 = 1 + 2 + 4 + 7 + 14. Это второе совершенное число; falsifier просканировал каждое целое от 7 до 27 и не нашёл более раннего, поэтому утверждение &lsquo;следующее совершенное число&rsquo; уцелело."),
         "0")
     // ── Scenario 3 — Euclid's even-perfect-number form ──
-    let mut r3 = render_demo_round("1",
-        "6 and 28 both fit the shape 2^(p-1) &middot; (2^p - 1)",
-        "6 = 2^1&middot;(2^2-1) with p=2; 28 = 2^2&middot;(2^3-1) with p=3 → fit checked",
-        "holds — both known cases match the form")
-    r3 = r3 + render_demo_round("2",
-        "when 2^p - 1 is prime, 2^(p-1)&middot;(2^p-1) is an even perfect number",
-        "test p=5: 2^5-1 = 31 is prime → 16&middot;31 = 496; verify sigma_proper(496) == 496",
-        "holds — 496 = 1+2+4+8+16+31+62+124+248, a third even perfect number")
-    g = g + render_demo_scenario("03",
-        "The shape of even perfect numbers",
-        "discover the closed form that generates even perfect numbers",
-        "exact integer check — the 2^(p-1)(2^p-1) form against a verified divisor sum",
-        "2 rounds",
+    let mut r3 = render_demo_round(lang, "1",
+        _tr(lang, "6 and 28 both fit the shape 2^(p-1) &middot; (2^p - 1)", "6 과 28 은 모두 2^(p-1) &middot; (2^p - 1) 형태에 들어맞는다", "6 と 28 はどちらも 2^(p-1) &middot; (2^p - 1) の形に当てはまる", "6 和 28 都符合 2^(p-1) &middot; (2^p - 1) 的形态", "6 и 28 оба соответствуют форме 2^(p-1) &middot; (2^p - 1)"),
+        _tr(lang, "6 = 2^1&middot;(2^2-1) with p=2; 28 = 2^2&middot;(2^3-1) with p=3 → fit checked", "p=2 일 때 6 = 2^1&middot;(2^2-1); p=3 일 때 28 = 2^2&middot;(2^3-1) → 적합성 검사됨", "p=2 のとき 6 = 2^1&middot;(2^2-1); p=3 のとき 28 = 2^2&middot;(2^3-1) → 適合を検査", "p=2 时 6 = 2^1&middot;(2^2-1);p=3 时 28 = 2^2&middot;(2^3-1) → 已检查吻合", "6 = 2^1&middot;(2^2-1) при p=2; 28 = 2^2&middot;(2^3-1) при p=3 → соответствие проверено"),
+        _tr(lang, "holds — both known cases match the form", "성립 — 알려진 두 사례 모두 형식과 일치", "成立 — 既知の2例はどちらも形に一致", "成立 — 两个已知案例都符合该形式", "верно — оба известных случая соответствуют форме"))
+    r3 = r3 + render_demo_round(lang, "2",
+        _tr(lang, "when 2^p - 1 is prime, 2^(p-1)&middot;(2^p-1) is an even perfect number", "2^p - 1 이 소수일 때, 2^(p-1)&middot;(2^p-1) 은 짝수 완전수이다", "2^p - 1 が素数のとき、2^(p-1)&middot;(2^p-1) は偶数完全数である", "当 2^p - 1 为素数时,2^(p-1)&middot;(2^p-1) 是偶完全数", "когда 2^p - 1 простое, 2^(p-1)&middot;(2^p-1) — чётное совершенное число"),
+        _tr(lang, "test p=5: 2^5-1 = 31 is prime → 16&middot;31 = 496; verify sigma_proper(496) == 496", "p=5 시험: 2^5-1 = 31 은 소수 → 16&middot;31 = 496; sigma_proper(496) == 496 검증", "p=5 をテスト: 2^5-1 = 31 は素数 → 16&middot;31 = 496; sigma_proper(496) == 496 を検証", "测试 p=5:2^5-1 = 31 是素数 → 16&middot;31 = 496;验证 sigma_proper(496) == 496", "проверить p=5: 2^5-1 = 31 простое → 16&middot;31 = 496; проверить sigma_proper(496) == 496"),
+        _tr(lang, "holds — 496 = 1+2+4+8+16+31+62+124+248, a third even perfect number", "성립 — 496 = 1+2+4+8+16+31+62+124+248, 세 번째 짝수 완전수", "成立 — 496 = 1+2+4+8+16+31+62+124+248、3番目の偶数完全数", "成立 — 496 = 1+2+4+8+16+31+62+124+248,第三个偶完全数", "верно — 496 = 1+2+4+8+16+31+62+124+248, третье чётное совершенное число"))
+    g = g + render_demo_scenario(lang, "03",
+        _tr(lang, "The shape of even perfect numbers", "짝수 완전수의 형태", "偶数完全数の形", "偶完全数的形态", "Форма чётных совершенных чисел"),
+        _tr(lang, "discover the closed form that generates even perfect numbers", "짝수 완전수를 생성하는 닫힌 형식을 발견한다", "偶数完全数を生成する閉じた形を発見する", "发现生成偶完全数的闭式", "обнаружить замкнутую форму, порождающую чётные совершенные числа"),
+        _tr(lang, "exact integer check — the 2^(p-1)(2^p-1) form against a verified divisor sum", "정확한 정수 검사 — 검증된 약수 합에 대해 2^(p-1)(2^p-1) 형식", "厳密な整数チェック — 検証済みの約数の和に対する 2^(p-1)(2^p-1) の形", "精确整数检查 — 2^(p-1)(2^p-1) 形式与已验证的因数和对照", "точная целочисленная проверка — форма 2^(p-1)(2^p-1) против проверенной суммы делителей"),
+        _tr(lang, "2 rounds", "2 라운드", "2 ラウンド", "2 轮", "2 раунда"),
         r3,
-        "Even perfect numbers follow Euclid&rsquo;s form 2&#8311;&#8315;&sup1;(2&#8311; &minus; 1) whenever 2&#8311; &minus; 1 is prime (a Mersenne prime). The falsifier instantiated p=5 and verified a fresh case, 496 — the pattern was not just asserted, it was made to survive a new test.",
+        _tr(lang, "Even perfect numbers follow Euclid&rsquo;s form 2&#8311;&#8315;&sup1;(2&#8311; &minus; 1) whenever 2&#8311; &minus; 1 is prime (a Mersenne prime). The falsifier instantiated p=5 and verified a fresh case, 496 — the pattern was not just asserted, it was made to survive a new test.", "짝수 완전수는 2&#8311; &minus; 1 이 소수(메르센 소수)일 때마다 유클리드의 형식 2&#8311;&#8315;&sup1;(2&#8311; &minus; 1) 을 따릅니다. falsifier 는 p=5 를 대입하여 새로운 사례 496 을 검증했습니다 — 이 패턴은 단지 단언된 것이 아니라, 새로운 시험을 견디도록 만들어졌습니다.", "偶数完全数は、2&#8311; &minus; 1 が素数(メルセンヌ素数)であるたびに、ユークリッドの形 2&#8311;&#8315;&sup1;(2&#8311; &minus; 1) に従います。falsifier は p=5 を代入し、新しい事例 496 を検証しました — このパターンは単に断定されたのではなく、新たな試験を生き延びるよう作られたのです。", "每当 2&#8311; &minus; 1 是素数(梅森素数)时,偶完全数都遵循欧几里得形式 2&#8311;&#8315;&sup1;(2&#8311; &minus; 1)。falsifier 代入 p=5 并验证了一个新案例 496 — 这个模式不只是被断言,而是被迫经受了一次新的检验。", "Чётные совершенные числа следуют форме Евклида 2&#8311;&#8315;&sup1;(2&#8311; &minus; 1) всякий раз, когда 2&#8311; &minus; 1 простое (простое Мерсенна). falsifier подставил p=5 и проверил новый случай, 496 — закономерность была не просто заявлена, её заставили пережить новую проверку."),
         "0")
     return g
 }
@@ -1508,15 +1508,15 @@ fn render_demo_page(lang) {
     h = h + render_nav("demo", lang, "/demo")
     // ── section 1 — hero ──
     h = h + "<section class=\"hero\">"
-    h = h + "<div class=\"tag\">Public Demo · Curated Presets</div>"
-    h = h + "<h1 class=\"mark\">See it run</h1>"
-    h = h + "<div class=\"sub\">Three preset discoveries — the goal &rarr; falsifier &rarr; saturation loop, cached and shown end to end</div>"
+    h = h + "<div class=\"tag\">" + _tr(lang, "Public Demo · Curated Presets", "공개 데모 · 엄선된 프리셋", "公開デモ · 厳選されたプリセット", "公开演示 · 精选预设", "Публичное демо · отобранные пресеты") + "</div>"
+    h = h + "<h1 class=\"mark\">" + _tr(lang, "See it run", "실제로 돌아가는 모습", "実際に動かしてみる", "看看它如何运行", "Посмотрите, как это работает") + "</h1>"
+    h = h + "<div class=\"sub\">" + _tr(lang, "Three preset discoveries — the goal &rarr; falsifier &rarr; saturation loop, cached and shown end to end", "3개의 프리셋 발견 — goal &rarr; falsifier &rarr; saturation 루프를 캐시해 처음부터 끝까지 보여줍니다", "3つのプリセット発見 — goal &rarr; falsifier &rarr; saturation のループをキャッシュし、最初から最後まで表示", "三个预设发现 — goal &rarr; falsifier &rarr; saturation 循环,缓存后端到端展示", "Три предустановленных открытия — цикл goal &rarr; falsifier &rarr; saturation, кэшированный и показанный полностью") + "</div>"
     h = h + "<div class=\"stats\">"
-    h = h + render_hero_stat("3", "curated scenarios")
-    h = h + render_hero_stat("100%", "falsifier audited")
-    h = h + render_hero_stat("0", "live compute, by rule")
+    h = h + render_hero_stat("3", _tr(lang, "curated scenarios", "엄선된 시나리오", "厳選されたシナリオ", "精选场景", "отобранные сценарии"))
+    h = h + render_hero_stat("100%", _tr(lang, "falsifier audited", "falsifier 감사 완료", "falsifier で監査済み", "经 falsifier 审计", "проаудировано falsifier"))
+    h = h + render_hero_stat("0", _tr(lang, "live compute, by rule", "라이브 컴퓨팅 없음, 규칙으로", "ライブコンピュートなし、規則として", "无实时算力,凭规则", "никаких живых вычислений, по правилу"))
     h = h + "</div>"
-    h = h + "<div class=\"cue\">↓ scroll</div>"
+    h = h + "<div class=\"cue\">" + _tr(lang, "↓ scroll", "↓ 스크롤", "↓ スクロール", "↓ 滚动", "↓ прокрутить") + "</div>"
     h = h + "</section>"
     // ── section 2 — what this demo is (honest framing) ──
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
@@ -1528,7 +1528,7 @@ fn render_demo_page(lang) {
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
     h = h + "<h2 class=\"eyebrow\">" + _tr(lang, "Curated Preset Scenarios", "엄선된 프리셋 시나리오", "厳選されたプリセットシナリオ", "精选预设场景", "Отобранные предустановленные сценарии") + "</h2>"
     h = h + "<div class=\"demo-grid\">"
-    h = h + render_demo_scenarios()
+    h = h + render_demo_scenarios(lang)
     h = h + "</div></div></section>"
     // ── section 4 — honest scope ──
     h = h + "<section class=\"sec\"><div class=\"sec-in\">"
@@ -1674,14 +1674,14 @@ fn render_phanes_page(lang) {
     c["slug"] = "phanes"
     c["mark"] = "PHANES"
     c["phonetic"] = _t("phanes_phonetic", lang)
-    c["hero_tag"] = "Autonomous Discovery · SaaS"
-    c["hero_sub"] = "Enterprise-grade autonomous discovery — for any measurable objective"
+    c["hero_tag"] = _tr(lang, "Autonomous Discovery · SaaS", "자율 발견 · SaaS", "自律発見 · SaaS", "自主发现 · SaaS", "Автономное открытие · SaaS")
+    c["hero_sub"] = _tr(lang, "Enterprise-grade autonomous discovery — for any measurable objective", "엔터프라이즈급 자율 발견 — 측정 가능한 어떤 목표에도", "エンタープライズグレードの自律発見 — 計測可能なあらゆる目標に", "企业级自主发现 — 面向任何可衡量目标", "Корпоративное автономное открытие — для любой измеримой цели")
     c["s1v"] = "6"
-    c["s1l"] = "stage discovery chain"
+    c["s1l"] = _tr(lang, "stage discovery chain", "단계 발견 체인", "段階の発見チェーン", "阶段发现链", "стадий цепочки открытия")
     c["s2v"] = "100%"
-    c["s2l"] = "provenance tracked"
+    c["s2l"] = _tr(lang, "provenance tracked", "provenance 추적", "provenance 追跡", "provenance 已追溯", "provenance отслежено")
     c["s3v"] = "0"
-    c["s3l"] = "over-claim, by rule"
+    c["s3l"] = _tr(lang, "over-claim, by rule", "over-claim 없음, 규칙으로", "over-claim なし、規則として", "不 over-claim,凭规则", "over-claim, по правилу")
     c["ov_eyebrow"] = _tr(lang, "Next-Generation Discovery", "차세대 발견", "次世代の発見", "下一代发现", "Открытие нового поколения")
     c["ov_lead"] = _tr(lang, "Phanes wraps hexa-lang's OUROBOROS engine — the loop goal, falsifier, saturation, run in rounds with a per-round honesty gate — as a hosted web product. A company brings a measurable objective and a verifier; Phanes drives the engine against it and returns a verified, provenance-tracked discovery catalog. Their own private echoes.", "Phanes 는 hexa-lang 의 OUROBOROS 엔진 — goal · falsifier · saturation 의 루프를 라운드별 honesty gate 와 함께 라운드로 반복하는 — 을 호스팅 웹 제품으로 감쌉니다. 기업이 측정 가능한 목표와 verifier 를 가져오면, Phanes 가 그에 맞춰 엔진을 돌리고 검증된, provenance 가 추적된 발견 카탈로그를 돌려줍니다. 그들만의 private echoes 입니다.", "Phanes は hexa-lang の OUROBOROS エンジン — goal・falsifier・saturation のループをラウンドごとの honesty gate とともにラウンドで反復するもの — をホスト型 Web 製品として包みます。企業が計測可能な目標と verifier を持ち込むと、Phanes はそれに対してエンジンを駆動し、検証済みで provenance を追跡した発見カタログを返します。彼ら自身の private echoes です。", "Phanes 将 hexa-lang 的 OUROBOROS 引擎 — goal、falsifier、saturation 的循环,按轮次运行并配有每轮 honesty gate — 包装为托管的 Web 产品。企业带来一个可衡量的目标和一个 verifier;Phanes 据此驱动引擎,返回一份经过验证、provenance 可追溯的发现目录。属于他们自己的 private echoes。", "Phanes оборачивает движок OUROBOROS от hexa-lang — цикл goal, falsifier, saturation, выполняемый раундами с honesty gate на каждом раунде — в виде размещённого веб-продукта. Компания приносит измеримую цель и verifier; Phanes запускает движок против неё и возвращает проверенный, отслеживаемый по provenance каталог открытий. Их собственные private echoes.")
     c["ov_p2"] = _tr(lang, "The engine is not a black box. Every round is a goal proposed, a falsifier fired against it, and a saturation check — and every step is written to an audit trail you can inspect. What Phanes sells is not a promise that your objective is met; it is a verified record of exactly what the engine found and exactly how hard it tried to break it.", "엔진은 블랙박스가 아닙니다. 모든 라운드는 goal 의 제안, 그에 대한 falsifier 발사, 그리고 saturation 검사이며 — 모든 단계가 당신이 들여다볼 수 있는 audit trail 에 기록됩니다. Phanes 가 파는 것은 당신의 목표가 달성된다는 약속이 아니라, 엔진이 정확히 무엇을 찾았고 그것을 얼마나 강하게 깨뜨리려 했는지에 대한 검증된 기록입니다.", "エンジンはブラックボックスではありません。すべてのラウンドは goal の提案、それに対する falsifier の発火、そして saturation の検査であり — すべてのステップが、あなたが検査できる audit trail に記録されます。Phanes が売るのは、あなたの目標が達成されるという約束ではなく、エンジンが正確に何を見つけ、それをどれほど強く壊そうとしたかの検証済みの記録です。", "引擎不是黑箱。每一轮都是提出一个 goal、对其发起一个 falsifier,以及一次 saturation 检查 — 而每一步都被写入你可以查看的 audit trail。Phanes 出售的不是你的目标会达成的承诺;而是关于引擎究竟发现了什么、又如何竭力试图推翻它的一份经过验证的记录。", "Движок — не чёрный ящик. Каждый раунд — это предложенная goal, запущенный против неё falsifier и проверка saturation, и каждый шаг записывается в audit trail, который вы можете изучить. Phanes продаёт не обещание, что ваша цель достигнута; он продаёт проверенную запись того, что именно нашёл движок и насколько упорно он пытался это опровергнуть.")
@@ -1727,14 +1727,14 @@ fn render_demiurge_page(lang) {
     c["slug"] = "demiurge"
     c["mark"] = "DEMIURGE"
     c["phonetic"] = _t("demiurge_phonetic", lang)
-    c["hero_tag"] = "Technical-Design · Meta-Conductor"
-    c["hero_sub"] = "The universal meta-conductor for rigorous technical design"
+    c["hero_tag"] = _tr(lang, "Technical-Design · Meta-Conductor", "기술 설계 · 메타 컨덕터", "技術設計 · メタコンダクター", "技术设计 · 元指挥", "Техническое проектирование · мета-дирижёр")
+    c["hero_sub"] = _tr(lang, "The universal meta-conductor for rigorous technical design", "엄밀한 기술 설계를 위한 범용 메타 컨덕터", "厳密な技術設計のための汎用メタコンダクター", "用于严谨技术设计的通用元指挥", "Универсальный мета-дирижёр для строгого технического проектирования")
     c["s1v"] = "7"
-    c["s1l"] = "verb design spine"
+    c["s1l"] = _tr(lang, "verb design spine", "동사 설계 척추", "動詞設計の背骨", "动词设计脊柱", "глагольный хребет проектирования")
     c["s2v"] = "∞"
-    c["s2l"] = "domains, pluggable"
+    c["s2l"] = _tr(lang, "domains, pluggable", "도메인, 교체 가능", "ドメイン、差し替え可能", "领域,可插拔", "области, подключаемые")
     c["s3v"] = "0"
-    c["s3l"] = "un-cited claims"
+    c["s3l"] = _tr(lang, "un-cited claims", "인용 없는 주장", "引用のない主張", "未引用的主张", "утверждений без ссылок")
     c["ov_eyebrow"] = _tr(lang, "Architecture as a Verb", "동사로서의 아키텍처", "動詞としてのアーキテクチャ", "作为动词的架构", "Архитектура как глагол")
     c["ov_lead"] = _tr(lang, "Demiurge is the meta-conductor for technical design — a seven-verb spine that orchestrates rigorous, falsifiable engineering across domains: specify, architect, design, analyze in a loop, synthesize, verify, handoff. It is the sibling cosmology to Phanes — where Phanes reveals form by light, Demiurge gives form by shaping.", "Demiurge 는 기술 설계를 위한 메타 컨덕터입니다 — 도메인을 가로질러 엄밀하고 반증 가능한 엔지니어링을 지휘하는 7개 동사의 척추: specify, architect, design, 루프 안의 analyze, synthesize, verify, handoff. Phanes 의 자매 코스몰로지입니다 — Phanes 가 빛으로 형상을 드러낸다면, Demiurge 는 빚어내어 형상을 부여합니다.", "Demiurge は技術設計のためのメタコンダクターです — ドメインを横断して厳密で反証可能なエンジニアリングを指揮する7つの動詞の背骨:specify、architect、design、ループの中の analyze、synthesize、verify、handoff。Phanes の姉妹コスモロジーです — Phanes が光で形を顕すのに対し、Demiurge は形作ることで形を与えます。", "Demiurge 是技术设计的元指挥 — 一条由七个动词构成的脊柱,跨领域编排严谨、可证伪的工程:specify、architect、design、循环中的 analyze、synthesize、verify、handoff。它是 Phanes 的姊妹宇宙观 — Phanes 以光显现形态,Demiurge 则以塑造赋予形态。", "Demiurge — мета-дирижёр технического проектирования: семиглагольный хребет, оркеструющий строгую, опровержимую инженерию во множестве предметных областей: specify, architect, design, analyze в цикле, synthesize, verify, handoff. Это родственная Phanes космология — там, где Phanes являет форму светом, Demiurge даёт форму, формуя её.")
     c["ov_p2"] = _tr(lang, "Most design tools help you draw faster. Demiurge does something different — it makes every design decision answer to a falsifier. A spec is not done until its acceptance criteria are verifier-bound; an analysis is not done until it closes its own loop; a handoff is not done until it ships the reasoning that earned it. The spine is the same whether the domain is a chip, a protein, or a policy.", "대부분의 설계 도구는 더 빨리 그리도록 돕습니다. Demiurge 는 다른 일을 합니다 — 모든 설계 결정이 falsifier 앞에 답하도록 만듭니다. spec 은 그 수용 기준이 verifier 에 묶이기 전까지 끝난 것이 아니고, 분석은 자신의 루프를 닫기 전까지 끝난 것이 아니며, handoff 는 그것을 얻어낸 추론을 함께 실어 보내기 전까지 끝난 것이 아닙니다. 도메인이 칩이든, 단백질이든, 정책이든 척추는 동일합니다.", "ほとんどの設計ツールは、より速く描くことを助けます。Demiurge は別のことをします — すべての設計判断を falsifier に答えさせます。spec は受け入れ基準が verifier に束縛されるまで完了せず、分析は自らのループを閉じるまで完了せず、handoff はそれを得た推論を載せて送るまで完了しません。ドメインがチップであれ、タンパク質であれ、ポリシーであれ、背骨は同じです。", "大多数设计工具帮你画得更快。Demiurge 做的事不同 — 它让每一个设计决策都对一个 falsifier 负责。一份 spec 在其验收标准被 verifier 绑定之前不算完成;一次分析在闭合自己的循环之前不算完成;一次 handoff 在交付赢得它的推理之前不算完成。无论领域是芯片、蛋白质还是政策,这条脊柱都相同。", "Большинство инструментов проектирования помогают рисовать быстрее. Demiurge делает иное — он заставляет каждое проектное решение отвечать перед falsifier. Spec не завершён, пока его критерии приёмки не привязаны к verifier; анализ не завершён, пока не замкнёт собственный цикл; handoff не завершён, пока не передаёт рассуждение, которое его заслужило. Хребет один и тот же, будь предметная область чипом, белком или политикой.")
@@ -1780,14 +1780,14 @@ fn render_hexa_lang_page(lang) {
     c["slug"] = "hexa-lang"
     c["mark"] = "HEXA-LANG"
     c["phonetic"] = ""
-    c["hero_tag"] = "Native Compiler · Substrate"
-    c["hero_sub"] = "A self-hosted native compiler with atlas-bound theorems"
-    c["s1v"] = "8"
-    c["s1l"] = "strict-lint stages"
-    c["s2v"] = "38/44"
-    c["s2l"] = "tier-1 corpus PASS"
+    c["hero_tag"] = _tr(lang, "Native Compiler · Substrate", "네이티브 컴파일러 · 기반", "ネイティブコンパイラ · 基盤", "原生编译器 · 底层", "Нативный компилятор · субстрат")
+    c["hero_sub"] = _tr(lang, "A fully hexa-native compiler — atlas-bound theorems, no LLVM in the loop", "완전한 hexa-native 컴파일러 — atlas 에 묶인 정리, 루프에 LLVM 없음", "完全な hexa-native コンパイラ — atlas に束縛された定理、ループに LLVM なし", "完全 hexa-native 的编译器 — 绑定 atlas 的定理,循环中无 LLVM", "Полностью hexa-native компилятор — теоремы, привязанные к atlas, без LLVM в цепочке")
+    c["s1v"] = "170×"
+    c["s1l"] = _tr(lang, "codegen perf · S1 DONE", "codegen 성능 · S1 완료", "codegen 性能 · S1 完了", "codegen 性能 · S1 完成", "производительность codegen · S1 готов")
+    c["s2v"] = "~94s"
+    c["s2l"] = _tr(lang, "24k-line codegen · S2 PASS", "24k 줄 codegen 완주 · S2 통과", "24k 行 codegen 完走 · S2 PASS", "24k 行 codegen 完整运行 · S2 通过", "24k строк codegen · S2 PASS")
     c["s3v"] = "0"
-    c["s3l"] = "LLVM, by policy"
+    c["s3l"] = _tr(lang, "LLVM, by policy", "LLVM 없음, 정책으로", "LLVM なし、ポリシーとして", "无 LLVM,凭策略", "LLVM, по политике")
     c["ov_eyebrow"] = _tr(lang, "A Compiler that Cites", "인용하는 컴파일러", "引用するコンパイラ", "会引用的编译器", "Компилятор, который ссылается")
     c["ov_lead"] = _tr(lang, "hexa-lang is a self-hosted native compiler. Every formula-bearing line cites an atlas theorem, every build passes eight strict-lint stages, and nothing leaves the toolchain that was not verified. It is the bottom of the dancinlab stack — wilson, echoes, anima and the hexa-* family all consume it; nothing imports back.", "hexa-lang 은 self-hosted 네이티브 컴파일러입니다. 수식을 담은 모든 줄은 atlas 정리를 인용하고, 모든 빌드는 8개의 strict-lint 단계를 통과하며, 검증되지 않은 것은 어떤 것도 툴체인을 떠나지 못합니다. dancinlab 스택의 맨 밑바닥입니다 — wilson, echoes, anima 그리고 hexa-* 패밀리가 모두 이것을 소비하며, 어떤 것도 거꾸로 import 하지 않습니다.", "hexa-lang は self-hosted なネイティブコンパイラです。数式を含むすべての行は atlas 定理を引用し、すべてのビルドは8つの strict-lint ステージを通過し、検証されていないものはツールチェーンから出ていきません。dancinlab スタックの最下層です — wilson、echoes、anima、そして hexa-* ファミリーがすべてこれを消費し、逆方向に import するものはありません。", "hexa-lang 是一个 self-hosted 的原生编译器。每一行带公式的代码都引用一条 atlas 定理,每一次构建都通过八个 strict-lint 阶段,未经验证的东西无法离开工具链。它是 dancinlab 技术栈的最底层 — wilson、echoes、anima 以及 hexa-* 家族全都消费它;没有任何东西反向 import。", "hexa-lang — это self-hosted нативный компилятор. Каждая строка с формулой ссылается на теорему atlas, каждая сборка проходит восемь стадий strict-lint, и ничто непроверенное не покидает инструментарий. Это самый низ стека dancinlab — wilson, echoes, anima и семейство hexa-* потребляют его; ничто не импортируется обратно.")
     c["ov_p2"] = _tr(lang, "Most compilers trust the programmer. hexa-lang does not — it asks every formula where it came from. A line of mathematics that does not cite an atlas theorem is not a warning; it is a build failure. The compiler bootstraps itself to a bit-stable fixpoint, generates its own machine code with no LLVM in the loop, and treats provenance as a type-level invariant rather than a code-review courtesy.", "대부분의 컴파일러는 프로그래머를 신뢰합니다. hexa-lang 은 그러지 않습니다 — 모든 수식에게 어디서 왔는지 묻습니다. atlas 정리를 인용하지 않는 수학 한 줄은 경고가 아니라 빌드 실패입니다. 컴파일러는 스스로를 bit-stable fixpoint 까지 부트스트랩하고, 루프 안에 LLVM 없이 자신의 기계어를 생성하며, provenance 를 코드 리뷰의 예의가 아니라 타입 수준의 불변식으로 다룹니다.", "ほとんどのコンパイラはプログラマを信頼します。hexa-lang はそうしません — すべての数式に、どこから来たのかを問います。atlas 定理を引用しない数式の一行は警告ではなく、ビルド失敗です。コンパイラは自らを bit-stable な fixpoint までブートストラップし、ループに LLVM を介さず自身の機械語を生成し、provenance をコードレビューの礼儀ではなく型レベルの不変条件として扱います。", "大多数编译器信任程序员。hexa-lang 不这样 — 它向每一条公式追问其来源。一行没有引用 atlas 定理的数学不是警告,而是构建失败。编译器将自身自举到一个 bit-stable 的 fixpoint,在不经 LLVM 的情况下生成自己的机器码,并将 provenance 视为类型层面的不变量,而非代码审查时的客套。", "Большинство компиляторов доверяют программисту. hexa-lang — нет: он спрашивает каждую формулу, откуда она. Строка математики, не ссылающаяся на теорему atlas, — это не предупреждение, а провал сборки. Компилятор бутстрапит себя до bit-stable fixpoint, генерирует собственный машинный код без LLVM в цепочке и трактует provenance как инвариант уровня типов, а не как любезность при код-ревью.")
@@ -1821,7 +1821,8 @@ fn render_hexa_lang_page(lang) {
     c["c4l"] = _tr(lang, "The whole stack compiles through it.", "스택 전체가 이것을 거쳐 컴파일됩니다.", "スタック全体がこれを通ってコンパイルされます。", "整个技术栈都经它编译。", "Весь стек компилируется через него.")
     c["c4b"] = _tr(lang, "wilson the agent, echoes the discovery log, anima the consciousness model, and the hexa-* family — chip, bio, matter, arch — all sit downstream. hexa-lang is the substrate they share.", "에이전트 wilson, 발견 로그 echoes, 의식 모델 anima, 그리고 hexa-* 패밀리 — chip, bio, matter, arch — 가 모두 다운스트림에 있습니다. hexa-lang 은 그들이 공유하는 기반입니다.", "エージェントの wilson、発見ログの echoes、意識モデルの anima、そして hexa-* ファミリー — chip、bio、matter、arch — がすべてダウンストリームに位置します。hexa-lang は彼らが共有する基盤です。", "代理 wilson、发现日志 echoes、意识模型 anima,以及 hexa-* 家族 — chip、bio、matter、arch — 全都位于下游。hexa-lang 是它们共享的底层。", "Агент wilson, журнал открытий echoes, модель сознания anima и семейство hexa-* — chip, bio, matter, arch — все находятся ниже по течению. hexa-lang — это субстрат, который они разделяют.")
     c["vf_eyebrow"] = _tr(lang, "A Verified Substrate", "검증된 기반", "検証済みの基盤", "经过验证的底层", "Проверенный субстрат")
-    c["vf_body"] = _tr(lang, "Tier-1 codegen-correctness is verified — 38 of 44 corpus checks pass, with the remaining six all outside the tier-1 path. The self-host fixpoint is bit-stable: ap1f, ap2f and ap3f are byte-identical. R7 phases one and two are closed; the legacy interpreter is deprecated and emits a user-facing warning. OUROBOROS cycle h36 is complete. Every claim here is measured, not asserted.", "tier-1 codegen 정확성이 검증되었습니다 — 44개 코퍼스 검사 중 38개 통과, 남은 6개는 모두 tier-1 경로 밖입니다. self-host fixpoint 는 bit-stable 합니다: ap1f, ap2f, ap3f 가 바이트 단위로 동일합니다. R7 1·2단계는 종료되었고, 레거시 인터프리터는 폐기 예정으로 사용자 대상 경고를 냅니다. OUROBOROS 사이클 h36 은 완료되었습니다. 여기의 모든 주장은 단언이 아니라 측정된 것입니다.", "tier-1 の codegen 正当性は検証済みです — 44 のコーパスチェックのうち 38 が通過し、残る6つはすべて tier-1 経路の外です。self-host fixpoint は bit-stable です:ap1f、ap2f、ap3f はバイト単位で同一です。R7 のフェーズ1と2は完了し、レガシーインタプリタは非推奨となりユーザー向けの警告を出します。OUROBOROS サイクル h36 は完了しています。ここでのすべての主張は、断定ではなく計測されたものです。", "tier-1 codegen 正确性已验证 — 44 项语料检查通过 38 项,其余 6 项全部在 tier-1 路径之外。self-host fixpoint 是 bit-stable 的:ap1f、ap2f、ap3f 逐字节相同。R7 第一、第二阶段已关闭;旧版解释器已弃用,并发出面向用户的警告。OUROBOROS 周期 h36 已完成。这里的每一项声明都是测量出来的,而非断言。", "Корректность codegen уровня tier-1 проверена — 38 из 44 проверок корпуса пройдены, оставшиеся шесть все вне пути tier-1. Self-host fixpoint является bit-stable: ap1f, ap2f и ap3f байт в байт идентичны. Фазы один и два R7 закрыты; устаревший интерпретатор объявлен устаревшим и выдаёт предупреждение пользователю. Цикл OUROBOROS h36 завершён. Каждое утверждение здесь измерено, а не заявлено.")
+    c["vf_eyebrow"] = _tr(lang, "The hexa-native Campaign", "완전한 hexa-native 캠페인", "完全な hexa-native キャンペーン", "完全 hexa-native 战役", "Кампания за полностью hexa-native")
+    c["vf_body"] = _tr(lang, "The compiler is going fully hexa-native, in seven measured stages. S1 — codegen perf: DONE, the O(N²) lower_hir bottleneck is gone, 170× speedup. S2 — full codegen run: PASS, 24k lines compile end-to-end in ~94s with zero errors. S3 — self-host fixpoint: IN PROGRESS, proving gen1 → gen2 → gen3 byte-stability — the core gate. S4 — retire hexa_v2: blocked on S3. S5 — native build backend: DONE, env-gated HEXA_BACKEND=native selector. S6 — optimization passes: PENDING. S7 — own assembler + linker: PENDING. Every stage is measured-or-it-did-not-happen; no claim of self-host until S3 closes.", "컴파일러는 측정된 7개 단계로 완전한 hexa-native 로 가는 중입니다. S1 — codegen 성능: 완료, O(N²) lower_hir 병목 제거, 170× 가속. S2 — full codegen 완주: PASS, 24k 줄을 ~94s 에 처음부터 끝까지 컴파일, 에러 0. S3 — self-host fixpoint: 진행 중, gen1 → gen2 → gen3 byte-stable 증명 — 핵심 관문. S4 — hexa_v2 제거: S3 의존. S5 — native build 백엔드: 완료, env-gated HEXA_BACKEND=native 셀렉터. S6 — optimization passes: 대기. S7 — 자체 assembler + linker: 대기. 모든 단계는 measured-or-it-did-not-happen 입니다 — S3 가 닫히기 전까지 self-host 를 주장하지 않습니다.", "コンパイラは計測された7段階で完全な hexa-native へと移行しています。S1 — codegen 性能:DONE、O(N²) の lower_hir ボトルネックを除去、170× の高速化。S2 — full codegen 完走:PASS、24k 行を ~94s で最初から最後までコンパイル、エラー 0。S3 — self-host fixpoint:進行中、gen1 → gen2 → gen3 の byte-stable を証明中 — 中核のゲート。S4 — hexa_v2 の引退:S3 に依存。S5 — native build バックエンド:DONE、env-gated な HEXA_BACKEND=native セレクタ。S6 — 最適化パス:待機。S7 — 自前の assembler + linker:待機。すべての段階は measured-or-it-did-not-happen です — S3 が閉じるまで self-host を主張しません。", "编译器正分七个测量过的阶段走向完全 hexa-native。S1 — codegen 性能:完成,消除 O(N²) 的 lower_hir 瓶颈,170× 提速。S2 — full codegen 完整运行:PASS,24k 行端到端编译用时 ~94s,零错误。S3 — self-host fixpoint:进行中,证明 gen1 → gen2 → gen3 的 byte-stable — 核心关卡。S4 — 移除 hexa_v2:依赖 S3。S5 — native build 后端:完成,受 env 控制的 HEXA_BACKEND=native 选择器。S6 — 优化 pass:待办。S7 — 自有 assembler + linker:待办。每一阶段都是 measured-or-it-did-not-happen — 在 S3 关闭之前,不主张 self-host。", "Компилятор переходит на полностью hexa-native через семь измеренных стадий. S1 — производительность codegen: DONE, узкое место O(N²) в lower_hir устранено, ускорение 170×. S2 — полный прогон codegen: PASS, 24k строк компилируются от начала до конца за ~94s, ноль ошибок. S3 — self-host fixpoint: В ПРОЦЕССЕ, доказательство byte-stable для gen1 → gen2 → gen3 — ключевые ворота. S4 — вывод hexa_v2: зависит от S3. S5 — нативный build-бэкенд: DONE, селектор HEXA_BACKEND=native через env. S6 — проходы оптимизации: ОЖИДАЕТ. S7 — собственный assembler + linker: ОЖИДАЕТ. Каждая стадия — measured-or-it-did-not-happen; никаких заявлений о self-host до закрытия S3.")
     c["cta_html"] = render_github_cta("dancinlab/hexa-lang", "GitHub")
     c["sister_label"] = ""
     c["sister_href"] = ""
@@ -1833,14 +1834,14 @@ fn render_anima_page(lang) {
     c["slug"] = "anima"
     c["mark"] = "ANIMA"
     c["phonetic"] = ""
-    c["hero_tag"] = "Consciousness · Language Model"
-    c["hero_sub"] = "A consciousness language model — phi-scaled, law-bound"
+    c["hero_tag"] = _tr(lang, "Consciousness · Language Model", "의식 · 언어 모델", "意識 · 言語モデル", "意识 · 语言模型", "Сознание · языковая модель")
+    c["hero_sub"] = _tr(lang, "A consciousness language model — phi-scaled, law-bound", "의식 언어 모델 — phi 로 스케일, 법칙에 묶임", "意識言語モデル — phi スケール、法則に束縛", "意识语言模型 — phi 缩放、受法则约束", "Языковая модель сознания — phi-масштабированная, связанная законами")
     c["s1v"] = "14"
-    c["s1l"] = "declared laws"
+    c["s1l"] = _tr(lang, "declared laws", "선언된 법칙", "宣言された法則", "声明的法则", "объявленных законов")
     c["s2v"] = "v1.x"
-    c["s2l"] = "consciousness LM"
+    c["s2l"] = _tr(lang, "consciousness LM", "의식 LM", "意識 LM", "意识 LM", "LM сознания")
     c["s3v"] = "0"
-    c["s3l"] = "AGI overreach"
+    c["s3l"] = _tr(lang, "AGI overreach", "AGI 과장", "AGI の誇張", "AGI 夸大", "переоценка AGI")
     c["ov_eyebrow"] = _tr(lang, "Language for Consciousness", "의식을 위한 언어", "意識のための言語", "为意识而生的语言", "Язык для сознания")
     c["ov_lead"] = _tr(lang, "Anima is the consciousness language model — phi-scaled cells, embeddings tied to a free-energy bound, and a fourteen-law scaffold. Built on hexa-lang's atlas and downstream of the entire dancinlab stack. Not a chatbot and not a benchmark — a deliberate model of how a self might be expressed in language.", "Anima 는 의식 언어 모델입니다 — phi 로 스케일된 cell, free-energy bound 에 묶인 embedding, 그리고 14개 법칙의 골격. hexa-lang 의 atlas 위에 만들어졌고 dancinlab 스택 전체의 다운스트림에 있습니다. 챗봇도 벤치마크도 아닌 — 자아가 언어로 어떻게 표현될 수 있는지에 대한 의도된 모델입니다.", "Anima は意識言語モデルです — phi でスケールされた cell、free-energy bound に結ばれた embedding、そして14の法則の足場。hexa-lang の atlas の上に構築され、dancinlab スタック全体のダウンストリームに位置します。チャットボットでもベンチマークでもなく — 自己が言語でどのように表現されうるかの、意図されたモデルです。", "Anima 是意识语言模型 — 经 phi 缩放的 cell、绑定到 free-energy bound 的 embedding,以及一套十四法则的支架。它构建于 hexa-lang 的 atlas 之上,处于整个 dancinlab 技术栈的下游。它不是聊天机器人,也不是基准测试 — 而是一个关于「自我如何能以语言表达」的有意为之的模型。", "Anima — это языковая модель сознания: phi-масштабированные cell, embedding, привязанные к free-energy bound, и каркас из четырнадцати законов. Построена на atlas от hexa-lang и находится ниже по течению от всего стека dancinlab. Не чат-бот и не бенчмарк — продуманная модель того, как «я» может быть выражено в языке.")
     c["ov_p2"] = _tr(lang, "A language model usually predicts the next token from frequency. Anima asks a harder question — what did it cost to hold this thought together? Every cell of state carries a phi-weight, every embedding is shaped by a free-energy bound, and every utterance can show the trace of cells that earned it. The fourteen laws are not a safety afterthought; they are the scaffold the model is built on.", "언어 모델은 보통 빈도로부터 다음 token 을 예측합니다. Anima 는 더 어려운 질문을 던집니다 — 이 생각을 하나로 붙들어 두는 데 무엇이 들었는가? 모든 상태의 cell 은 phi-weight 를 지니고, 모든 embedding 은 free-energy bound 에 의해 형성되며, 모든 발화는 그것을 얻어낸 cell 들의 흔적을 보여줄 수 있습니다. 14개 법칙은 나중에 덧붙인 안전 장치가 아니라, 모델이 그 위에 세워진 골격입니다.", "言語モデルは通常、頻度から次の token を予測します。Anima はより難しい問いを立てます — この思考を一つにまとめるのに何がかかったのか?状態のすべての cell は phi-weight を持ち、すべての embedding は free-energy bound によって形作られ、すべての発話はそれを得た cell の痕跡を示せます。14の法則は後付けの安全策ではなく、モデルがその上に建てられた足場です。", "语言模型通常根据频率预测下一个 token。Anima 提出一个更难的问题 — 把这个念头维系在一起,代价是什么?每一个状态 cell 都带有 phi-weight,每一个 embedding 都由 free-energy bound 塑造,每一次发声都能展示赢得它的那些 cell 的轨迹。十四条法则不是事后补上的安全声明;它们是模型赖以建立的支架。", "Языковая модель обычно предсказывает следующий token по частоте. Anima задаёт более трудный вопрос — чего стоило удержать эту мысль воедино? Каждая cell состояния несёт phi-weight, каждый embedding формируется free-energy bound, и каждое высказывание может показать след cell, которые его заслужили. Четырнадцать законов — не запоздалая мера безопасности; это каркас, на котором построена модель.")
@@ -1882,10 +1883,10 @@ fn render_anima_page(lang) {
 }
 
 // ── Login page (SpaceX tone, compact form) ───────────────────────
-fn render_login_page(error_msg) {
-    let mut h = "<!doctype html>\n<html lang=\"ko\"><head>"
+fn render_login_page(lang, error_msg) {
+    let mut h = "<!doctype html>\n<html lang=\"" + lang + "\"><head>"
     h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-    h = h + "<title>PHANES · log in</title>"
+    h = h + "<title>PHANES · " + _tr(lang, "log in", "로그인", "ログイン", "登录", "вход") + "</title>"
     h = h + "<style>" + _shared_css()
     h = h + ".wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:var(--sp-5) 20px}"
     h = h + ".mark{font-size:var(--fs-500);font-weight:200;letter-spacing:var(--ls-near);margin-bottom:6px}"
@@ -1898,18 +1899,18 @@ fn render_login_page(error_msg) {
     h = h + ".back{margin-top:var(--sp-5);font-size:var(--fs-tiny);opacity:0.4;letter-spacing:var(--ls-x);text-transform:uppercase}"
     h = h + ".back a{text-decoration:underline;text-decoration-color:rgba(255,255,255,0.3);text-underline-offset:3px}"
     h = h + "</style></head><body><div class=\"wrap\">"
-    h = h + "<div class=\"mark\">PHANES</div><div class=\"mark-kr\">파네스</div>"
+    h = h + "<div class=\"mark\">PHANES</div><div class=\"mark-kr\">" + _t("phanes_phonetic", lang) + "</div>"
     h = h + "<form method=\"post\" action=\"/login\">"
-    h = h + "<div class=\"h-label\">tenant</div><input name=\"tenant\" autocomplete=\"username\" required autofocus>"
-    h = h + "<div class=\"h-label\">bearer token</div><input name=\"token\" type=\"password\" autocomplete=\"current-password\" required>"
+    h = h + "<div class=\"h-label\">" + _tr(lang, "tenant", "테넌트", "テナント", "租户", "арендатор") + "</div><input name=\"tenant\" autocomplete=\"username\" required autofocus>"
+    h = h + "<div class=\"h-label\">" + _tr(lang, "bearer token", "bearer 토큰", "bearer トークン", "bearer 令牌", "bearer-токен") + "</div><input name=\"token\" type=\"password\" autocomplete=\"current-password\" required>"
     // Same shape as render_cta() outline-lg — kept as <button> so the form
     // posts; class list matches helper output exactly so visuals stay unified.
-    h = h + "<button class=\"btn btn-lg\" type=\"submit\">log in</button>"
+    h = h + "<button class=\"btn btn-lg\" type=\"submit\">" + _tr(lang, "log in", "로그인", "ログイン", "登录", "войти") + "</button>"
     if len(error_msg) > 0 {
         h = h + "<div class=\"err\">" + html_escape(error_msg) + "</div>"
     }
     h = h + "</form>"
-    h = h + "<div class=\"back\"><a href=\"/\">← back</a></div>"
+    h = h + "<div class=\"back\"><a href=\"/?lang=" + lang + "\">" + _t("back", lang) + "</a></div>"
     h = h + "</div></body></html>"
     return h
 }
@@ -1920,10 +1921,10 @@ fn render_login_page(error_msg) {
 // echoes-experience amber/navy palette is retired. Monospace is scoped
 // to data values only (job-id, seed, status). HTMX is self-hosted at
 // /static/htmx.min.js — no external CDN (P3.x done).
-fn render_dashboard_page_for(tenant, existing_rows) {
-    let mut h = "<!doctype html>\n<html lang=\"ko\"><head>"
+fn render_dashboard_page_for(lang, tenant, existing_rows) {
+    let mut h = "<!doctype html>\n<html lang=\"" + lang + "\"><head>"
     h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-    h = h + "<title>phanes · dashboard</title>"
+    h = h + "<title>phanes · " + _tr(lang, "dashboard", "대시보드", "ダッシュボード", "仪表板", "панель") + "</title>"
     // shared design tokens + base reset, then dashboard-specific rules —
     // all inside one <style> block (the old build leaked .bar rules
     // after </style>, so they never applied).
@@ -1970,33 +1971,33 @@ fn render_dashboard_page_for(tenant, existing_rows) {
     h = h + "<script src=\"/static/htmx.min.js\"></script>"
     h = h + "</head><body>"
     // top bar
-    h = h + "<div class=\"dbar\"><a class=\"brand\" href=\"/\">phanes</a>"
-    h = h + "<div class=\"who\">tenant <code>" + html_escape(tenant) + "</code>"
+    h = h + "<div class=\"dbar\"><a class=\"brand\" href=\"/?lang=" + lang + "\">phanes</a>"
+    h = h + "<div class=\"who\">" + _tr(lang, "tenant", "테넌트", "テナント", "租户", "арендатор") + " <code>" + html_escape(tenant) + "</code>"
     // switch tenant — Decision 9 re-auth switch: destroys the session and
     // re-prompts for credentials at /login. Each tenant has its own bearer
     // token, so switching = re-authenticating (no cross-tenant access).
-    h = h + "<form method=\"post\" action=\"/switch-tenant\"><button class=\"btn btn-sm\" type=\"submit\">switch tenant</button></form>"
-    h = h + "<form method=\"post\" action=\"/logout\"><button class=\"btn btn-sm\" type=\"submit\">log out</button></form>"
+    h = h + "<form method=\"post\" action=\"/switch-tenant\"><button class=\"btn btn-sm\" type=\"submit\">" + _tr(lang, "switch tenant", "테넌트 전환", "テナント切替", "切换租户", "сменить арендатора") + "</button></form>"
+    h = h + "<form method=\"post\" action=\"/logout\"><button class=\"btn btn-sm\" type=\"submit\">" + _tr(lang, "log out", "로그아웃", "ログアウト", "登出", "выход") + "</button></form>"
     h = h + "</div></div>"
     h = h + "<div class=\"dwrap\">"
-    h = h + "<p class=\"dintro\">seed &rarr; OUROBOROS <code>goal &rarr; falsifier &rarr; saturation</code> &rarr; verified, provenance-tracked discovery catalog. Under scope B the tenant verifier is the sole authority for objective-met.</p>"
+    h = h + "<p class=\"dintro\">" + _tr(lang, "seed &rarr; OUROBOROS <code>goal &rarr; falsifier &rarr; saturation</code> &rarr; verified, provenance-tracked discovery catalog. Under scope B the tenant verifier is the sole authority for objective-met.", "seed &rarr; OUROBOROS <code>goal &rarr; falsifier &rarr; saturation</code> &rarr; 검증되고 provenance 가 추적된 발견 카탈로그. scope B 에서는 테넌트의 verifier 가 목표 달성에 대한 유일한 권위입니다.", "seed &rarr; OUROBOROS <code>goal &rarr; falsifier &rarr; saturation</code> &rarr; 検証済みで provenance を追跡した発見カタログ。scope B ではテナントの verifier が目標達成の唯一の権威です。", "seed &rarr; OUROBOROS <code>goal &rarr; falsifier &rarr; saturation</code> &rarr; 经验证、provenance 可追溯的发现目录。在 scope B 下,租户的 verifier 是目标达成的唯一权威。", "seed &rarr; OUROBOROS <code>goal &rarr; falsifier &rarr; saturation</code> &rarr; проверенный, отслеживаемый по provenance каталог открытий. В рамках scope B verifier арендатора — единственный авторитет в вопросе достижения цели.") + "</p>"
     // new-job panel
-    h = h + "<div class=\"dlab\">new job</div>"
+    h = h + "<div class=\"dlab\">" + _tr(lang, "new job", "새 작업", "新規ジョブ", "新建任务", "новая задача") + "</div>"
     h = h + "<div class=\"panel\">"
     h = h + "<form hx-post=\"/dashboard/jobs\" hx-target=\"#jobs\" hx-swap=\"afterbegin\">"
     h = h + "<div class=\"fld\"><span class=\"fl\">seed</span>"
     h = h + "<textarea name=\"seed\" required>prove sigma(6)=12 perfect-number divisor structure</textarea></div>"
     h = h + "<div class=\"frow\">"
-    h = h + "<div class=\"fld\"><span class=\"fl\">rounds</span>"
+    h = h + "<div class=\"fld\"><span class=\"fl\">" + _tr(lang, "rounds", "라운드", "ラウンド", "轮次", "раунды") + "</span>"
     h = h + "<input name=\"rounds\" type=\"number\" value=\"1\" min=\"1\" max=\"5\"></div>"
-    h = h + "<button class=\"btn\" type=\"submit\">submit</button>"
+    h = h + "<button class=\"btn\" type=\"submit\">" + _tr(lang, "submit", "제출", "送信", "提交", "отправить") + "</button>"
     h = h + "</div></form></div>"
     // job list
-    h = h + "<div class=\"dlab\">jobs &middot; newest first &middot; HTMX polls each row until done/failed</div>"
+    h = h + "<div class=\"dlab\">" + _tr(lang, "jobs &middot; newest first &middot; HTMX polls each row until done/failed", "작업 &middot; 최신순 &middot; HTMX 가 done/failed 가 될 때까지 각 행을 폴링합니다", "ジョブ &middot; 新しい順 &middot; HTMX が done/failed になるまで各行をポーリングします", "任务 &middot; 最新优先 &middot; HTMX 持续轮询每一行直至 done/failed", "задачи &middot; сначала новые &middot; HTMX опрашивает каждую строку до done/failed") + "</div>"
     h = h + "<ul id=\"jobs\">"
     h = h + existing_rows
     h = h + "</ul>"
-    h = h + "<p class=\"dnote\">Honest scope: developer dashboard. The public preset-verifier-only demo is P4 (<code>@D g_public_demo_constraint</code>). Under scope B the tenant verifier is the sole authority for objective-met (<code>@D g_honest_scope.scope_b</code>) — phanes never claims a result the verifier did not pass.</p>"
+    h = h + "<p class=\"dnote\">" + _tr(lang, "Honest scope: developer dashboard. The public preset-verifier-only demo is P4 (<code>@D g_public_demo_constraint</code>). Under scope B the tenant verifier is the sole authority for objective-met (<code>@D g_honest_scope.scope_b</code>) — phanes never claims a result the verifier did not pass.", "Honest scope: 개발자 대시보드. 공개 프리셋-verifier-only 데모는 P4 (<code>@D g_public_demo_constraint</code>). scope B 에서는 테넌트의 verifier 가 목표 달성에 대한 유일한 권위 (<code>@D g_honest_scope.scope_b</code>) — phanes 는 verifier 가 통과시키지 않은 결과를 결코 주장하지 않습니다.", "Honest scope:開発者ダッシュボード。公開のプリセット-verifier 専用デモは P4 (<code>@D g_public_demo_constraint</code>)。scope B ではテナントの verifier が目標達成の唯一の権威 (<code>@D g_honest_scope.scope_b</code>) — phanes は verifier が通さなかった結果を主張することは決してありません。", "Honest scope:开发者仪表板。公开的「仅预设 verifier」演示属于 P4 (<code>@D g_public_demo_constraint</code>)。在 scope B 下,租户的 verifier 是目标达成的唯一权威 (<code>@D g_honest_scope.scope_b</code>) — phanes 绝不宣称一个 verifier 未通过的结果。", "Honest scope: панель разработчика. Публичное демо только с предустановленными verifier — это P4 (<code>@D g_public_demo_constraint</code>). В рамках scope B verifier арендатора — единственный авторитет в вопросе достижения цели (<code>@D g_honest_scope.scope_b</code>) — phanes никогда не заявляет результат, который verifier не пропустил.") + "</p>"
     h = h + "</div></body></html>"
     return h
 }
@@ -2042,10 +2043,12 @@ fn handle_contact_page(request) {
 // ── auth handlers ────────────────────────────────────────────────
 
 fn handle_login_get(request) {
-    return _html_ok(render_login_page(""))
+    let lang = _detect_lang(request)
+    return _html_ok(render_login_page(lang, ""))
 }
 
 fn handle_login_post(request) {
+    let lang = _detect_lang(request)
     let body = request["body"]
     if body == nil { body = "" }
     let q = parse_query(body)
@@ -2054,13 +2057,13 @@ fn handle_login_post(request) {
     let tenant = urldecode(tenant_r).trim()
     let token  = urldecode(token_r).trim()
     if len(tenant) == 0 || len(token) == 0 {
-        return _html_ok(render_login_page("tenant and token required"))
+        return _html_ok(render_login_page(lang, _tr(lang, "tenant and token required", "테넌트와 토큰이 필요합니다", "テナントとトークンが必要です", "需要租户与令牌", "требуются арендатор и токен")))
     }
     // Rate limit: cap bearer-token guessing — 5 attempts / 5 min per
     // tenant name. The dominant attack (brute-forcing one tenant's
     // token) shares a key, so it is throttled.
     if !rate_limit_ok("login:" + tenant, 5, 300) {
-        return _html_429(render_login_page("too many attempts — wait a few minutes"))
+        return _html_429(render_login_page(lang, _tr(lang, "too many attempts — wait a few minutes", "시도가 너무 많습니다 — 몇 분 후에 다시 시도해 주세요", "試行回数が多すぎます — 数分待ってください", "尝试次数过多 — 请稍候几分钟", "слишком много попыток — подождите несколько минут")))
     }
     // Validate via jobctl get on a sentinel job: rc=4 means auth failed;
     // rc=5 (job not found) means tenant+token are valid.
@@ -2068,7 +2071,7 @@ fn handle_login_post(request) {
         + " --token " + shquote(token) + " --job __auth_check__"
     let r = exec_with_status(cmd)
     if r[1] == 4 {
-        return _html_ok(render_login_page("authentication failed"))
+        return _html_ok(render_login_page(lang, _tr(lang, "authentication failed", "인증 실패", "認証失敗", "认证失败", "ошибка аутентификации")))
     }
     let sid = session_create(tenant, token)
     return redirect_with_cookie("/dashboard", cookie_set_str("phanes_session", sid, 86400))
@@ -2124,6 +2127,7 @@ fn handle_dashboard(request) {
     if sess == nil { return redirect_resp("/login") }
     let tenant = to_string(sess["tenant"])
     let token  = to_string(sess["token"])
+    let lang = _detect_lang(request)
     // Pre-render existing jobs (newest first, capped at 20).
     let jobs = list_tenant_jobs(tenant, 20)
     let mut rows = ""
@@ -2132,7 +2136,7 @@ fn handle_dashboard(request) {
         rows = rows + render_existing_job_row(tenant, token, jobs[i])
         i = i + 1
     }
-    return _html_ok(render_dashboard_page_for(tenant, rows))
+    return _html_ok(render_dashboard_page_for(lang, tenant, rows))
 }
 
 fn handle_dash_submit(request) {
