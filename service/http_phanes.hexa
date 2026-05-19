@@ -1296,6 +1296,10 @@ fn render_dashboard_page_for(tenant, existing_rows) {
     // top bar
     h = h + "<div class=\"dbar\"><a class=\"brand\" href=\"/\">phanes</a>"
     h = h + "<div class=\"who\">tenant <code>" + html_escape(tenant) + "</code>"
+    // switch tenant — Decision 9 re-auth switch: destroys the session and
+    // re-prompts for credentials at /login. Each tenant has its own bearer
+    // token, so switching = re-authenticating (no cross-tenant access).
+    h = h + "<form method=\"post\" action=\"/switch-tenant\"><button class=\"btn btn-sm\" type=\"submit\">switch tenant</button></form>"
     h = h + "<form method=\"post\" action=\"/logout\"><button class=\"btn btn-sm\" type=\"submit\">log out</button></form>"
     h = h + "</div></div>"
     h = h + "<div class=\"dwrap\">"
@@ -1377,6 +1381,17 @@ fn handle_login_post(request) {
 fn handle_logout(request) {
     session_destroy(cookie_get(request, "phanes_session"))
     return redirect_with_cookie("/", cookie_clear_str("phanes_session"))
+}
+
+// Switch tenant (Decision 9 — re-auth switch). The session is bound to a
+// single (tenant, token) pair and each tenant has its own bearer token,
+// so "switching" is genuinely re-authenticating. Destroy the current
+// session (no stale token lingers) and redirect to /login for a fresh
+// credential prompt. No cross-tenant data sharing — each tenant's
+// jobs/catalog stay isolated (Decision 6).
+fn handle_switch_tenant(request) {
+    session_destroy(cookie_get(request, "phanes_session"))
+    return redirect_with_cookie("/login", cookie_clear_str("phanes_session"))
 }
 
 // ── /lang/<code>?from=<path> — set phanes_lang cookie + redirect ─
@@ -1486,6 +1501,7 @@ fn dispatch(handler_name, request) {
     if handler_name == "login_get"     { return handle_login_get(request) }
     if handler_name == "login_post"    { return handle_login_post(request) }
     if handler_name == "logout"        { return handle_logout(request) }
+    if handler_name == "switch_tenant" { return handle_switch_tenant(request) }
     if handler_name == "lang_set"      { return handle_lang_set(request) }
     if handler_name == "health"        { return handle_health(request) }
     if handler_name == "static_htmx"   { return handle_static_htmx(request) }
@@ -1517,6 +1533,7 @@ fn main() {
     server_route(s, "GET",  "/login",           "login_get")
     server_route(s, "POST", "/login",           "login_post")
     server_route(s, "POST", "/logout",          "logout")
+    server_route(s, "POST", "/switch-tenant",   "switch_tenant")
     server_mount(s, "GET",  "/lang/",           "lang_set")
     // self-hosted static asset (HTMX bundle) — no external CDN
     server_route(s, "GET",  "/static/htmx.min.js", "static_htmx")

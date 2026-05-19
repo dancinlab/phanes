@@ -402,6 +402,51 @@ immediately after this gate.
 
 ---
 
+### Decision 9 — Multi-tenant switcher = (a) Re-auth switch
+
+**picked**: `(a)` — a "switch tenant" control in the dashboard `.dbar`
+that destroys the current session and redirects to `/login` (a fresh
+GET, so the login form re-prompts for tenant + bearer token). No
+session-file format change. Implemented as `POST /switch-tenant` →
+`session_destroy` + `redirect_with_cookie("/login", clear-cookie)`.
+
+**rationale**:
+- **Honest to the real auth model (g3)**. The session is intrinsically
+  one `(tenant, token)` pair, and each tenant has its *own* bearer
+  token — there is no credential a user holds that grants more than one
+  tenant. A dropdown (design b) would imply "you already have access to
+  these tenants" and could only be populated by the user re-entering
+  each token anyway. Re-auth is the truthful UX: switching tenant *is*
+  presenting a different credential.
+- **Minimal + secure, zero session-model risk**. Design (b) needs a
+  variable-length session file (`tenant\ntoken` pairs + an active
+  index), a parser rewrite of `session_load`, an "active pair" notion
+  threaded through `current_session`, and a re-auth-append path
+  distinct from fresh login — each a place for a cross-tenant token
+  leak. (a) reuses the *existing, already-measured* `session_destroy` +
+  `redirect_with_cookie` + `/login` path verbatim; the new surface is
+  one route + one button. Destroying the session on switch also means
+  no stale token for tenant A lingers while the user works as tenant B.
+- **Reversible and non-foreclosing**. (a) ships the capability now; if
+  multi-pair sessions are later justified (e.g. an org-level SSO that
+  genuinely authorizes N tenants under one principal), the dropdown can
+  be added then without undoing (a). Picking (b) now would commit the
+  session format prematurely against a credential model that does not
+  yet exist.
+- **Consistent with the existing `.dbar`**. The bar already carries a
+  `POST /logout` form with a `.btn .btn-sm` button; "switch tenant" is
+  the same shape (a second small outline button), so it needs no new
+  design tokens and no JS — matching Decision 8's server-rendered,
+  no-bundler discipline.
+
+**honest scope (g3)**: this does not share data across tenants — each
+tenant's jobs/catalog stay fully isolated (Decision 6). "Switch" means
+*re-authenticate as a different tenant*, not *view another tenant's
+workspace*. The control is a convenience over manually logging out and
+back in; it asserts no cross-tenant capability.
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
