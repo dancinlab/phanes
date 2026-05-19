@@ -22,6 +22,7 @@
 import "stdlib/net/http_server.hexa"
 import "stdlib/net/http_request.hexa"
 import "stdlib/net/http_response.hexa"
+import "stdlib/aws/sigv4.hexa"
 
 // ── small helpers ────────────────────────────────────────────────
 
@@ -250,6 +251,41 @@ fn _now_epoch() {
     let r = exec_with_status("date +%s")
     if r[1] != 0 { return 0 }
     return to_int(r[0].trim())
+}
+
+// ── AWS request signing (Decision 15 — DynamoDB + S3 datastore) ──
+// Single signing seam over the stdlib SigV4 module (stdlib/aws/sigv4.hexa,
+// landed upstream 2026-05-19 from the phanes-aws-sigv4-signer inbox
+// patch — 9/9 AWS test-vector byte-eq verified). The .store/ → DynamoDB
+// migration's data-access calls route every request through here, so
+// the SigV4 details and the credential plumbing live in one place.
+// aws_dynamo_sign builds the Sigv4Request for a DynamoDB JSON-1.0 API
+// call and returns the signed Sigv4Result (Authorization + x-amz-date
+// + x-amz-content-sha256). Per @D g_stdlib_ownership phanes only points
+// to the upstream signer; it never carries its own copy.
+fn aws_dynamo_sign(region, target, body, access_key, secret_key, amz_date) {
+    let host = "dynamodb." + region + ".amazonaws.com"
+    let headers = [
+        Sigv4Header { name: "host",         value: host },
+        Sigv4Header { name: "content-type", value: "application/x-amz-json-1.0" },
+        Sigv4Header { name: "x-amz-date",   value: amz_date },
+        Sigv4Header { name: "x-amz-target", value: "DynamoDB_20120810." + target }
+    ]
+    let req = Sigv4Request {
+        method:        "POST",
+        host:          host,
+        region:        region,
+        service:       "dynamodb",
+        path:          "/",
+        query:         "",
+        headers:       headers,
+        payload:       body,
+        access_key:    access_key,
+        secret_key:    secret_key,
+        amz_date:      amz_date,
+        session_token: ""
+    }
+    return sigv4_sign(req)
 }
 
 // rate_limit_ok(key, max_hits, window_sec) — records this hit and
