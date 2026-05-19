@@ -719,6 +719,54 @@ choice only; it does not perform the migration.
 
 ---
 
+### Decision 16 — Repository visibility = (나) public + source-available
+
+**picked**: `(나)` — the `dancinlab/phanes` repository goes **public**,
+with the **proprietary / All-Rights-Reserved license retained**
+("source-available": the code is visible to all, but no rights are
+granted — it may not be taken and run as a competing service). This
+**supersedes Decision 4** (which set the repo private); **Decision 5**
+(proprietary license) is **unchanged**. User directive 2026-05-19:
+"정식을 팔자" — sell it honestly, in the open.
+
+**rationale**:
+- **phanes sells honesty — so its code should be auditable.** phanes'
+  whole identity is the g3 honest-scope contract: no over-claim, the
+  tenant verifier is the sole authority for objective-met, only
+  measured work is billed. A service that sells honesty while hiding
+  its code is in tension with itself. Public code makes
+  `@D g_honest_scope.scope_b` *verifiable by anyone* — the openness is
+  itself the trust proof and a sales asset.
+- **Consistent with the dancinlab ecosystem ethos.** hexa-lang, echoes,
+  and the demiurge sibling are public; phanes alone being private broke
+  that consistency. This is the "public 정신" the directive names.
+- **Source-available keeps Decision 5's commercial protection.**
+  Visible ≠ free-to-compete. The All-Rights-Reserved license means no
+  one may take the source and stand up a rival service. The moat was
+  never the HTTP wrapper code — it is (1) the upstream OUROBOROS
+  engine, (2) the hosted service + its ops, (3) the brand. Showing the
+  wrapper does not erode any of those. This is the proven model
+  (Sentry, GitLab core, PostHog).
+- **Full OSS (option 다) was not chosen** — it is philosophically purer
+  but surrenders commercial leverage prematurely; source-available is
+  the honest commercial middle ground, and a later move to a BSL-style
+  "converts to OSS after N years" license stays open.
+
+**precondition executed**: `web/refs/` — third-party design-reference
+snapshots (Palantir Titanium CSS bundles + screenshots, Quiver
+screenshot) — were **untracked** (`git rm --cached`) and added to
+`.gitignore`; the files stay on local disk only. A public repo must not
+redistribute other companies' copyrighted assets.
+
+**honest scope (g3)**: this decision and the `web/refs/` untrack land
+now; the actual GitHub visibility flip (`gh repo edit --visibility
+public`) is a separate, outward-facing step. NOTE: `web/refs/` still
+exists in git *history* (commit `d5a4515`); a fully clean public repo
+would want a history purge (`git filter-repo`) of that path before the
+flip — flagged as a pre-flip task, low practical risk but on record.
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
