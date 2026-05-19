@@ -7,11 +7,12 @@
 # `secret` is the user's unified credential CLI (~/.local/bin/secret);
 # `secret get <key>` writes the value to stdout with no trailing newline.
 #
-# Secret keys read here (set with `secret set <key>` before first run):
-#   aws/phanes/access_key_id      -> AWS_ACCESS_KEY_ID         (required)
-#   aws/phanes/secret_access_key  -> AWS_SECRET_ACCESS_KEY     (required)
-#   aws/phanes/region             -> AWS_REGION                (optional; default us-east-1)
-#   aws/phanes/session_token      -> AWS_SESSION_TOKEN         (optional; STS only)
+# Secret keys read here — dot-separated, matching the existing `secret`
+# store convention (`cloudflare.email`, `postmark.server_token`, ...):
+#   aws.phanes.access_key_id      -> AWS_ACCESS_KEY_ID         (required)
+#   aws.phanes.secret_access_key  -> AWS_SECRET_ACCESS_KEY     (required)
+#   aws.phanes.region             -> AWS_REGION                (optional; default us-east-1)
+#   aws.phanes.session_token      -> AWS_SESSION_TOKEN         (optional; STS only)
 #
 # Usage:  bash service/run-phanes.sh
 #         (PHANES_BIND_HOST / PHANES_BIND_PORT honored by phanes-http itself.)
@@ -45,11 +46,11 @@ _get_optional() {
 
 # AWS credentials — standard SDK env-var names so phanes-http stays
 # generic-AWS-conventional and is not coupled to the secret tool.
-AWS_ACCESS_KEY_ID="$(_get_required aws/phanes/access_key_id)"
-AWS_SECRET_ACCESS_KEY="$(_get_required aws/phanes/secret_access_key)"
-REGION="$(_get_optional aws/phanes/region)"
+AWS_ACCESS_KEY_ID="$(_get_required aws.phanes.access_key_id)"
+AWS_SECRET_ACCESS_KEY="$(_get_required aws.phanes.secret_access_key)"
+REGION="$(_get_optional aws.phanes.region)"
 AWS_REGION="${REGION:-us-east-1}"
-SESSION="$(_get_optional aws/phanes/session_token)"
+SESSION="$(_get_optional aws.phanes.session_token)"
 export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION
 [ -n "$SESSION" ] && export AWS_SESSION_TOKEN="$SESSION"
 

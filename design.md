@@ -795,11 +795,12 @@ not coupled to any specific secret tool.
   failure mode is explicit, not silent-with-empty-creds (which would
   produce confusing AWS InvalidSignatureException errors at first call).
 
-**secret key convention (`secret get <key>` → value):**
-- `aws/phanes/access_key_id`     → `AWS_ACCESS_KEY_ID`     (required)
-- `aws/phanes/secret_access_key` → `AWS_SECRET_ACCESS_KEY` (required)
-- `aws/phanes/region`            → `AWS_REGION`            (optional; default `us-east-1`)
-- `aws/phanes/session_token`     → `AWS_SESSION_TOKEN`     (optional; STS only)
+**secret key convention** — dot-separated, matching the existing
+`secret` store usage (`cloudflare.email`, `postmark.server_token`, ...):
+- `aws.phanes.access_key_id`     → `AWS_ACCESS_KEY_ID`     (required)
+- `aws.phanes.secret_access_key` → `AWS_SECRET_ACCESS_KEY` (required)
+- `aws.phanes.region`            → `AWS_REGION`            (optional; default `us-east-1`)
+- `aws.phanes.session_token`     → `AWS_SESSION_TOKEN`     (optional; STS only)
 
 **deployment wiring**: the systemd unit `service/phanes-http.service`
 (Decision 11 EC2 host) sets `ExecStart=/home/ubuntu/phanes/service/run-phanes.sh`

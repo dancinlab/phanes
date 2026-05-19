@@ -314,7 +314,7 @@ fn dynamo_request(target, body) {
     result["body"]   = ""
     result["error"]  = ""
     if len(ak) == 0 || len(sk) == 0 {
-        result["error"] = "AWS credentials missing — `secret set aws/phanes/access_key_id <v>` + secret_access_key, relaunch via service/run-phanes.sh"
+        result["error"] = "AWS credentials missing — `secret set aws.phanes.access_key_id <v>` + secret_access_key, relaunch via service/run-phanes.sh"
         return result
     }
     let now_r = exec_with_status("date -u +%Y%m%dT%H%M%SZ")
