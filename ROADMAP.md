@@ -6,11 +6,18 @@
 > big-bang. g3: every status honest, measured (instrument-first for any
 > cost-bearing fleet run).
 
-Locked design (from `design.md`): scope **B** generic autonomous-cycle
-platform · brand **Phanes** · `dancinlab/phanes` private · deployment
-**가+다** (public demo funnel + dashboard, **API = shared substrate**) ·
-multi-tenant **다 hybrid** ($HOME-jail now + upstream `HX_DATA_DIR`) ·
-license **proprietary**.
+Locked design (from `design.md`, Decisions 1–16): scope **B** generic
+autonomous-cycle platform · brand **Phanes** · `dancinlab/phanes`
+**public + source-available** (Decision 16) · deployment **가+다**
+(public demo funnel + dashboard, **API = shared substrate**) ·
+multi-tenant **다 hybrid** (`HX_DATA_DIR` per-tenant boundary +
+`$HOME`-jail defense-in-depth) · license **proprietary**.
+
+Deployment design (Decisions 11–15): host **AWS EC2** single Linux box ·
+pricing **tier + metered** (billed per OUROBOROS round, via **Stripe**) ·
+datastore **DynamoDB + S3** (replaces the filesystem `.store/`) ·
+deploy method **repo-committed `service/deploy.sh`** (rsync → build →
+health-check → rollback; systemd unit `service/phanes-http.service`).
 
 ---
 
