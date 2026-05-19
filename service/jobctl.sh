@@ -102,6 +102,20 @@ case "$CMD" in
 {"phanes_job":1,"status":"queued"}
 EOF
     mv -f "$JOBDIR/job.json.tmp" "$JOBDIR/job.json"
+    # B3: also write the full job spec to R2 so a queue worker (which
+    # only receives the {tenant,job_id} pointer, Decision 23) can fetch
+    # seed/rounds. Key: tenants/<tenant>/jobs/<JID>/job.json. Best-effort
+    # + gated by _r2_on — a failed/disabled R2 write never blocks submit
+    # (the local detached spawn below is the path until the worker tier
+    # is the sole consumer). seed is JSON-escaped via python3 (already a
+    # phanes-substrate dependency, see concurrency_test.sh).
+    if _r2_on; then
+      SPEC=$(SEED="$SEED" ROUNDS="$ROUNDS" TENANT="$TENANT" python3 -c '
+import json,os
+print(json.dumps({"phanes_job":1,"status":"queued","tenant":os.environ["TENANT"],
+  "seed":os.environ["SEED"],"rounds":int(os.environ["ROUNDS"])}))')
+      printf '%s' "$SPEC" | _r2op put "tenants/$TENANT/jobs/$JID/job.json" >/dev/null 2>&1 || true
+    fi
     # Detached engine spawn — submit returns once jobctl's bookkeeping
     # is durable on disk; the kick runs in an OS-level child process.
     # `${arr[@]+"${arr[@]}"}` — expand to the elements, or to nothing if
