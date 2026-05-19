@@ -513,6 +513,56 @@ job-store write path on the unauthenticated surface.
 
 ---
 
+### Decision 11 — Hosting / deployment target = AWS EC2 (single Linux host, v1)
+
+**picked**: `AWS EC2` — a single Linux host (control + compute
+co-located) for v1, sized at `t4g.small` (2 vCPU Graviton arm64, 2 GiB).
+Cloudflare is optional as a front-proxy only (DNS · free TLS · CDN ·
+DDoS); Cloudflare Containers is recorded as a future option, NOT v1.
+The `PHANES_ENGINE_HOST` abstraction is retained so a later multi-host
+AWS fleet — or a migration to CF Containers — is a config change.
+
+**rationale**:
+- **Zero re-architecture — phanes runs as-built.** EC2 is an always-on
+  Linux VM with a persistent EBS disk: the filesystem `.store/` job
+  store (sessions, tenants, `job.json`, overlays) survives, and the
+  async-submit model (a `nohup`-ed kick running in the background)
+  completes because the host stays up. Cloudflare Containers reached GA
+  (2026-04) and *can* run the native hexa binary — but its ephemeral
+  disk (resets on sleep) and no-uptime-guarantee (host restarts,
+  SIGTERM→15min→SIGKILL) would break both the job store and in-flight
+  jobs without first re-architecting onto an R2-durable store with
+  restart-resumable jobs. That is a separate project; EC2 needs none of
+  it.
+- **Cost: 24/7 EC2 is at or below the alternatives, and decisively so
+  reserved.** Measured (2026-05): `t4g.small` 24/7 ≈ $14/mo on-demand,
+  ≈ $9/mo on a 1-year Savings Plan (+ ~$1.6 EBS). CF Containers at the
+  comparable 1 GiB always-on tier ≈ $14–18/mo and rises with memory —
+  because memory and disk are billed on *provisioned* capacity around
+  the clock, CF's "pay only for active CPU" advantage evaporates for a
+  24/7 always-on SaaS. EC2 also avoids the mandatory $5/mo Workers Paid
+  floor that CF Containers requires.
+- **Satisfies the hexa-lang Axis-D constraint.** Production must not run
+  Mac-native `hexa kick`; an EC2 Linux host runs the promoted Linux
+  kick binary directly — the compute plane is finally on a compliant
+  host (closes P2.5 fleet-routing's blocking sub-issue).
+- **Non-foreclosing.** v1 is one box because phanes has zero paying
+  users — a fleet or edge-scale deployment is premature optimization
+  against unmeasured demand (g3). When load is *measured*, the retained
+  `PHANES_ENGINE_HOST` split grows the compute plane into an AWS
+  Auto-Scaling fleet, or — after the durable-store rewrite — onto CF
+  Containers, with no control-plane rewrite.
+
+**honest scope (g3)**: this decision picks the host; it does not by
+itself deploy phanes. Provisioning the EC2 instance, the Linux kick
+binary build/deploy, TLS, and the `PHANES_ENGINE_HOST` wiring remain
+execution work (ROADMAP A1/A2). "CF Containers can't run phanes" — an
+earlier claim — was corrected: Workers can't, but Containers (GA
+2026-04) can; the real reason for EC2 is fit + cost + zero-rework, not
+impossibility.
+
+---
+
 ## All product gates closed (2026-05-19)
 
 Decisions 1–6 + B-surface upstream handoff resolved. Remaining work is
