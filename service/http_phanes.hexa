@@ -1165,6 +1165,7 @@ fn render_site_footer(lang) {
     f = f + "<a href=\"/anima?lang=" + lang + "\">Anima</a></div>"
     // source
     f = f + "<div class=\"foot-col\"><h4>source</h4>"
+    f = f + "<a href=\"https://github.com/dancinlab/phanes\" target=\"_blank\" rel=\"noopener\">GitHub · phanes</a>"
     f = f + "<a href=\"https://github.com/dancinlab/demiurge\" target=\"_blank\" rel=\"noopener\">GitHub · demiurge</a>"
     f = f + "<a href=\"https://github.com/dancinlab/hexa-lang\" target=\"_blank\" rel=\"noopener\">GitHub · hexa-lang</a>"
     f = f + "<a href=\"https://github.com/dancinlab/anima\" target=\"_blank\" rel=\"noopener\">GitHub · anima</a></div>"
