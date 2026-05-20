@@ -35,44 +35,39 @@
 
 # ─── §3 Governance rules ─────────────────────────────────────────────
 
-@D g_downstream := "downstream-of-hexa-lang" :: governance [required]
-  rule = "phanes consumes hexa-lang's `hexa kick` engine. No fork of the engine here; gaps go upstream via inbox/patches."
-  authority = "hexa-lang AGENTS.tape @I id002 · @D g7 · [@x_hexa_agents]"
+@D g_downstream := "downstream of hexa-lang" :: governance [required]
+  do   = "`hexa kick` engine 소비 · 한계 발견 시 ~/core/hexa-lang/inbox/patches/<name>.md (one concept = one file)"
+  dont = "engine fork · downstream inline workaround"
   @> AGENTS.md
 
-@D g_honest_scope := "honest-scope — no over-claim" :: governance [required deny:write]
-  rule = "phanes markets what `hexa kick` actually produces: verified, atlas-bound mathematical/algorithmic DISCOVERIES with a per-round honesty (falsification) audit trail. NOT 'autonomously completes your software project'."
-  why = "the OUROBOROS honesty gate is advisory (non-blocking); saturation is the only hard stop. Selling AGI-completion = over-claim. hexa-lang g3 real-limits-first applies downstream."
-  scope_b = "Under Decision 1 = B (generic cycle platform): the tenant-supplied verifier/oracle is the SOLE authority for 'objective met'. phanes surfaces saturation + the tenant verifier's verdict; it never substitutes the engine's advisory honesty gate for the tenant verifier's PASS, nor claims objective-met without it."
-  authority = "hexa-lang LATTICE_POLICY.md · [@x_lattice_policy]"
+@D g_honest_scope := "honest-scope" :: governance [required deny:write]
+  do   = "marketing = atlas-bound discovery + falsification audit · tenant verifier = objective authority"
+  dont = "AGI-completion · engine honesty 로 tenant verifier 대체 · saturation 단독 objective-met"
   @> AGENTS.md
 
-@D g_public_demo_constraint := "public demo = preset verifiers only" :: governance [required deny:write d=2026-05-19 active]
-  rule = "The public demo site (Decision 3 = 가) runs ONLY preset, curated objective+verifier scenarios — round-capped and sandboxed. It MUST NOT accept arbitrary tenant-supplied verifiers or unbounded seeds."
-  why = "Under scope B an arbitrary verifier on an unauthenticated surface = over-claim risk + arbitrary-compute/abuse hole. Arbitrary verifier submission is authenticated/paid-only via the dashboard (Decision 3 = 다)."
-  authority = "design.md Decision 3 · g_honest_scope.scope_b · hexa-lang g3 [@x_lattice_policy]"
+@D g_public_demo_constraint := "public demo preset only" :: governance [required d=2026-05-19]
+  do   = "public 데모 = preset scenario · round-cap · sandbox"
+  dont = "unauth 에 tenant verifier · unbounded seed (arbitrary = dashboard 인증 만)"
   @> AGENTS.md
 
-@D g_name_risk := "brand-token trademark risk acknowledged" :: governance [required d=2026-05-19 active]
-  rule = "The token 'Phanes' has adjacent collisions — Phanes Technologies (autonomous multi-agent AI) + Phanes Therapeutics (USPTO-registered TMs, Reg. 5,577,009) + phanes.app (live 'Economic Operating System for AI Agents' SaaS — a DIRECT same-word same-sector collision, surfaced 2026-05-19 by the docs/TRADEMARK.md pre-screen). User chose Phanes with this on record (2026-05-19)."
-  remedy = "Treat Phanes as project narrative/lore; before any public launch run a formal USPTO class-9/class-42 clearance via a registered trademark attorney and reconsider the public-facing mark. The formal step is fully specified in docs/TRADEMARK.md §'Formal Clearance — Specification' (FC-1…FC-6) — it is closed-as-specified: a defined external legal engagement gated to public launch (FC-1), no longer an open in-repo task. FC-5 (counsel clearance opinion) is the only artifact that discharges this gate."
-  alternatives = "Manteia (user also favors, 2026-05-19) is ALSO collided — Manteia Technologies Co Ltd, active AI/software startup, registered TMs in the computer/software class; NOT a clean fallback. Per docs/TRADEMARK.md open-web pre-screen (2026-05-19): Ouro/Kythera/Haechi ALL collided (active software/AI companies on the bare word); Bythos is the only brainstorm name with no obvious software-space hit (uncertain-but-lower-risk). Mimir is NOT clean — documented prior commercial software use (Mimir Classroom, acquired by HackerRank 2019) — downgraded from the earlier 'web-verified clean' list. Orrery remains the single cleanest web result (minor unofficial hobby-brand use only). g3: open-web pre-screen != USPTO TESS search != legal clearance."
-  evidence = "docs/TRADEMARK.md — informal open-web pre-screen, per-name confidence levels, not legal advice (filed 2026-05-19)."
-  authority = "user directive 2026-05-19 '파네스 go' (override of assistant ownability caveat, logged in design.md Decision 2)"
+@D g_name_risk := "Phanes TM risk" :: governance [required d=2026-05-19]
+  do   = "Phanes = project lore · pre-launch USPTO clearance (TRADEMARK.md FC-1~6)"
+  dont = "public launch w/o FC-5 opinion · Manteia/Mimir/Ouro/Kythera/Haechi 를 clean 가정"
   @> AGENTS.md
 
-@D g_inbox_patches := "gaps go upstream via inbox/patches" :: governance [required]
-  rule = "Any hexa-lang / hexa-kick limitation phanes hits is filed at ~/core/hexa-lang/inbox/patches/<descriptive>.md (one concept per file), never worked around downstream."
-  authority = "hexa-lang @D g7 inbox-patches-pipeline"
+@D g_inbox_patches := "gaps → inbox/patches" :: governance [required]
+  do   = "hexa-lang/hexa-kick 한계 → ~/core/hexa-lang/inbox/patches/<descriptive>.md"
+  dont = "downstream 우회 · 즉석 patch · 한 file 에 multi-concept"
   @> AGENTS.md
 
 @D g_decision_gate := "step-by-step decision gate" :: governance [required]
-  rule = "Product is built one decision at a time, never batched. Each lands in design.md as `### Decision N — <picked>` with picked + 3+ rationale bullets before the next is opened."
-  status = "GATES CLOSED + EXECUTION P0..P3.thin DONE measured (2026-05-19): Decisions 1-8 + B-surface CLOSED. Same day: (a) upstream inbox 3/3 RESOLVED SSOT (HX_DATA_DIR · pluggable-verifier-oracle · socket_set_nonblock+socket_select) all awaiting binary promote; (b) sister brand LOCKED as Demiurge/데미우르지 in hexa-arch D23/D24/D25 — Phanes↔Demiurge cosmogony; (c) Decision 8 = (다) HTMX + server-rendered HTML; (d) P3.thin = 3 dashboard routes (GET /dashboard · POST /dashboard/jobs · GET /dashboard/jobs/<id>) smoke 5/5 PASS incl. HTMX auto-stop polling on done/failed. P2.x async-submit: baseline_submit 162ms (vs 1530 pre-pivot), 4-job end-to-end 2360ms (vs 6795 pre-pivot, ~2.9× throughput), engine PARTIAL parallel 1.7/10. P2.3 HX_DATA_DIR pending binary promote · P2.5 fleet routing deferred. NEXT options: P3.x polish (self-host HTMX · HttpOnly cookie auth · multi-tenant switcher) · P4 public preset-only demo · pre-launch gates (trademark clearance · binary-promote adoption · honest-scope marketing review)."
+  do   = "design.md 에 `### Decision N — <picked>` + 3+ rationale bullet 완료 후 다음 decision open"
+  dont = "결정 batch · rationale <3 bullet · 다음 decision pre-open"
   @> AGENTS.md
 
 @D g_commit_trailer := "commit-trailer co-author" :: governance [recommended]
-  rule = "AI-assisted commits include: Co-Authored-By: <model> <noreply@anthropic.com>"
+  do   = "AI 보조 commit 에 `Co-Authored-By: <model> <noreply@anthropic.com>` trailer 포함"
+  dont = "AI 작업 commit 의 trailer 누락"
   @> AGENTS.md
 
 # ─── §5 External citations ───────────────────────────────────────────
