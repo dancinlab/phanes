@@ -8,8 +8,7 @@
 > trademark attorney via a full USPTO class-9 / class-42 (and common-law /
 > state / international) search before any public launch or marketing spend.
 >
-> Cross-references project governance rule **`@D g_name_risk`** in
-> `AGENTS.tape` and the `## Naming (on record)` section of `README.md`.
+> Cross-references the `## Naming (on record)` section of `README.md`.
 
 ---
 
@@ -127,10 +126,10 @@ single best web-screen result, and even it carries minor common-law hobby use.
    - Only counsel can issue a clearance opinion. Nothing in this document is
      a clearance.
 
-6. **Update `@D g_name_risk`** in `AGENTS.tape` to (a) add the phanes.app
-   same-sector collision, and (b) move "Mimir" out of the web-verified-clean
-   list into "caution / collided history." This document is the evidence
-   basis for that governance edit. *(Done — committed 04e4a31.)*
+6. **Governance update** to (a) add the phanes.app same-sector collision,
+   and (b) move "Mimir" out of the web-verified-clean list into "caution /
+   collided history." This document is the evidence basis. *(Done —
+   committed 04e4a31.)*
 
 ---
 
@@ -192,7 +191,7 @@ only as the launch-gate `@D g_name_risk` references this spec.
 
 ---
 
-*Cross-reference: `AGENTS.tape` `@D g_name_risk`, `README.md` §"Naming (on record)".*
+*Cross-reference: `README.md` §"Naming (on record)".*
 
 ## Sources
 

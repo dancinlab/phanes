@@ -41,7 +41,6 @@ hexa kick (OUROBOROS goal→falsifier→saturation · hexa-lang upstream · cycl
 ## cross-link
 
 - `design.md` — 결정 게이트 로그 SSOT (Decision 1=B · 2=Phanes · 4→16 dancinlab/phanes public + source-available · 11-15 배포: EC2 · 티어+종량 · Stripe · deploy.sh · DynamoDB — 모두 DECIDED)
-- `AGENTS.tape` — 정체성 + 거버넌스 (downstream · honest-scope+scope_b · name-risk)
 - hexa-lang `compiler/drill/drill.hexa` · `compiler/PLAN.md` §"hexa kick COMPLETE — cycle h36" — 업스트림 엔진 SSOT
 - hexa-lang `gate/hexa_url_modules.ai.md` — 기존 `hexa://kick?topic=` 원격 디스패치 (proto-SaaS 표면)
 

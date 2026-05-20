@@ -23,7 +23,7 @@ health-check → rollback; systemd unit `service/phanes-http.service`).
 
 ## P0 — Foundations · DONE (2026-05-19)
 
-Repo, governance (AGENTS.tape), GOAL/design/README/LICENSE, decision
+Repo, governance, GOAL/design/README/LICENSE, decision
 gates 1–6, two upstream handoffs filed to hexa-lang `inbox/patches/`.
 
 ## P1 — Job API substrate (the (나) layer everything sits on) · P1a + P1b DONE (measured 2026-05-19)

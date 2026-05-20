@@ -49,8 +49,7 @@ Adjacent trademark collisions — **Phanes Technologies** (autonomous
 multi-agent AI, same lane) + **Phanes Therapeutics** (USPTO-registered
 TMs, pharma). Mitigation: treat Phanes as project narrative/lore; run
 formal USPTO class-42 clearance before any public launch or remote/org
-push; reconsider public-facing mark then. (Governance:
-`AGENTS.tape @D g_name_risk`.)
+push; reconsider public-facing mark then.
 
 **alternatives on record (user request 2026-05-19 — does NOT change
 picked=Phanes)**:
@@ -80,8 +79,7 @@ picked=Phanes)**:
 - **Private, not public launch.** The `@D g_name_risk` clearance
   obligation is scoped to *public launch*; a private repo defers (does not
   void) it. Trademark clearance stays tracked, owed before going public.
-- **dancinlab org = upstream-consistent.** Matches hexa-lang AGENTS.tape
-  citations (`github.com/dancinlab/...`) and the shipped sibling
+- **dancinlab org = upstream-consistent.** Matches the shipped sibling
   `dancinlab/echoes-experience` deployment pattern.
 - Auth: `gh` account `dancinlife`, scopes incl. `repo` — create+push
   succeeded; no LICENSE committed yet (Decision 5, commercial — not
