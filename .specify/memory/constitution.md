@@ -1,50 +1,48 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# phanes Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. hexa-lang Pointer (NON-NEGOTIABLE)
+phanes consumes `hexa kick` (OUROBOROS: goal → falsifier → saturation) and the hexa-lang stdlib via direct import. It does NOT fork the engine, the stdlib, the atlas, or any toolchain primitive. Engine and platform gaps — including pluggable verifier surface, `HX_DATA_DIR`, and any stdlib gap — file upstream via `~/core/hexa-lang/inbox/patches/`. hexa-lang's constitution governs stdlib / atlas / grammar / lattice; phanes adheres to it on those subjects.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Tenant Verifier Is Sole Authority — No Over-Claim
+The tenant-supplied verifier/oracle is the sole authority for "objective met". phanes surfaces saturation status and the verifier's verdict; it NEVER claims objective-met without the tenant verifier's PASS. The OUROBOROS honesty gate is advisory. The only hard stop is saturation / round-cap. Undelivered is recorded as undelivered.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Step-by-Step Decision Gate (NON-NEGOTIABLE)
+Multi-decision work is one user-confirmation gate per decision, never batched. Each decision lands in `design.md` as `### Decision N — <picked>` with explicit **picked** value and 3+ rationale bullets before the next decision opens. `design.md` is the SSOT for product decisions.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Tenant Isolation by Construction
+Multi-tenant safety is structural, not procedural. Per-job overlay, `$HOME`-jail isolation, no cross-tenant data egress, `HEXA_VAL_ARENA=0` for compute-plane runs. Erosion of isolation for performance, ergonomics, or operational convenience is rejected at review.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Honest Caveat in Surface
+The product surface (UI, API responses, dashboards) reflects Principle II verbatim: saturation ≠ objective met; honesty gate = advisory; tenant verifier = sole authority. Marketing language that elides this distinction is a Principle V violation.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Repository Layout
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+```
+phanes/
+├── src/           # worker entrypoint (Cloudflare Workers)
+├── service/       # control & compute plane (HTTP service, job runner, deploy)
+├── web/           # static frontend (public funnel + dashboard)
+├── docs/          # product / platform docs
+├── design.md      # decision log (SSOT for product decisions)
+├── GOAL.md        # canonical one-sentence goal
+├── PLAN.md        # current implementation plan
+├── ROADMAP.md     # forward-looking milestones
+└── .specify/      # Spec Kit pipeline artifacts (this constitution lives here)
+```
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+1. **Decision first.** Every product or platform direction lands in `design.md` as a Decision entry before code moves. One decision per user-confirmation gate (Principle III).
+2. **Spec next.** Feature work flows through Spec Kit: `/speckit-specify → /speckit-plan → /speckit-tasks → /speckit-implement`.
+3. **Upstream gaps, not local hacks.** When the engine or stdlib lacks a capability, the patch is filed at `~/core/hexa-lang/inbox/patches/<name>.md`. Local workarounds in phanes are blocked when an upstream fix is feasible.
+4. **Verifier-first features.** Any feature that touches "objective met" semantics is gated on tenant verifier wiring; UI/API copy is reviewed against Principle II before merge.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution governs phanes-local concerns (product surface, tenant isolation, decision discipline, honest reporting). On stdlib / atlas / grammar / lattice subjects, the `hexa-lang` constitution wins.
+- Amendments land via a PR that updates this file, adds a `design.md` decision entry, and bumps semver: MAJOR = principle removal/redefinition · MINOR = new principle/section · PATCH = wording.
+- Complexity must be justified in the corresponding `design.md` entry. Default = simpler.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-05-21 | **Last Amended**: 2026-05-21
