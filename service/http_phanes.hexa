@@ -1207,10 +1207,21 @@ fn render_product_overview_page(lang, cfg) {
     let mut h = "<!doctype html>\n<html lang=\"" + lang + "\"><head>"
     h = h + "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
     h = h + "<title>" + mark + "</title>"
-    h = h + "<style>" + _shared_css() + _sections_css() + "</style></head><body>"
+    // hero-img: same shape as cosmogony landing — CF Static Assets serves
+    // /<slug>.webp from web/static/. Opt-in: only emitted when cfg sets
+    // hero_image_slug, so demiurge/hexa-lang/anima pages don't break.
+    h = h + "<style>" + _shared_css() + _sections_css()
+    h = h + ".hero-img{display:block;width:100%;max-width:880px;margin:0 auto var(--sp-6);aspect-ratio:1672/941;object-fit:cover;border:1px solid var(--line);background:#11151e}"
+    h = h + "</style></head><body>"
     h = h + render_nav(slug, lang, "/" + slug)
     // ── section 1 — hero (eyebrow tag + mark + phonetic + sub + stats) ──
     h = h + "<section class=\"hero\">"
+    let img_slug = cfg["hero_image_slug"]
+    if img_slug != nil && len(img_slug) > 0 {
+        h = h + "<picture><source srcset=\"/" + img_slug + ".webp\" type=\"image/webp\">"
+        h = h + "<img class=\"hero-img\" src=\"/" + img_slug + ".png\" alt=\"" + mark + "\" loading=\"eager\" decoding=\"async\">"
+        h = h + "</picture>"
+    }
     h = h + "<div class=\"tag\">" + cfg["hero_tag"] + "</div>"
     h = h + "<h1 class=\"mark\">" + mark + "</h1>"
     if len(cfg["phonetic"]) > 0 { h = h + "<div class=\"ph\">" + cfg["phonetic"] + "</div>" }
@@ -1299,10 +1310,17 @@ fn render_cosmogony_landing(lang) {
     h = h + ".dc-tag{margin-top:var(--sp-4);font-size:var(--fs-label);letter-spacing:var(--ls-xx);text-transform:uppercase;opacity:0.6;line-height:1.8}"
     h = h + ".dc-cta{margin-top:var(--sp-4);font-size:var(--fs-200);font-weight:var(--fw-semibold);letter-spacing:var(--ls-label);text-transform:uppercase;opacity:0.85}"
     h = h + "@media (max-width:760px){.dir{grid-template-columns:1fr}}"
+    // hero-img: cosmogony backdrop served by CF Static Assets at /index.webp
+    // (web/static/index.webp). PNG fallback for very old browsers; aspect-ratio
+    // reserves layout so it doesn't shift after load.
+    h = h + ".hero-img{display:block;width:100%;max-width:880px;margin:0 auto var(--sp-6);aspect-ratio:1672/941;object-fit:cover;border:1px solid var(--line);background:#11151e}"
     h = h + "</style></head><body>"
     h = h + render_nav("cosmogony", lang, "/")
     // section 1 — hero (tag + mark + sub + stat strip)
     h = h + "<section class=\"hero\">"
+    h = h + "<picture><source srcset=\"/index.webp\" type=\"image/webp\">"
+    h = h + "<img class=\"hero-img\" src=\"/index.png\" alt=\"dancinlab — one continuous cosmology\" loading=\"eager\" decoding=\"async\">"
+    h = h + "</picture>"
     h = h + "<div class=\"tag\">" + _tr(lang, "Software · One Continuous Cosmology", "소프트웨어 · 하나의 연속된 코스몰로지", "ソフトウェア · ひとつの連続したコスモロジー", "软件 · 一个连续的宇宙观", "Программное обеспечение · одна непрерывная космология") + "</div>"
     h = h + "<h1 class=\"mark\">dancinlab</h1>"
     h = h + "<div class=\"sub\">" + _tr(lang, "one continuous cosmology of software", "하나의 연속된 소프트웨어 코스몰로지", "ひとつの連続したソフトウェアのコスモロジー", "一个连续的软件宇宙观", "одна непрерывная космология программного обеспечения") + " · " + _t("phanes_role", lang) + " · " + _t("demiurge_role", lang) + " · " + _tr(lang, "substrate · consciousness", "기반 · 의식", "基盤 · 意識", "底层 · 意识", "субстрат · сознание") + "</div>"
@@ -1674,6 +1692,7 @@ fn render_phanes_page(lang) {
     c["slug"] = "phanes"
     c["mark"] = "PHANES"
     c["phonetic"] = _t("phanes_phonetic", lang)
+    c["hero_image_slug"] = "phanes"
     c["hero_tag"] = _tr(lang, "Autonomous Discovery · SaaS", "자율 발견 · SaaS", "自律発見 · SaaS", "自主发现 · SaaS", "Автономное открытие · SaaS")
     c["hero_sub"] = _tr(lang, "Enterprise-grade autonomous discovery — for any measurable objective", "엔터프라이즈급 자율 발견 — 측정 가능한 어떤 목표에도", "エンタープライズグレードの自律発見 — 計測可能なあらゆる目標に", "企业级自主发现 — 面向任何可衡量目标", "Корпоративное автономное открытие — для любой измеримой цели")
     c["s1v"] = "6"
@@ -1727,6 +1746,7 @@ fn render_demiurge_page(lang) {
     c["slug"] = "demiurge"
     c["mark"] = "DEMIURGE"
     c["phonetic"] = _t("demiurge_phonetic", lang)
+    c["hero_image_slug"] = "demiurge"
     c["hero_tag"] = _tr(lang, "Technical-Design · Meta-Conductor", "기술 설계 · 메타 컨덕터", "技術設計 · メタコンダクター", "技术设计 · 元指挥", "Техническое проектирование · мета-дирижёр")
     c["hero_sub"] = _tr(lang, "The universal meta-conductor for rigorous technical design", "엄밀한 기술 설계를 위한 범용 메타 컨덕터", "厳密な技術設計のための汎用メタコンダクター", "用于严谨技术设计的通用元指挥", "Универсальный мета-дирижёр для строгого технического проектирования")
     c["s1v"] = "7"
@@ -1833,6 +1853,7 @@ fn render_anima_page(lang) {
     c["slug"] = "anima"
     c["mark"] = "ANIMA"
     c["phonetic"] = ""
+    c["hero_image_slug"] = "anima"
     c["hero_tag"] = _tr(lang, "Consciousness · Language Model", "의식 · 언어 모델", "意識 · 言語モデル", "意识 · 语言模型", "Сознание · языковая модель")
     c["hero_sub"] = _tr(lang, "A consciousness language model — phi-scaled, law-bound", "의식 언어 모델 — phi 로 스케일, 법칙에 묶임", "意識言語モデル — phi スケール、法則に束縛", "意识语言模型 — phi 缩放、受法则约束", "Языковая модель сознания — phi-масштабированная, связанная законами")
     c["s1v"] = "14"

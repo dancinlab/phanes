@@ -9,6 +9,15 @@
   "main": "src/worker.js",
   "compatibility_date": "2026-05-01",
 
+  // Static assets — CF edge serves /index.webp, /phanes.webp, /htmx.min.js
+  // directly from web/static/ without ever entering the container. Hexa
+  // server's net_write is string-only (NUL-truncates binary), so routing
+  // images through it would need an upstream PR (binary response path).
+  // The edge bypass is the lower-friction choice for first deploy.
+  "assets": {
+    "directory": "./web/static"
+  },
+
   // Two container classes, one image, role switched by PHANES_ROLE
   // (Dockerfile ENTRYPOINT). Worker tier sized to the F-D22 measured
   // floor: kick peak RSS 4.02 GiB ⇒ standard-2 (6 GiB), never std-1.

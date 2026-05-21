@@ -35,10 +35,17 @@
     .lab { color:var(--muted); font-size:12px; margin:14px 0 4px;
            text-transform:uppercase; letter-spacing:0.04em; }
     .caveat { color:var(--muted); font-size:12px; margin-top:14px; }
+    .hero { display:block; width:100%; aspect-ratio:1672/941;
+            border:1px solid var(--line); border-radius:6px;
+            margin:0 0 24px; object-fit:cover; background:#11151e; }
   </style>
 </head>
 <body>
 <div class="wrap">
+  <picture>
+    <source srcset="/static/index.webp" type="image/webp">
+    <img class="hero" src="/static/index.png" alt="phanes — seed under storm">
+  </picture>
   <h1>🥚 phanes · 파네스</h1>
   <p class="sub">seed → OUROBOROS <code>goal → falsifier → saturation</code>
     → verified discovery catalog · <strong>developer API console</strong></p>
