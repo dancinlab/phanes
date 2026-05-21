@@ -1062,7 +1062,7 @@ fn _shared_css() {
 fn _sections_css() {
     let mut c = ""
     // hero — full-bleed typographic, no third-party imagery
-    c = c + ".hero{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:var(--nav-h) 36px var(--sp-7);text-align:center;position:relative}"
+    c = c + ".hero{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(var(--nav-h) + var(--sp-5)) 36px var(--sp-7);text-align:center;position:relative}"
     c = c + ".hero .mark{font-size:var(--fs-hero);font-weight:200;letter-spacing:var(--ls-tight);line-height:var(--lh-tight)}"
     c = c + ".hero .ph{margin-top:18px;font-size:clamp(14px,2.2vw,22px);opacity:0.5;letter-spacing:var(--ls-x);font-weight:var(--fw-regular)}"
     c = c + ".hero .sub{margin-top:40px;font-size:var(--fs-label);letter-spacing:var(--ls-xxxx);text-transform:uppercase;opacity:0.6;max-width:720px;line-height:2}"
@@ -1211,17 +1211,14 @@ fn render_product_overview_page(lang, cfg) {
     // /<slug>.webp from web/static/. Opt-in: only emitted when cfg sets
     // hero_image_slug, so demiurge/hexa-lang/anima pages don't break.
     h = h + "<style>" + _shared_css() + _sections_css()
-    h = h + ".hero-img{display:block;width:100%;max-width:880px;margin:0 auto var(--sp-6);aspect-ratio:1672/941;object-fit:cover;border:1px solid var(--line);background:#11151e}"
+    h = h + ".hero-text{display:flex;flex-direction:column;align-items:center;gap:var(--sp-4)}"
+    h = h + ".hero-text .stats{margin-top:var(--sp-3)}"
+    h = h + ".hero-img{display:block;width:100%;max-width:2200px;margin:var(--sp-7) auto var(--sp-6);aspect-ratio:1672/941;object-fit:cover;background:#11151e}"
     h = h + "</style></head><body>"
     h = h + render_nav(slug, lang, "/" + slug)
-    // ── section 1 — hero (eyebrow tag + mark + phonetic + sub + stats) ──
+    // ── section 1 — hero (text group on top, image group below, generous gap) ──
     h = h + "<section class=\"hero\">"
-    let img_slug = cfg["hero_image_slug"]
-    if img_slug != nil && len(img_slug) > 0 {
-        h = h + "<picture><source srcset=\"/" + img_slug + ".webp\" type=\"image/webp\">"
-        h = h + "<img class=\"hero-img\" src=\"/" + img_slug + ".png\" alt=\"" + mark + "\" loading=\"eager\" decoding=\"async\">"
-        h = h + "</picture>"
-    }
+    h = h + "<div class=\"hero-text\">"
     h = h + "<div class=\"tag\">" + cfg["hero_tag"] + "</div>"
     h = h + "<h1 class=\"mark\">" + mark + "</h1>"
     if len(cfg["phonetic"]) > 0 { h = h + "<div class=\"ph\">" + cfg["phonetic"] + "</div>" }
@@ -1231,6 +1228,13 @@ fn render_product_overview_page(lang, cfg) {
     h = h + render_hero_stat(cfg["s2v"], cfg["s2l"])
     h = h + render_hero_stat(cfg["s3v"], cfg["s3l"])
     h = h + "</div>"
+    h = h + "</div>"
+    let img_slug = cfg["hero_image_slug"]
+    if img_slug != nil && len(img_slug) > 0 {
+        h = h + "<picture><source srcset=\"/" + img_slug + ".webp\" type=\"image/webp\">"
+        h = h + "<img class=\"hero-img\" src=\"/" + img_slug + ".png\" alt=\"" + mark + "\" loading=\"eager\" decoding=\"async\">"
+        h = h + "</picture>"
+    }
     h = h + "<div class=\"cue\">" + _tr(lang, "↓ scroll", "↓ 스크롤", "↓ スクロール", "↓ 滚动", "↓ прокрутить") + "</div>"
     h = h + "</section>"
     // ── section 2 — overview (lead + supporting paragraph) ──
@@ -1313,14 +1317,14 @@ fn render_cosmogony_landing(lang) {
     // hero-img: cosmogony backdrop served by CF Static Assets at /index.webp
     // (web/static/index.webp). PNG fallback for very old browsers; aspect-ratio
     // reserves layout so it doesn't shift after load.
-    h = h + ".hero-img{display:block;width:100%;max-width:880px;margin:0 auto var(--sp-6);aspect-ratio:1672/941;object-fit:cover;border:1px solid var(--line);background:#11151e}"
+    h = h + ".hero-text{display:flex;flex-direction:column;align-items:center;gap:var(--sp-4)}"
+    h = h + ".hero-text .stats{margin-top:var(--sp-3)}"
+    h = h + ".hero-img{display:block;width:100%;max-width:2200px;margin:var(--sp-7) auto var(--sp-6);aspect-ratio:1672/941;object-fit:cover;background:#11151e}"
     h = h + "</style></head><body>"
     h = h + render_nav("cosmogony", lang, "/")
-    // section 1 — hero (tag + mark + sub + stat strip)
+    // section 1 — hero (text group, then image group; spaced)
     h = h + "<section class=\"hero\">"
-    h = h + "<picture><source srcset=\"/index.webp\" type=\"image/webp\">"
-    h = h + "<img class=\"hero-img\" src=\"/index.png\" alt=\"dancinlab — one continuous cosmology\" loading=\"eager\" decoding=\"async\">"
-    h = h + "</picture>"
+    h = h + "<div class=\"hero-text\">"
     h = h + "<div class=\"tag\">" + _tr(lang, "Software · One Continuous Cosmology", "소프트웨어 · 하나의 연속된 코스몰로지", "ソフトウェア · ひとつの連続したコスモロジー", "软件 · 一个连续的宇宙观", "Программное обеспечение · одна непрерывная космология") + "</div>"
     h = h + "<h1 class=\"mark\">dancinlab</h1>"
     h = h + "<div class=\"sub\">" + _tr(lang, "one continuous cosmology of software", "하나의 연속된 소프트웨어 코스몰로지", "ひとつの連続したソフトウェアのコスモロジー", "一个连续的软件宇宙观", "одна непрерывная космология программного обеспечения") + " · " + _t("phanes_role", lang) + " · " + _t("demiurge_role", lang) + " · " + _tr(lang, "substrate · consciousness", "기반 · 의식", "基盤 · 意識", "底层 · 意识", "субстрат · сознание") + "</div>"
@@ -1329,6 +1333,11 @@ fn render_cosmogony_landing(lang) {
     h = h + render_hero_stat("1", _tr(lang, "shared substrate", "공유 기반", "共有基盤", "共享底层", "общий субстрат"))
     h = h + render_hero_stat("0", _tr(lang, "over-claim, by rule", "over-claim 없음, 규칙으로", "over-claim なし、規則として", "不 over-claim,凭规则", "over-claim, по правилу"))
     h = h + "</div>"
+    h = h + "</div>"
+    // hero image below text/stats
+    h = h + "<picture><source srcset=\"/index.webp\" type=\"image/webp\">"
+    h = h + "<img class=\"hero-img\" src=\"/index.png\" alt=\"dancinlab — one continuous cosmology\" loading=\"eager\" decoding=\"async\">"
+    h = h + "</picture>"
     h = h + "<div class=\"cue\">" + _tr(lang, "↓ scroll", "↓ 스크롤", "↓ スクロール", "↓ 滚动", "↓ прокрутить") + "</div>"
     h = h + "</section>"
     // section 2 — overview
@@ -1800,6 +1809,7 @@ fn render_hexa_lang_page(lang) {
     c["slug"] = "hexa-lang"
     c["mark"] = "HEXA-LANG"
     c["phonetic"] = ""
+    c["hero_image_slug"] = "hexa-lang"
     c["hero_tag"] = _tr(lang, "Native Compiler · Substrate", "네이티브 컴파일러 · 기반", "ネイティブコンパイラ · 基盤", "原生编译器 · 底层", "Нативный компилятор · субстрат")
     c["hero_sub"] = _tr(lang, "A fully hexa-native compiler — atlas-bound theorems, no LLVM in the loop", "완전한 hexa-native 컴파일러 — atlas 에 묶인 정리, 루프에 LLVM 없음", "完全な hexa-native コンパイラ — atlas に束縛された定理、ループに LLVM なし", "完全 hexa-native 的编译器 — 绑定 atlas 的定理,循环中无 LLVM", "Полностью hexa-native компилятор — теоремы, привязанные к atlas, без LLVM в цепочке")
     c["s1v"] = "170×"
