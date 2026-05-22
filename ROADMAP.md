@@ -1,12 +1,19 @@
 # ROADMAP — phanes
 
 > Phased execution plan. All product decisions (1–6 + B-surface) are
-> CLOSED in `design.md`; this is the build path. Discipline:
-> echoes-experience thin slices — ship the smallest credible layer, never
-> big-bang. g3: every status honest, measured (instrument-first for any
-> cost-bearing fleet run).
+> CLOSED in [`DESIGN.log.md`](DESIGN.log.md); this is the build path.
+> Discipline: echoes-experience thin slices — ship the smallest credible
+> layer, never big-bang. g3: every status honest, measured (instrument-first
+> for any cost-bearing fleet run). Time-stamped history (P0…P5 landings,
+> post-launch incidents) = [`ROADMAP.log.md`](ROADMAP.log.md).
 
-Locked design (from `design.md`, Decisions 1–16): scope **B** generic
+**Status anchor.** phanes is LIVE — `https://dancinlab.org` (Cloudflare
+Containers: `phanes-phanesweb` std-1×3 + `phanes-phanesworker` std-2×5),
+data plane on R2, dispatch on the `phanes-jobs` CF Queue. All routes
+serve 200. Redeploy = `bash deploy.sh` (colima Docker + the
+`cloudflare.deploy.token` secret).
+
+Locked design (from [`DESIGN.log.md`](DESIGN.log.md), Decisions 1–16): scope **B** generic
 autonomous-cycle platform · brand **Phanes** · `dancinlab/phanes`
 **public + source-available** (Decision 16) · deployment **가+다**
 (public demo funnel + dashboard, **API = shared substrate**) ·
@@ -223,7 +230,7 @@ objective+verifier scenarios only**, round-capped, sandboxed
 unauthenticated surface). CTA → dashboard signup.
 
 **P4 status — DONE, measured (2026-05-19, hexa-native HTTP server):**
-- **Decision 10 LOCKED** (`design.md`): the public demo displays
+- **Decision 10 LOCKED** ([`DESIGN.log.md`](DESIGN.log.md)): the public demo displays
   **pre-computed / cached** results of curated preset scenarios — zero
   live compute on the unauthenticated surface. The strongest reading of
   `@D g_public_demo_constraint`: there is no execution path on `/demo`
@@ -284,35 +291,69 @@ unauthenticated surface). CTA → dashboard signup.
 P5 in-repo work is complete; the only remaining pre-launch obligation is
 the external trademark engagement (FC-5 clearance opinion).
 
----
+## P6 — Post-launch operations follow-ons
 
-## Log
+Active to-do list after the 2026-05-19 live deploy. Items here are
+honestly-scoped follow-ons; the architecture itself is live and measured.
 
-- **2026-05-19** — ROADMAP created at P0 DONE. All product gates closed
-  same day (decision-gate cycle, `design.md`). Next executable = P1 (job
-  API substrate). No code yet — P1 begins on user go.
-- **2026-05-19** — "P1 go". Instrument-first: cheap oracle measured FIRST
-  (1-round kick in `$HOME`-jail + `HEXA_VAL_ARENA=0` → rc=0, isolation
-  proven, JSON `DrillResult` captured). Built `service/{job_runner.sh,
-  jobctl.sh,API.md}`; full substrate self-test PASS (init→submit→get→
-  result, wrong-token rc=4). **P1a DONE, measured.** Decision 7 (service
-  language) logged in design.md.
-- **2026-05-19** — "go" → P1b. Probe: stdlib/net HTTP server stack exists
-  + builds from outside hexa-lang (HEXA_HOME env), 370KB arm64 binary.
-  Built `service/http_phanes.hexa` (hexa-native HTTP), `service/build.sh`,
-  `web/index.html` (echoes-experience template). Measured smoke 7/7
-  PASS incl. seed-with-`=` intact through HTTP → jobctl → kick → result.
-  Honest fix on record: form-encoded body truncated seeds containing
-  `=`; pivoted to JSON body via `json_parse`. **P1b DONE, measured.**
-  Upstream win: `phanes-hx-data-dir-per-tenant-isolation` handoff
-  RESOLVED SSOT same-day in hexa-lang (binary promote pending).
-- **2026-05-19** — "P2 go". Probe HX_DATA_DIR honor (NOT honored — old
-  binary, pending promote, no new inbox). Measured: P2.1 ms wall meter
-  (perl Time::HiRes, `wall_ms=1312` 1-round) · P2.4 post-hoc tenant
-  verifier hook in `$HOME`-jail sandbox (env -i + timeout, auto-attach
-  per-tenant verifier.sh, `verifier_rc=0` PASS) · P2.2 concurrency
-  (`service/concurrency_test.sh` N=4, **isolation HOLDS** but service
-  serialized 4.4/10 — `stdlib/net/http_server.hexa` sequential
-  accept-loop; concurrent_serve port deferred as P2.x). P2.3 documented
-  pending. P2.5 fleet routing documented deferred (P3-coupled).
-  **P2.1+P2.2+P2.4 DONE measured.** No new upstream inbox items found.
+### P-A · Deploy / ops follow-ups (small, near-term)
+
+- [ ] **Email routing** — confirm `hello@dancinlab.org` lands in the
+      team inbox (test mail delivered to Cloudflare MX, 0 bounce). If
+      not, add the routing rule: Cloudflare dash → Email → Routing →
+      destination for `hello@dancinlab.org`.
+- [ ] **`www.dancinlab.org`** — only the apex is bound. Add `www` as a
+      Workers Custom Domain, or a redirect apex↔www.
+- [ ] **Scoped-token rotation** — schedule rotation for the three
+      `secret`-stored CF credentials: `cloudflare.deploy.token`,
+      `cloudflare.queues.token`, `r2.phanes.*`. Record the cadence.
+- [ ] **Worker-tier live smoke** — the local B3 chain was measured, but
+      verify end-to-end on live CF: real submit → `phanes-phanesworker`
+      container consumes the queue → R2 status flips. (Local proof
+      stands; this confirms the deployed worker class.)
+
+### P-B · Datastore — B3 remainder (DESIGN.log.md Decision 21/23 follow-ons)
+
+- [ ] **`overlay.n6` → R2** — `queue_worker.sh` writes terminal status
+      to R2 but not yet the discovery overlay; copy `overlay.n6` to
+      `overlays/<job_id>.n6` (Decision 21 key layout).
+- [ ] **Job records fully on R2** — only the tenant *token* is migrated
+      (`jobctl.sh` `_kv`-style). Move job.json + the `job_runner.sh`
+      status writes to R2 so the web and worker tiers share one
+      system-of-record (Decision 23).
+- [ ] **`handle_get_or_result` R2 read-back** — the web tier still
+      reads job status from the local filesystem; point it at the R2
+      job record so any web instance can answer.
+- [ ] **Newest-N job listing** — `r2_list` (ListObjectsV2) depends on
+      the upstream SigV4 UriEncode fix (filed + resolved-ssot); adopt
+      it once the hexa-lang binary phanes builds against carries it.
+
+### P-C · Deferred sub-gates (decide when reached)
+
+- [ ] **Worker autoscaling trigger** — candidate: CF Queue backlog
+      depth → `phanes-phanesworker` instance count. Open as a decision
+      gate when load justifies it.
+
+### P-D · Pre-public-launch obligations (governance — DESIGN.log.md)
+
+- [ ] **Trademark clearance** — USPTO class-42 search/clearance for
+      "Phanes" (`@D g_name_risk`, Decision 2 — user override on record;
+      clearance still owed before a public launch push).
+- [ ] **Honest-scope marketing review** — audit all user-facing copy
+      for over-claim (g3); the verifier-as-sole-authority and
+      no-over-claim wording must stay accurate.
+- [ ] **Upstream binary adoption** — when hexa-lang promotes the
+      `HX_DATA_DIR` + pluggable-verifier work, rebuild phanes against
+      it and drop the interim `$HOME`-jail / post-hoc-verifier shims.
+
+### P-E · Upstream handoffs (filed — track to landed)
+
+- [x] `phanes-aws-sigv4-signer-for-stdlib` — resolved-ssot.
+- [x] `phanes-sigv4-uriencode-query-canonicalization-for-s3-list` —
+      resolved-ssot (SigV4 UriEncode, 25/25; on hexa-lang origin/main).
+- [x] `phanes-linux-self-host-build-driver-for-containerization` —
+      resolved-ssot; `tool/ubu_bootstrap.sh` gained the verified
+      `bootstrap` subcommand (hexa-lang a76637bf / fd6c0a07 / ac11281d).
+- [ ] Confirm the SigV4 + ubu_bootstrap commits reach hexa-lang's
+      pushed default branch (cherry-picked / merged), then bump
+      `Dockerfile` `HEXALANG_SHA` to pick them up.
