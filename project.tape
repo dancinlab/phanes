@@ -8,5 +8,5 @@
   ssot   = "github.com/dancinlab/phanes (`hx install phanes`)"
 
 @D t_downstream_discipline := "consume hexa kick; patch upstream" :: governance [required active]
-  do   = "engine / multi-tenant gap → `~/core/hexa-lang/inbox/patches/<descriptive>.md` (one concept per file) → upstream review → integration"
+  do   = "engine / multi-tenant gap → `hexa-lang/inbox/patches/<slug>.md` (one concept each) → upstream review"
   dont = "fork the hexa kick engine · inline downstream workaround · mix multiple concepts in one patch file"
