@@ -7,6 +7,6 @@
   parent = "dancinlab"
   ssot   = "github.com/dancinlab/phanes (`hx install phanes`)"
 
-@D := "phanes" :: governance [active]
-  do   = "..."
-  dont = "..."
+@D t_downstream_discipline := "consume hexa kick; patch upstream" :: governance [required active]
+  do   = "engine / multi-tenant gap → `~/core/hexa-lang/inbox/patches/<descriptive>.md` (one concept per file) → upstream review → integration"
+  dont = "fork the hexa kick engine · inline downstream workaround · mix multiple concepts in one patch file"
