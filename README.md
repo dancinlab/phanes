@@ -20,6 +20,16 @@ per-round honesty/falsification gate) against it, and returns a
 > discoveries feed its own next round. **Ouro = the serpent (mechanism);
 > Phanes = the light it reveals.** One image, inside and out.
 
+## Install
+
+```bash
+# 1. Install hexa-lang (gives you `hexa` + `hx` package manager)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/dancinlab/hexa-lang/main/install.sh)"
+
+# 2. Install phanes
+hx install phanes
+```
+
 ## Position
 
 - **Downstream of hexa-lang.** phanes consumes `hexa kick`; it does not
