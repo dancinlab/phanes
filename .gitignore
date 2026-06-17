@@ -30,6 +30,9 @@ build/
 # so third-party assets must not be redistributed in it.
 web/refs/
 
-# Claude Code internals (block worktree/data, allow Spec Kit skills)
+# Claude Code internals (block worktree/data, allow Spec Kit skills + harness hooks)
 .claude/*
 !.claude/skills/
+!.claude/settings.json
+.harness/logs/
+.harness/handoff/
