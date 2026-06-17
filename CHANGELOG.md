@@ -8,6 +8,15 @@ For the full audit trail, see `git log`.
 
 ## 2026-06-18
 
+- **harness 세팅** — applied the harness profile (strict by default):
+  `harness.config.json` + `.harness/{enforcement,keywords,severity-map,prefs}.json`
+  + `scripts/harness` wrapper + `.claude/settings.json` hooks
+  (PreToolUse/PostToolUse/UserPromptSubmit) + `.git/hooks/{pre-commit,pre-push}`
+  gates + protectedBranches. Pointed `docs.architecture` → `ARCHITECTURE.json`
+  (single design SSOT); removed init's placeholder `ARCHITECTURE.md` to avoid a
+  dual SSOT (commons c4). `.gitignore` allows `.claude/settings.json` so the
+  hooks are tracked.
+
 - **ARCHITECTURE.json tree SSOT** — retired the scattered domain `.md`/`.log.md`
   docs into a single `ARCHITECTURE.json` tree (hexa-codex/anima pattern) + the
   `ARCHITECTURE.html` viewer served by `python3 serve.py`. Folded: `DESIGN.md`/
