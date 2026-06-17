@@ -57,7 +57,7 @@ clearance precedes any public launch.
 
 ## Naming (on record)
 
-- **Phanes · 파네스** — the chosen brand (design.md Decision 2). Lore as
+- **Phanes · 파네스** — the chosen brand (`ARCHITECTURE.json` Decision 2). Lore as
   above. Collisions on record: Phanes Technologies (autonomous multi-agent
   AI) + Phanes Therapeutics (USPTO-registered TMs) + **phanes.app** (live
   "Economic Operating System for AI Agents" SaaS — a direct same-word,
@@ -104,16 +104,19 @@ Working prototype. **Scope = B — generic autonomous-cycle platform**
 - **Substrate** — shell job runner + `jobctl`; per-tenant isolation =
   hybrid (`HX_DATA_DIR` per-tenant data boundary + `$HOME`-jail as
   defense-in-depth), kick binary promoted and verified.
-- **Decisions** — all product + deployment gates closed in
-  [`design.md`](design.md): host = AWS EC2, pricing = tier + metered
-  (per OUROBOROS round, via Stripe), datastore = DynamoDB + S3,
-  deploy = repo-committed `deploy.sh`.
+- **Decisions** — all product + deployment gates (Decisions 1–24) closed
+  in the architecture SSOT [`ARCHITECTURE.json`](ARCHITECTURE.json) (human
+  viewer: `python3 serve.py`). LIVE shape: compute on **Cloudflare
+  Containers** (2-tier web + worker pool), data plane on **Cloudflare R2**,
+  dispatch on the **`phanes-jobs` CF Queue** (Decisions 21–24 superseded
+  the earlier AWS EC2 / DynamoDB design). Pricing = tier + metered (per
+  OUROBOROS round, via Stripe — future work).
 - **Visibility** — public, **source-available**: the code is open to
   read and audit; the license is proprietary / All Rights Reserved
-  (no right to run a competing service). See `design.md` Decision 16.
+  (no right to run a competing service). See `ARCHITECTURE.json` Decision 16.
 
-Remaining work is execution — provisioning the EC2 host, the DynamoDB
-migration, the Stripe integration, deployment — tracked in
-[`ROADMAP.md`](ROADMAP.md). Pre-public-launch obligations (formal
-trademark clearance, `@D g_name_risk`) are specified in
+Remaining work is execution — the R2 record migration, the Stripe
+integration, post-launch ops — tracked in the ROADMAP P6 subtree of
+[`ARCHITECTURE.json`](ARCHITECTURE.json). Pre-public-launch obligations
+(formal trademark clearance, `@D g_name_risk`) are specified in
 [`docs/TRADEMARK.md`](docs/TRADEMARK.md).

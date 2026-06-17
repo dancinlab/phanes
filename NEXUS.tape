@@ -16,7 +16,7 @@
 @I nexus := "phanes cross-repo reuse lattice" :: identity [active]
   kind    = "hosted OUROBOROS platform — hexa kick driver + per-tenant catalog producer"
   scope   = "4 cross-repo bidirectional peers (g68): hexa-lang, anima, demiurge, echoes"
-  ssot    = "this file (NEXUS.tape) · README.md project description · DESIGN.log.md design log"
+  ssot    = "this file (NEXUS.tape) · README.md project description · ARCHITECTURE.json design SSOT (Decisions 1–24)"
   governs = "commons @D g68 (cross-repo bidirectional peers) + project @D t_downstream_discipline"
 
 # ── 1. cross-repo bidirectional peers (g68) — declared 2026-05-28 ──
@@ -25,7 +25,7 @@
   peer       = "hexa-lang (substrate hub — hexa kick engine)"
   from-hexa  = "hexa kick engine (OUROBOROS loop · 36-lens drill · auto-fold to atlas on verify)"
   to-hexa    = "engine/platform gap patches filed via ~/core/hexa-lang/inbox/patches/ (consume, don't fork)"
-  evidence   = "phanes DESIGN.log.md L93/L102/L196 · CHANGELOG t_downstream_discipline · hexa-lang NEXUS.tape p_kick + e5"
+  evidence   = "phanes ARCHITECTURE.json (D1/D6 · t_downstream_discipline) · CHANGELOG · hexa-lang NEXUS.tape p_kick + e5"
 
 @X xr2 := "phanes <-> anima" :: cross-repo-peer [bidirectional declared]
   peer       = "anima (HEXAD/* consciousness substrate)"

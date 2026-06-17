@@ -1,0 +1,296 @@
+{
+  "name": "🥚 phanes · 파네스",
+  "summary": "Hosted autonomous-discovery SaaS — a generic autonomous-cycle platform. A tenant brings a measurable objective + a verifier/oracle; phanes drives hexa-lang's OUROBOROS engine `hexa kick` (the loop goal → falsifier → saturation, rounds with a per-round honesty/falsification gate) against it and returns a verified, provenance-tracked result/catalog (their own private echoes). Phanes (Φάνης, φαίνω 'to bring to light') is the Orphic primordial revealer entwined by the OUROBOROS — Ouro = the serpent (mechanism), Phanes = the light it reveals. LIVE at https://dancinlab.org.",
+  "note": "This JSON tree is the architecture SSOT (update-in-place, NOT append-only). Human viewer = ARCHITECTURE.html via `python3 serve.py`. History/decisions narrated chronologically → CHANGELOG.md; governance/identity → CLAUDE.md; verifiable claims → CLAIMS.tape + .verdicts/<slug>/; cross-repo links → NEXUS.tape. This doc points only, never duplicates thresholds. Migrated from scattered domain docs (DESIGN.md/DESIGN.log.md, GOAL.md/GOAL.log.md, ROADMAP.md/ROADMAP.log.md, PHANES.md/PHANES.log.md, INBOX.log.md, LATTICE_POLICY.md) retired 2026-06-18 → this tree + ARCHITECTURE.html viewer (hexa-codex/anima c4 standard).",
+  "meta": {
+    "ssot": "github.com/dancinlab/phanes",
+    "parent": "dancinlab",
+    "siblings": [
+      "hexa-lang (OUROBOROS / hexa kick engine — upstream substrate)",
+      "demiurge (universal technical-design architecture — paired cosmology)",
+      "anima (consciousness substrate)",
+      "echoes (discoveries catalog)"
+    ],
+    "status": "LIVE — https://dancinlab.org (Cloudflare Containers 2-tier: phanes-phanesweb std-1×3 + phanes-phanesworker std-2×5 · data plane on R2 · dispatch on the phanes-jobs CF Queue · all routes serve 200). Redeploy = `bash deploy.sh` (colima Docker + the cloudflare.deploy.token secret).",
+    "downstream_discipline": "phanes consumes `hexa kick`; it does NOT fork the engine. Engine/platform gaps go upstream via ~/core/hexa-lang/inbox/patches/ (one concept per file). @D t_downstream_discipline.",
+    "migrated_from": "DESIGN.md/DESIGN.log.md (24 decisions) · GOAL.md/GOAL.log.md · ROADMAP.md/ROADMAP.log.md (P0–P6) · PHANES.md/PHANES.log.md · INBOX.log.md (ARXIV A4 map) · LATTICE_POLICY.md — retired 2026-06-18"
+  },
+  "children": [
+    {
+      "name": "🎯 GOAL — the one sentence",
+      "summary": "Complete hexa-lang's OUROBOROS cycle engine (`hexa kick`: goal → falsifier → saturation, round iteration + per-round honesty gate) as a GENERIC autonomous-cycle SaaS where a real company plugs in its own measurable objective + verifier and runs it over the web, receiving a verified, provenance-tracked result/catalog — shipped small + honest + real like echoes-experience. SSOT mirror of GOAL.md.",
+      "children": [
+        {
+          "name": "IS — scope B (the chain)",
+          "summary": "hexa kick (OUROBOROS goal→falsifier→saturation, hexa-lang upstream, cycle h36 COMPLETE) → ★ pluggable seed + tenant verifier/oracle abstraction (B's core NEW engine surface, upstream inbox/patches candidate) → phanes control plane (auth · tenant isolation · job queue · metering) → phanes compute plane (Linux fleet · HEXA_VAL_ARENA=0 · per-job overlay) → per-tenant verified result/catalog (provenance · falsifier audit trail · export). = the web-ification of 'a company safely runs anything through hexa kick given a measurable objective + verifier'."
+        },
+        {
+          "name": "NOT — what phanes is not",
+          "summary": "NOT a fork of the kick engine (phanes is a downstream consumer; gaps — esp. the pluggable verifier — go to hexa-lang inbox/patches). NOT a guarantee the objective is met (the verifier signal is TENANT authority; phanes's honesty gate is advisory; the only hard stop is saturation/round-cap; over-claim forbidden — never claim 'met' without a tenant verifier PASS). NOT design-first (product decisions are fixed by decision gates). NOT fake progress (a miss is recorded as a miss — g3 · LATTICE_POLICY)."
+        }
+      ]
+    },
+    {
+      "name": "📐 DECISIONS (1–24) — the closed product + deployment gates",
+      "summary": "Step-by-step decision gate (one user-confirmation per decision, never batched). Each = picked + rationale. SSOT for product decisions, folded from DESIGN.log.md. All product gates (1–6 + B-surface) and the deployment + Cloudflare migration gates (11–24) are CLOSED. Supersede chains preserved: 16 supersedes 4 · 21 supersedes 15+18 · 22 supersedes 11. Two falsifiers (F-D22, F-D23) RAN and PASSED on live infra.",
+      "children": [
+        {
+          "name": "D1 Product scope = B (generic cycle platform)",
+          "summary": "Generic autonomous-cycle platform: company brings a measurable objective + verifier/oracle; phanes drives hexa kick's goal→falsifier→saturation loop and returns a verified, provenance-tracked result/catalog. Pluggable seed + tenant verifier. User directive over assistant rec (A). B's genuine engine delta = a NEW pluggable seed+verifier abstraction over hexa kick (upstream inbox/patches candidate, not a fork). Honest-scope risk ACTIVE: the tenant-supplied verifier is the sole authority of record for 'objective met' (@D g_honest_scope.scope_b).",
+          "status": "DECIDED — B"
+        },
+        {
+          "name": "D2 Brand name = Phanes (파네스)",
+          "summary": "Orphic primordial deity of revelation (φαίνω, 'to bring to light'), entwined by the OUROBOROS — a strict superset of hexa-lang's engine codename. Semantic precision over Palantir (φαίνω = actively bring hidden truth to light vs a passive seeing-stone). User directive '파네스 go'. RISK ON RECORD (g3, user override): adjacent trademark collisions — Phanes Technologies (autonomous multi-agent AI) + Phanes Therapeutics (USPTO-registered TMs) + phanes.app. Mitigation: treat as project lore; formal USPTO class-42 clearance before any public launch (@D g_name_risk). Manteia/Orrery/Mimir etc. recorded as alternatives.",
+          "status": "DECIDED — Phanes"
+        },
+        {
+          "name": "D3 Deployment shape = 가+다 (demo funnel + dashboard)",
+          "summary": "A public round-capped DEMO site (marketing funnel) AND a full authenticated DASHBOARD (job submit · result browser · catalog · billing). The job API is the SHARED SUBSTRATE beneath both, not a third product. User directive over assistant rec (나 API-only). Honest constraint MANDATED (g3): the public demo runs ONLY preset/curated objective+verifier scenarios, round-capped + sandboxed; arbitrary verifier submission is authenticated/paid-only (@D g_public_demo_constraint).",
+          "status": "DECIDED — 가+다"
+        },
+        {
+          "name": "D4 GitHub org + remote = dancinlab/phanes (private)",
+          "summary": "github.com/dancinlab/phanes — private repo, origin/main, scaffold pushed (38e5992). User directive. Private defers (not voids) the @D g_name_risk clearance obligation. dancinlab org matches the shipped echoes-experience pattern. SUPERSEDED BY D16 (repo goes public + source-available).",
+          "status": "DECIDED — superseded by D16"
+        },
+        {
+          "name": "D5 License = 가 Proprietary / All Rights Reserved",
+          "summary": "Proprietary, all rights reserved (© 2026 dancinlab). Short LICENSE committed; covers only phanes-original code, not the upstream hexa-lang components it invokes. Commercial private SaaS — code stays server-side; an OSS license would surrender the moat. Simplest reversible default (proprietary → BSL later is possible; un-MIT is not). BSL 1.1 kept as explicit fallback. UNCHANGED by D16 (public ≠ free-to-compete).",
+          "status": "DECIDED — Proprietary"
+        },
+        {
+          "name": "D6 Multi-tenant overlay isolation = 다 (hybrid)",
+          "summary": "Per-job $HOME-jail/sandbox now (downstream, ships v1) + a parallel hexa-lang inbox/patch for a first-class HX_DATA_DIR (canonical path). Drop the $HOME-hijack once upstream lands; keep the per-job sandbox as defense-in-depth. Grounded in compiler/drill/checkpoint.hexa:53 (env('HOME')). Two upstream handoffs filed: phanes-hx-data-dir-per-tenant-isolation + phanes-pluggable-verifier-oracle-for-drill-loop. Concurrency sub-risk recorded (cmd_drill_batch serializes under a single $HOME).",
+          "status": "DECIDED — 다 hybrid"
+        },
+        {
+          "name": "D7 Service language/stack (P1) = POSIX shell substrate",
+          "summary": "P1 substrate = POSIX shell (service/job_runner.sh + jobctl.sh) — the thinnest glue that IS the measured engine-invocation contract. P1b HTTP transport and later phases: hexa-native preferred (ecosystem hexa-first). Thin-slice discipline: a hexa HTTP server in P1 = a rabbit hole. Reversible — P1b implements HTTP in hexa over the same jobctl semantics. The shell runner invokes the upstream hexa binary, never vendors/forks it.",
+          "status": "DECIDED — shell P1, hexa-native P1b+"
+        },
+        {
+          "name": "D8 Frontend stack = 다 (HTMX + server-rendered HTML)",
+          "summary": "HTMX 1.9.x + server-rendered HTML fragments from the hexa-native backend (service/http_phanes.hexa). No bundler, no SPA framework, no node toolchain. The backend is already hexa-native with stdlib/net; HTMX = exactly the topology it wants (server = single SSOT, browser swaps fragments). Matches the dancinlab thin-client/smart-server tone (echoes, wisp). Reversible (coexists with vanilla JS / future Svelte islands page-by-page). Measurement-gate: GET /dashboard returns HTML, POST returns a job-row fragment, HTMX poll terminates on done/failed.",
+          "status": "DECIDED — HTMX"
+        },
+        {
+          "name": "D9 Multi-tenant switcher = a (re-auth switch)",
+          "summary": "A 'switch tenant' control in the dashboard .dbar that destroys the session and redirects to /login (fresh GET re-prompts tenant + bearer token). POST /switch-tenant → session_destroy + redirect_with_cookie. Honest to the real auth model (g3): a session is intrinsically one (tenant, token) pair; each tenant has its own token; re-auth is the truthful UX. Minimal + secure (reuses the measured session_destroy + /login path); no session-format change; no cross-tenant token leak. Reversible (a dropdown can be added later if org-level SSO ever authorizes N tenants).",
+          "status": "DECIDED — re-auth switch"
+        },
+        {
+          "name": "D10 Public demo result delivery = pre-computed/cached preset results",
+          "summary": "The public /demo page displays pre-computed CACHED results of curated preset scenarios (each a real prior hexa kick run, labelled with provenance). ZERO live kick on the unauthenticated surface — /demo is pure server-rendered HTML from in-source constant data; never touches jobctl.sh, never spawns a process, never writes to the job store. Strongest reading of @D g_public_demo_constraint: no execution path = no abuse surface to rate-limit/sandbox. Still fully honest (g3): a cached result is a genuine prior run, not a mock; the CTA sends the visitor to /login to run their own objective. HONEST SCOPE: the 3 P4-v1 cached results are representative curated examples hand-authored from known mathematics (σ(6)=12, σ(28)=56, Euclid 2^(p-1)(2^p−1)), to be regenerated from real fleet job.json captures when P2.5 is live.",
+          "status": "DECIDED — cached preset"
+        },
+        {
+          "name": "D11 Hosting target = AWS EC2 single Linux host (v1)",
+          "summary": "A single Linux host (control + compute co-located), t4g.small (2 vCPU Graviton arm64, 2 GiB). Cloudflare optional as front-proxy (DNS · free TLS · CDN · DDoS). PHANES_ENGINE_HOST abstraction retained so a later fleet/CF-Containers move is a config change. EC2 runs as-built (persistent EBS = filesystem .store/ survives; always-on host completes nohup-ed kick). Satisfies the hexa-lang Axis-D constraint (production must not run Mac-native kick). Cost ~$9–14/mo. SUPERSEDED BY D22 (compute moves to Cloudflare Containers; AWS account no longer needed).",
+          "status": "DECIDED — superseded by D22 for compute"
+        },
+        {
+          "name": "D12 Pricing model = 다 (tier + metered hybrid)",
+          "summary": "A base tier with an included quota, plus metered overage. Each tier bundles a fixed number of OUROBOROS rounds per billing period; usage beyond the bundle is metered per round. The OUROBOROS ROUND is the billing unit. A kick job burns real compute, so revenue must track cost; a base tier keeps it sellable (predictable floor); the metering substrate already exists (job.json records rounds + wall_ms — metering is aggregation, no new instrumentation). The round is the honest billing unit (consistent with scope B — bill only measurably-performed work). HONEST SCOPE: tier names/prices/bundle sizes need a real EC2 per-round cost measurement first.",
+          "status": "DECIDED — tier + metered"
+        },
+        {
+          "name": "D13 Payment processor = 가 (Stripe)",
+          "summary": "Stripe Billing for the base-tier subscription + Stripe Metering for per-round overage. Integrated by direct Stripe HTTP API calls (no SDK — phanes is hexa-native; stdlib/net http_client is the transport). Card data never touches phanes (Stripe-hosted Checkout → no PCI-DSS scope). 1:1 fit with the D12 hybrid (existing job.json round aggregation → one usage-record API call). Global default (vs a Korea-only PG or a higher-fee Merchant-of-Record). HONEST SCOPE: there is no Stripe SDK for hexa — hand-written direct HTTP API calls; real future ROADMAP work, not done by this decision.",
+          "status": "DECIDED — Stripe"
+        },
+        {
+          "name": "D14 Deployment method = 나 (repo-committed deploy.sh)",
+          "summary": "A deploy script committed to the repo: rsyncs source to the host, runs service/build.sh there, health-checks /v1/healthz, rolls back to the previous binary on failure. No IaC, no container image. For one host (D11), IaC is over-engineering; a committed script is reproducible (manual SSH is not); a container image conflicts with D11's native-binary shape. Grows without rework (becomes the per-host step a fleet orchestrator calls). HONEST SCOPE: the actual deploy needs the user's AWS account (EC2 instance/key/SG are out-of-repo); the script covers 'given a host exists, ship to it.'",
+          "status": "DECIDED — deploy.sh"
+        },
+        {
+          "name": "D15 Managed datastore = 가 (DynamoDB + S3)",
+          "summary": "DynamoDB for structured records (sessions, tenants, job metadata) + S3 for overlay blobs (atlas.overlay.n6). Replaces the filesystem .store/ job store. User directive 'db 는 managedDB.' hexa-native HTTP fit (HTTP/JSON API, same transport as Stripe — no Postgres wire driver needed); phanes access patterns are simple key/item lookups; serverless pay-per-request fits a zero-user start; fully managed. SUPERSEDED BY D21 (ALL-R2: DynamoDB + S3 both dropped). Kept on record with the supersede note.",
+          "status": "DECIDED — superseded by D21"
+        },
+        {
+          "name": "D16 Repository visibility = 나 (public + source-available)",
+          "summary": "The dancinlab/phanes repo goes PUBLIC, with the proprietary/All-Rights-Reserved license RETAINED (source-available: code visible to all, no rights granted, may not be run as a competing service). SUPERSEDES D4 (private); D5 (proprietary license) UNCHANGED. User directive '정식을 팔자'. phanes sells honesty, so its code should be auditable (public code makes @D g_honest_scope.scope_b verifiable by anyone = trust proof + sales asset); consistent with the public dancinlab ecosystem (hexa-lang, echoes, demiurge); source-available keeps D5's commercial moat (Sentry/GitLab-core model). PRECONDITION EXECUTED: web/refs/ third-party design snapshots git-rm-cached + gitignored (a public repo must not redistribute others' copyrighted assets; note: still in history at d5a4515 — history purge flagged pre-flip).",
+          "status": "DECIDED — public source-available (supersedes D4)"
+        },
+        {
+          "name": "D17 AWS credentials = startup-wrapper + secret CLI",
+          "summary": "AWS credentials loaded by a startup wrapper (service/run-phanes.sh) that calls the user's secret CLI, exports the standard AWS SDK env vars, then execs bin/phanes-http. Repo stays credential-free; phanes-http reads only the AWS env vars (tool-agnostic). secret key convention (dot-separated): aws.phanes.access_key_id → AWS_ACCESS_KEY_ID, aws.phanes.secret_access_key, aws.phanes.region (default us-east-1), aws.phanes.session_token (STS only). exec-style wrapper = no orphan shell; fail-clean on missing secrets. Deployment: the systemd unit service/phanes-http.service points ExecStart at run-phanes.sh. (Largely mooted by D21/D22 dropping AWS — the R2 token replaces the AWS creds; the wrapper pattern carries over to r2.phanes.*.)",
+          "status": "DECIDED — secret-CLI wrapper"
+        },
+        {
+          "name": "D18 DynamoDB table schema = single-table, on-demand",
+          "summary": "A single DynamoDB table `phanes` with composite PK+SK, holding sessions/tenants/jobs as heterogeneous prefix-discriminated items; on-demand billing. Layout: Session PK=SESSION#<sid> SK=SESSION (+ttl); Tenant PK=TENANT#<name> SK=TENANT; Job PK=TENANT#<name> SK=JOB#<ts>#<id> (newest-first via reverse Query). The one non-KV pattern (jobs newest-N per tenant) maps to a Query (no GSI/scan); native TTL retires session-GC; one table = one IAM/dashboard/backup. SUPERSEDED BY D21 (ALL-R2). Kept on record with the supersede note.",
+          "status": "DECIDED — superseded by D21"
+        },
+        {
+          "name": "D19 Discovery absorption → hexa-lang atlas (direction pinned)",
+          "summary": "PINNED DIRECTION (not yet implemented), per user directive 'kick 으로 발견되는 방정식들도 흡수해야되': validated discoveries phanes' OUROBOROS engine produces feed back UPSTREAM into hexa-lang's atlas, closing the loop ecosystem-wide (phanes = a discovery FEEDER, mirroring qrng/qmirror/sim-universe absorbs). OPEN SUB-GATES (19a opt-in policy — tenant data is theirs, scope B, no silent absorption; 19b eligibility — likely verifier-passed + saturated only; 19c pipeline — job result → absorption serializer → hexa-lang inbox/notes → review → atlas citation). Depends on D18/D21 (structured discovery record). HONEST SCOPE: nothing about absorption ships yet.",
+          "status": "PINNED — sub-gates open"
+        },
+        {
+          "name": "D20 Domain & DNS = dancinlab.org on Cloudflare",
+          "summary": "Production domain = dancinlab.org, DNS managed at Cloudflare (concretises the D11 front-proxy: CF sits in front of origin, terminating TLS, fronting the CDN, absorbing DDoS). CF is $0 for the layer phanes needs (DNS + free TLS + CDN + basic DDoS); operationally separates concerns (AWS = compute+data, CF = DNS+edge); TLS at the edge makes the session cookie's Secure flag practical; pre-positions a future CF-Containers move. HONEST SCOPE: brand+domain both spell 'dancinlab' (no extra i — earlier dancinliab.org was a typo); registration/NS/zone setup is the user's account-side action.",
+          "status": "DECIDED — dancinlab.org / Cloudflare"
+        },
+        {
+          "name": "D21 Datastore = ALL Cloudflare R2 (supersedes D15 + D18)",
+          "summary": "The entire datastore — overlay blobs AND structured records (sessions, tenants, jobs) — lives in Cloudflare R2 (S3-compatible). DynamoDB DROPPED, AWS S3 DROPPED. SUPERSEDES D15 + D18. User directive 'all r2'. Resolves the AWS-IAM friction: phanes makes ZERO AWS API calls; the only storage credential is a Cloudflare R2 API token (no AWS IAM user). R2 exposes an S3-compatible SigV4 API (service='s3', region='auto', host <acct>.r2.cloudflarestorage.com) — the existing SigV4 signer (stdlib/aws/sigv4.hexa) works unchanged. Object layout: sessions/<sid>.json · tenants/<name>.json · tenants/<name>/jobs/<reverse-ts>-<id>.json · overlays/<id>.n6; newest-N = ListObjectsV2 + client-side sort. R2 free tier + free egress. HONEST SCOPE: ListObjectsV2 client-side sort is slower than a DynamoDB Query (fine at low volume; a maintained _index.json is the future optimization).",
+          "status": "DECIDED — ALL-R2 (supersedes D15+D18)"
+        },
+        {
+          "name": "D22 Compute host = 나 Cloudflare Containers, 2-tier (F-D22 PASS)",
+          "summary": "Cloudflare Containers (NOT EC2 — D11 superseded for compute; the AWS account is no longer needed). Topology: TWO container classes (web + worker) DECOUPLED through an R2-backed job queue, with the WORKER class horizontally scalable to N instances. Web requests are ms; an OUROBOROS cycle is minutes+ — co-locating starves web latency / a container cap takes the web tier down / a redeploy kills in-flight jobs. Split + queue = zero-downtime web rolls while workers drain. Single provider with the datastore (D21 R2). FALSIFIER F-D22 RAN + PASSED (measured, not reasoned): a real --rounds 5 kick measured wall=75.0s, peak RSS ≈ 4.02 GiB → standard-1 (4 GiB) is infeasible (OOM), standard-2 (6 GiB) is the WORKER FLOOR. Two binding constraints: (1) worker sizing floor = standard-2 (≥6 GiB), re-measure RSS before raising PHANES_ROUNDS_MAX; (2) worker must set sleepAfter > max job wall-time (containers#162) so a long kick is never sleep-killed. EC2-worker fallback (D22') NOT triggered.",
+          "status": "LOCKED — F-D22 PASS (supersedes D11 for compute)"
+        },
+        {
+          "name": "D23 Job queue = 둘 다 (R2 system-of-record + CF Queues dispatch signal)",
+          "summary": "HYBRID — the two are different LAYERS, not competing stores. Cloudflare R2 = system of record (durable job state + artifacts as R2 objects, per D21). Cloudflare Queues = the dispatch SIGNAL only: on submit the web tier writes the durable job record to R2 THEN sends a tiny {tenant, job_id} pointer message to a CF Queue; workers are queue consumers (woken on demand, no R2 list-poll latency), pull the full record from R2, run kick, write status/overlay back. The queue carries a pointer, never the data. At-least-once + visibility timeout fits the idempotent-per-job_id kick model. FALSIFIER F-D23 (measured end-to-end before B3 locks). HONEST SCOPE: this reshapes the shell substrate (tenants/jobs are owned by jobctl/job_runner, not the clean hexa _kv_ seam) — a worker-tier rearchitecture, its own phase B3. B3 progress: R2 object CLI op landed (PHANES_R2_OP get/put/del/list); get/put/del round-trip exit-correct; LIST FAILED (SigV4 UriEncode/query-canonicalization punted in stdlib/aws/sigv4.hexa) → filed upstream (later resolved-ssot).",
+          "status": "DECIDED — R2 record + CF Queues pointer"
+        },
+        {
+          "name": "D24 Queue access model = a (CF Queues REST API, F-D23 PASS)",
+          "summary": "CF Queues REST API direct from the hexa-native binary (NOT a Worker sidecar (b), NOT container-in-a-Worker (c)). CF Queues exposes a full HTTP REST API (HTTP-push producer, HTTP-pull consumer, ack) so a non-Worker process does the whole lifecycle over the same signed-curl carrier phanes uses for R2. FALSIFIER F-D23 RAN + PASSED (live CF): create queue → add http_pull consumer → send {tenant,job_id} → pull (body byte-EQ to sent) → ack (ackCount=1) → delete. The pointer message round-trips byte-exact from a non-Worker caller. B3 FULL-CHAIN CLOSURE measured end-to-end on live CF: producer http_phanes.hexa::q_send (3f7f728) · R2 job spec jobctl.sh (96790da) · consumer service/queue_worker.sh (REST pull → R2 GetObject → job_runner.sh one real kick → R2 PutObject terminal status → batch-ack). HONEST SCOPE: F-D23 used the global key; production must use a scoped CF token (pre-launch obligation). LIVE DEPLOY (2026-05-19): linux self-host build SOLVED (4-step from-source chain), container images built, Workers Paid activated, deploy completed, dancinlab.org cut over to the phanes Worker (all routes 200, mail untouched).",
+          "status": "LOCKED — F-D23 PASS · DEPLOYED LIVE"
+        }
+      ]
+    },
+    {
+      "name": "🗺 ROADMAP (P0–P6) — the phased build path",
+      "summary": "Phased execution plan; product decisions (1–24) CLOSED in the DECISIONS subtree. Discipline: echoes-experience thin slices (ship the smallest credible layer, never big-bang); g3 (every status honest, measured; instrument-first for any cost-bearing fleet run). Folded from ROADMAP.md. P0–P5 DONE/measured; P6 = active post-launch follow-ons. NOTE: the live deployment (P-deploy, Decisions 21–24) runs on Cloudflare Containers + R2 + CF Queues, which superseded the EC2/DynamoDB design that P-A/P-B/P-D headers still reference in places.",
+      "children": [
+        {
+          "name": "P0 — Foundations",
+          "summary": "Repo, governance, GOAL/design/README/LICENSE, decision gates 1–6, two upstream handoffs filed to hexa-lang inbox/patches.",
+          "status": "DONE (2026-05-19)"
+        },
+        {
+          "name": "P1 — Job API substrate (the 나 layer everything sits on)",
+          "summary": "The spine both surfaces consume. POST /job {seed, verifier_ref, rounds_cap} → enqueue → worker spawns hexa kick on the Linux fleet (Mac native forbidden by Axis D) in a per-job $HOME-jail with HEXA_VAL_ARENA=0, seed validated, round/wall capped → capture DrillResult + overlay → GET /job/:id[/result]; auth = API key, per-tenant sandbox = isolation. P1a (measured arm64 macOS): job_runner.sh + jobctl.sh + API.md; cheap-oracle 1-round rc=0, isolation proven, full self-test PASS, wrong-token rc=4. P1b (measured, hexa-native HTTP): http_phanes.hexa over stdlib/net + build.sh (393KB arm64) + web/index.html; smoke 7/7 PASS incl. seed-with-= intact end-to-end; honest fix = form→JSON body pivot (parse_query naive = split → json_parse). Upstream win: phanes-hx-data-dir-per-tenant-isolation RESOLVED SSOT same-day.",
+          "status": "DONE — P1a + P1b measured"
+        },
+        {
+          "name": "P2 — Compute-plane hardening",
+          "summary": "P2.1 ms wall meter DONE (perl Time::HiRes, job.json wall_ms + wall_sec, wall_ms=1312). P2.2 concurrency MEASURED: isolation HOLDS at N=4 but service serialized 4.4/10 (stdlib/net/http_server.hexa sequential accept-loop). P2.x async-submit pivot DONE: instrument-first (concurrent_serve.hexa docstring = single-thread serial, port wouldn't help) → decouple HTTP throughput from kick wall at the dispatcher layer (jobctl submit backgrounds job_runner via nohup+disown + atomic tmp+rename status transitions) → baseline_submit_ms 162 (vs 1530), 4-job end-to-end 2360ms (~2.9× absolute throughput), engine PARTIAL parallel 1.7/10. P2.3 HX_DATA_DIR PENDING upstream binary promote (later promoted, commit 37c66b2). P2.4 post-hoc tenant verifier hook DONE (--verifier PATH in $HOME-jail, env -i + timeout, verifier_rc = sole authority for objective-met). P2.5 production Linux fleet routing DEFERRED (P3-coupled; PHANES_ENGINE_HOST → ssh kick). P2.6 pluggable-verifier-oracle upstream patch (post-hoc hook is the interim).",
+          "status": "DONE — P2.1+P2.2+P2.4+P2.x measured"
+        },
+        {
+          "name": "P3 — Dashboard (D3 = 다)",
+          "summary": "Accounts/orgs auth; job-submit UI incl. verifier upload/reference; result browser + per-tenant discovery catalog (their private echoes, exportable); billing/metering console — sits entirely on the P1 API. P3.thin DONE (measured, HTMX server-rendered, D8 LOCKED): GET /dashboard (full HTML page, HTMX 1.9.10) · POST /dashboard/jobs (form-body → urldecode → jobctl submit → <li> job-row with hx-trigger self-poll) · GET /dashboard/jobs/<id> (render <li>, omit hx-trigger on done/failed so HTMX auto-stops polling). Smoke 5/5 PASS (page · submit · poll trail · final row wall_ms=1167/verifier_rc=0 · negative 400). HONEST GAPS: HTMX from unpkg CDN (self-host = P3.x); auth token in HTML query string (production needs HttpOnly cookies / signed handles); single tenant per page (org switcher = P3.x).",
+          "status": "DONE — P3.thin measured"
+        },
+        {
+          "name": "P4 — Public demo funnel (D3 = 가)",
+          "summary": "Static landing + preset/curated objective+verifier scenarios only, round-capped, sandboxed (@D g_public_demo_constraint — NO arbitrary verifier on the unauthenticated surface). CTA → dashboard signup. DONE (measured, D10 LOCKED = pre-computed/cached, zero live compute): GET /demo (Palantir Titanium design system; hero · what-this-is · curated presets · honest scope · CTA → /login). 3 curated preset scenarios as constant data (01 σ(6)=12 · 02 σ(28)=56 with no-gap-scan falsifier · 03 Euclid 2^(p-1)(2^p−1) instantiating p=5 → 496); each shows objective + preset verifier + round cap + goal→falsifier→saturation trail + verified result + verifier rc=0. Smoke: GET /demo 200, all 3 scenarios + CTA present, all existing routes still 200. HONEST GAPS: the 3 cached results are representative curated examples hand-authored from known mathematics ('cached preset run'), to be regenerated from real fleet job.json captures when P2.5 is live.",
+          "status": "DONE — measured"
+        },
+        {
+          "name": "P5 — Pre-public-launch gates",
+          "summary": "Trademark clearance — closed as specified: the formal USPTO class-9/42 search needs a registered attorney and cannot run in-repo; fully specified in docs/TRADEMARK.md §Formal Clearance (FC-1…FC-6), a defined external legal engagement gated to public launch via @D g_name_risk. Upstream patch adoption — done: HX_DATA_DIR kick binary promoted + wired into job_runner.sh (37c66b2); pluggable verifier landed; both verified. Honest-scope marketing review — done: C2/C3 audit found all rendered copy within scope (no over-claim, tenant verifier = sole authority); see docs/audit-prelaunch-c2-c3.md. P5 in-repo work complete; the only remaining pre-launch obligation is the external trademark engagement (FC-5 clearance opinion).",
+          "status": "DONE in-repo — external TM engagement owed"
+        },
+        {
+          "name": "P6 — Post-launch operations follow-ons",
+          "summary": "Active to-do list after the 2026-05-19 live deploy; honestly-scoped follow-ons (architecture is live + measured).",
+          "children": [
+            {
+              "name": "P-A · Deploy / ops follow-ups",
+              "summary": "[ ] Email routing — confirm hello@dancinlab.org lands in the team inbox; add CF Email Routing rule if needed. [ ] www.dancinlab.org — only the apex is bound; add www as a Workers Custom Domain or an apex↔www redirect. [ ] Scoped-token rotation — schedule rotation for cloudflare.deploy.token, cloudflare.queues.token, r2.phanes.*; record cadence. [ ] Worker-tier live smoke — verify end-to-end on live CF (real submit → phanes-phanesworker consumes the queue → R2 status flips)."
+            },
+            {
+              "name": "P-B · Datastore — B3 remainder (D21/D23 follow-ons)",
+              "summary": "[ ] overlay.n6 → R2 — queue_worker.sh writes terminal status but not yet the discovery overlay; copy to overlays/<job_id>.n6. [ ] Job records fully on R2 — only the tenant token is migrated; move job.json + status writes to R2 so web+worker share one system-of-record. [ ] handle_get_or_result R2 read-back — the web tier still reads job status from the local filesystem; point it at the R2 record. [ ] Newest-N job listing — r2_list (ListObjectsV2) depends on the upstream SigV4 UriEncode fix (filed + resolved-ssot); adopt once the hexa-lang binary phanes builds against carries it."
+            },
+            {
+              "name": "P-C · Deferred sub-gates",
+              "summary": "[ ] Worker autoscaling trigger — candidate: CF Queue backlog depth → phanes-phanesworker instance count. Open as a decision gate when load justifies it."
+            },
+            {
+              "name": "P-D · Pre-public-launch obligations (governance)",
+              "summary": "[ ] Trademark clearance — USPTO class-42 search/clearance for 'Phanes' (@D g_name_risk, D2 — user override on record; clearance owed before a public launch push). [ ] Honest-scope marketing review — audit all user-facing copy for over-claim (g3); verifier-as-sole-authority + no-over-claim wording must stay accurate. [ ] Upstream binary adoption — when hexa-lang promotes HX_DATA_DIR + pluggable-verifier, rebuild phanes against it and drop the interim $HOME-jail / post-hoc-verifier shims."
+            },
+            {
+              "name": "P-E · Upstream handoffs (filed — track to landed)",
+              "summary": "[x] phanes-aws-sigv4-signer-for-stdlib — resolved-ssot. [x] phanes-sigv4-uriencode-query-canonicalization-for-s3-list — resolved-ssot (SigV4 UriEncode, 25/25; on hexa-lang origin/main). [x] phanes-linux-self-host-build-driver-for-containerization — resolved-ssot (tool/ubu_bootstrap.sh gained the verified bootstrap subcommand; a76637bf / fd6c0a07 / ac11281d). [ ] Confirm the SigV4 + ubu_bootstrap commits reach hexa-lang's pushed default branch, then bump Dockerfile HEXALANG_SHA to pick them up."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🏗 ARCHITECTURE — the live 2-tier topology + code surfaces",
+      "summary": "The deployed shape (Decisions 20–24): Cloudflare edge (dancinlab.org) → web container (phanes-http, ms requests, sessions on R2) and worker pool ×N (kick / OUROBOROS, minutes), DECOUPLED through an R2-backed job queue + a CF Queues pointer signal. Data plane = Cloudflare R2 (system of record + overlay blobs). Compute = Cloudflare Containers (web std-1×3 · worker std-2×5). Folded from PHANES.md / README structure + DESIGN.log.md deploy execution.",
+      "children": [
+        {
+          "name": "Edge — dancinlab.org / Cloudflare (D20)",
+          "summary": "Cloudflare DNS · free TLS · CDN · WAF · /static cache, in front of the origin Worker. dancinlab.org bound as a Workers Custom Domain → the phanes Worker (cert provisioned). Mail records untouched (the cutover was additive)."
+        },
+        {
+          "name": "Web tier — phanes-phanesweb (Cloudflare Container std-1 ×3)",
+          "summary": "Stateless hexa-native HTTP server (service/http_phanes.hexa over stdlib/net). Serves a multilingual marketing site (cosmogony · Phanes · Demiurge · hexa-lang · Anima · Demo · Pricing · Contact), the public preset-only /demo (D10), the session-authenticated HTMX /dashboard (D8), and the job API (/v1/*). ms requests; sessions on R2 so instances are interchangeable. On submit: writes the durable job record to R2, then HTTP-pushes a {tenant, job_id} pointer to the CF Queue (q_send).",
+          "path": "service/http_phanes.hexa"
+        },
+        {
+          "name": "Worker tier — phanes-phanesworker (Cloudflare Container std-2 ×N)",
+          "summary": "Stateless, interchangeable, horizontally scalable (D22 floor = std-2 / ≥6 GiB per F-D22). A CF Queues consumer loop (service/queue_worker.sh): REST pull (scoped Bearer token) → R2 GetObject the full job spec → service/job_runner.sh runs ONE real hexa kick in a per-job $HOME-jail (HEXA_VAL_ARENA=0, seed validated, round/wall capped, optional tenant verifier sandboxed via env -i + timeout) → R2 PutObject terminal status → batch-ack. Must set sleepAfter > max job wall-time (containers#162).",
+          "path": "service/queue_worker.sh · service/job_runner.sh"
+        },
+        {
+          "name": "Job queue — phanes-jobs (CF Queue, pointer signal) + R2 record (D23/D24)",
+          "summary": "R2 = system of record (durable job state + artifacts); the CF Queue carries a tiny {tenant, job_id} pointer only. http_pull consumer @600s. At-least-once + visibility timeout = the redelivery lease (kick is idempotent per job_id). Reached over the CF Queues REST API from the non-Worker hexa binary (D24, F-D23 PASS byte-exact)."
+        },
+        {
+          "name": "Data plane — Cloudflare R2 (D21)",
+          "summary": "All storage — structured records + overlay blobs — as R2 objects (S3-compatible SigV4 API, service='s3', region='auto'). Layout: sessions/<sid>.json · tenants/<name>.json · tenants/<name>/jobs/<reverse-ts>-<id>.json · overlays/<id>.n6. Reached via the R2 object CLI op (PHANES_R2_OP get/put/del/list) reusing the one measured signer (stdlib/aws/sigv4.hexa) — no downstream signer copy. ZERO AWS API calls; one R2 API token is the only storage credential.",
+          "path": "stdlib/aws/sigv4.hexa (upstream) · http_phanes.hexa r2_* / _kv_*"
+        },
+        {
+          "name": "Build + deploy — linux self-host + Dockerfile + deploy.sh (D14/D24)",
+          "summary": "Dockerfile (pinned-SHA upstream hexa-lang clone, the verified pure-from-source 4-step bootstrap: clang hexa_cc.c+runtime.c → hexa_v2; hexa_v2 main.hexa → driver C; clang → hexa; hexa_v2 module_loader.hexa → build/hexa_module_loader) → a working `hexa build` that flattens phanes' stdlib imports → bin/phanes-http (linux/amd64). wrangler.jsonc (PhanesWeb std-1×3 / PhanesWorker std-2×5), src/worker.js (@cloudflare/containers, envVars role switch + R2/Queue secret copy from Worker env to container envVars), deploy.sh / cutover-domain.sh. Redeploy = bash deploy.sh (colima Docker + cloudflare.deploy.token). Linux self-host was the real wall — SOLVED + measured; resolved-ssot upstream (tool/ubu_bootstrap.sh bootstrap subcommand).",
+          "path": "Dockerfile · wrangler.jsonc · src/worker.js · deploy.sh · cutover-domain.sh"
+        },
+        {
+          "name": "Repo tree",
+          "summary": "src/ (OUROBOROS loop / hexa kick driver) · service/ (hosted multi-tenant service layer — http_phanes.hexa, jobctl.sh, job_runner.sh, queue_worker.sh, build.sh, API.md) · web/ (tenant-facing surface) · docs/ (design & ops — TRADEMARK.md, audit-prelaunch-c2-c3.md) · PAPER/ (gated papers, one slug per terminal discovery) · archive/ (superseded) · CLAIMS.tape (audit index of verifiable claims) · NEXUS.tape (cross-repo link registry) · ARCHITECTURE.json (this SSOT) + ARCHITECTURE.html (viewer) · CHANGELOG.md · CLAUDE.md · LICENSE."
+        }
+      ]
+    },
+    {
+      "name": "📥 ARXIV A4 cross-pollination map (from hexa-lang ARXIV A4)",
+      "summary": "A handoff from hexa-lang's ARXIV domain A4 (PHANES axis): 10 absorbed autonomous-discovery / OUROBOROS papers (cs.AI/LG/MA/NE) mapped onto phanes' surfaces. verify-able = 0 (honest, as expected — PHANES is a systems/SaaS axis + OUROBOROS-engine consumer, so it has no closed-form hexa verify --expr atom; isomorphic to ANIMA A2, opposite to DEMIURGE A3 verify-native). A4 value = citation + cross-pollination. KEY FINDING: phanes' OUROBOROS engine (hexa-lang compiler/drill/{drill,round}.hexa) ALREADY implements the loops these papers describe. Folded from INBOX.log.md. verdict (ASCII) = hexa-lang:ARXIV/.verdicts/arxiv-phanes-absorb/triage_a4.txt; docs = hexa-lang:ARXIV/docs/a4-phanes-axis.md.",
+      "children": [
+        {
+          "name": "Engine already implements the absorbed loops",
+          "summary": "open-endedness/novelty-until-exhaustion → drill.hexa 'saturation (round yield = 0) or max-rounds'. novelty-search/QD stop-criterion → round.hexa net_novel == 0 (the C5 novelty-fixpoint signal itself). verifier-driven RL / RLVR / VLM-as-judge → drill.hexa pluggable verifier + _honesty_gate (per-round verdict audit). provenance/discovery-catalog → overlay accumulation (overlay_append_lines; later rounds see the atlas overlay). AI-Scientist tenant-objective → phanes job model {seed, verifier_ref, rounds_cap}."
+        },
+        {
+          "name": "4-surface paper map",
+          "summary": "OUROBOROS discovery loop ← 2406.04268 Open-Endedness-Essential-for-ASI · 2003.03384 AutoML-Zero · 2511.02864 AlphaEvolve (the DIRECT hosted analog) · 2504.05108 Algorithm-Discovery-with-LLMs. Pluggable verifier gate ← 2405.15568 OMNI-EPIC (verifier-as-code) · 2602.11549 Native-Reasoning-on-Unverifiable-Data (tenant-verifier-as-sole-authority frontier; motivates the P2.6 upstream patch). provenance/catalog ← 2508.15126 aiXiv · 2511.02864 AlphaEvolve (refine audit trail). tenant-objective model ← 2306.01711 OMNI · 2502.14297 Sakana-AI-Scientist-eval (over-claim independent eval = @D g_honest_scope precedent) · 2504.21024 WebEvolver. STRONGEST: AlphaEvolve = phanes is a tenant-pluggable hosted AlphaEvolve (honest-scope citation basis for README/marketing, no over-claim)."
+        },
+        {
+          "name": "Future verify-able candidate seed (not 🟢 yet)",
+          "summary": "net-novelty-rate / saturation-round closed-form — round.hexa already computes net_novel (the C5 novelty fixpoint). An instrumented 'expected rounds to saturation' or 'novelty decay rate' closed form could become a hexa verify --expr atom in a future engine-instrumentation lane (also ties to metering/billing-basis — 'billed per OUROBOROS round'). This is engine work, not arxiv-citation math, so it does NOT count as an A4 verify; quantifying it upstream would go via hexa-lang inbox/patches (t_downstream_discipline)."
+        }
+      ]
+    },
+    {
+      "name": "⚖️ LATTICE_POLICY — real-limits-first verification (cross-project)",
+      "summary": "Cross-project policy (scope: all dancinlab projects + future repos), referenced by commons g25 + g26. ONE LINE: a project's ceiling is set by real mathematical/physical/engineering limits, NOT by the n=6 lattice — the lattice is a TOOL, not a CONSTRAINT. Folded from LATTICE_POLICY.md. For phanes this grounds the honest-scope contract: a discovery is judged against real falsifiers (the tenant verifier + real thresholds), never a self-consistent tautology.",
+      "children": [
+        {
+          "name": "The two lattice usages",
+          "summary": "Native invariant (project uses n=6 as an explicit design invariant, e.g. isa_n6/hexa1/npu_n6) = VALID. Self-imposed ceiling (using 'must be n=6-compatible' as a constraint) = INVALID artificial bottleneck. Anti-patterns (all dishonest): fit-to-convenient-number, arithmetic disguised as a physical limit, tautology (always-passes = zero verification power), external over-claim."
+        },
+        {
+          "name": "The real ceiling — math · physics · engineering",
+          "summary": "Mathematical: Shannon entropy H=−Σ p log p · Kolmogorov lower bound · computability (Halting/Rice) · Bekenstein bound · statistical power · PAC-learning. Physical: c · ℏ · k (Landauer) · Stefan-Boltzmann · Carnot · Bremermann · Margolus-Levitin · Bekenstein-Hawking. Engineering: fab throughput · grid capacity · launch cost/kg · permit/funding/labor envelopes · patent thicket — each from the entity's OWN published data."
+        },
+        {
+          "name": "Verification standard + application tiers + operator stance",
+          "summary": "STANDARD: no lattice anchor alone (never a lattice tautology as a sole HARD check); real-limit anchor first (≥1 limit from §2); falsifiers on real thresholds; no external over-claim. TIERS: lattice-native (n=6 is spec) · lattice-acceptor (own domain physics limits) · external envelope (NO lattice HARD check / χ²-falsifier; disclose 'n=6 is our framing'). OPERATOR STANCE: the first question is NOT 'how does this fit n=6?' but 'what is this domain's REAL invariant?'; use the lattice only if it appears naturally."
+        }
+      ]
+    }
+  ]
+}
