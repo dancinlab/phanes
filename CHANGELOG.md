@@ -8,6 +8,19 @@ For the full audit trail, see `git log`.
 
 ## 2026-06-18
 
+- **ARCHITECTURE.json — lossless hierarchical re-shape (commons c4)** — decomposed
+  the over-long ` · `/` → `-joined cells (longest ~1128 chars; ~56 fields >250) into a
+  real `children` tree: each parent keeps a short role line, every list-item / →-chain
+  stage / `[ ]` checklist row / labeled measured-record becomes its own child node with
+  the verbatim fragment text (leading separator preserved). Decomposed nodes: GOAL/IS
+  scope-B chain, D19/D21/D22/D23/D24, P1–P5 phase records + the P-A/P-B/P-D/P-E
+  follow-up checklists, the ARCHITECTURE 2-tier surfaces (web/worker/data-plane/build/
+  repo-tree), the ARXIV A4 maps, and the LATTICE_POLICY sections. Coherent
+  decision-rationale prose (D1–D18 etc.) left intact per c4 (don't shred sentences).
+  58 → 167 nodes. Losslessness verified by non-whitespace char-multiset: 0 original
+  chars dropped. Same schema (`name`/`summary`/`children`); JSON validates;
+  ARCHITECTURE.html viewer renders unchanged (generic depth recursion).
+
 - **harness 세팅** — applied the harness profile (strict by default):
   `harness.config.json` + `.harness/{enforcement,keywords,severity-map,prefs}.json`
   + `scripts/harness` wrapper + `.claude/settings.json` hooks

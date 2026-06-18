@@ -22,7 +22,33 @@
       "children": [
         {
           "name": "IS — scope B (the chain)",
-          "summary": "hexa kick (OUROBOROS goal→falsifier→saturation, hexa-lang upstream, cycle h36 COMPLETE) → ★ pluggable seed + tenant verifier/oracle abstraction (B's core NEW engine surface, upstream inbox/patches candidate) → phanes control plane (auth · tenant isolation · job queue · metering) → phanes compute plane (Linux fleet · HEXA_VAL_ARENA=0 · per-job overlay) → per-tenant verified result/catalog (provenance · falsifier audit trail · export). = the web-ification of 'a company safely runs anything through hexa kick given a measurable objective + verifier'."
+          "summary": "The B-scope chain — five stages from the upstream engine to the per-tenant verified result.",
+          "children": [
+            {
+              "name": "hexa kick (upstream engine)",
+              "summary": "hexa kick (OUROBOROS goal→falsifier→saturation, hexa-lang upstream, cycle h36 COMPLETE)"
+            },
+            {
+              "name": "★ pluggable seed + tenant verifier/oracle abstraction",
+              "summary": "→ ★ pluggable seed + tenant verifier/oracle abstraction (B's core NEW engine surface, upstream inbox/patches candidate)"
+            },
+            {
+              "name": "phanes control plane",
+              "summary": "→ phanes control plane (auth · tenant isolation · job queue · metering)"
+            },
+            {
+              "name": "phanes compute plane",
+              "summary": "→ phanes compute plane (Linux fleet · HEXA_VAL_ARENA=0 · per-job overlay)"
+            },
+            {
+              "name": "per-tenant verified result/catalog",
+              "summary": "→ per-tenant verified result/catalog (provenance · falsifier audit trail · export)"
+            },
+            {
+              "name": "= the web-ification",
+              "summary": ". = the web-ification of 'a company safely runs anything through hexa kick given a measurable objective + verifier'."
+            }
+          ]
         },
         {
           "name": "NOT — what phanes is not",
@@ -126,8 +152,22 @@
         },
         {
           "name": "D19 Discovery absorption → hexa-lang atlas (direction pinned)",
-          "summary": "PINNED DIRECTION (not yet implemented), per user directive 'kick 으로 발견되는 방정식들도 흡수해야되': validated discoveries phanes' OUROBOROS engine produces feed back UPSTREAM into hexa-lang's atlas, closing the loop ecosystem-wide (phanes = a discovery FEEDER, mirroring qrng/qmirror/sim-universe absorbs). OPEN SUB-GATES (19a opt-in policy — tenant data is theirs, scope B, no silent absorption; 19b eligibility — likely verifier-passed + saturated only; 19c pipeline — job result → absorption serializer → hexa-lang inbox/notes → review → atlas citation). Depends on D18/D21 (structured discovery record). HONEST SCOPE: nothing about absorption ships yet.",
-          "status": "PINNED — sub-gates open"
+          "summary": "PINNED DIRECTION (not yet implemented), per user directive 'kick 으로 발견되는 방정식들도 흡수해야되':",
+          "status": "PINNED — sub-gates open",
+          "children": [
+            {
+              "name": "Direction",
+              "summary": " validated discoveries phanes' OUROBOROS engine produces feed back UPSTREAM into hexa-lang's atlas, closing the loop ecosystem-wide (phanes = a discovery FEEDER, mirroring qrng/qmirror/sim-universe absorbs)."
+            },
+            {
+              "name": "OPEN SUB-GATES",
+              "summary": "OPEN SUB-GATES (19a opt-in policy — tenant data is theirs, scope B, no silent absorption; 19b eligibility — likely verifier-passed + saturated only; 19c pipeline — job result → absorption serializer → hexa-lang inbox/notes → review → atlas citation)."
+            },
+            {
+              "name": "Depends + honest scope",
+              "summary": "Depends on D18/D21 (structured discovery record). HONEST SCOPE: nothing about absorption ships yet."
+            }
+          ]
         },
         {
           "name": "D20 Domain & DNS = dancinlab.org on Cloudflare",
@@ -136,23 +176,111 @@
         },
         {
           "name": "D21 Datastore = ALL Cloudflare R2 (supersedes D15 + D18)",
-          "summary": "The entire datastore — overlay blobs AND structured records (sessions, tenants, jobs) — lives in Cloudflare R2 (S3-compatible). DynamoDB DROPPED, AWS S3 DROPPED. SUPERSEDES D15 + D18. User directive 'all r2'. Resolves the AWS-IAM friction: phanes makes ZERO AWS API calls; the only storage credential is a Cloudflare R2 API token (no AWS IAM user). R2 exposes an S3-compatible SigV4 API (service='s3', region='auto', host <acct>.r2.cloudflarestorage.com) — the existing SigV4 signer (stdlib/aws/sigv4.hexa) works unchanged. Object layout: sessions/<sid>.json · tenants/<name>.json · tenants/<name>/jobs/<reverse-ts>-<id>.json · overlays/<id>.n6; newest-N = ListObjectsV2 + client-side sort. R2 free tier + free egress. HONEST SCOPE: ListObjectsV2 client-side sort is slower than a DynamoDB Query (fine at low volume; a maintained _index.json is the future optimization).",
-          "status": "DECIDED — ALL-R2 (supersedes D15+D18)"
+          "summary": "The entire datastore — overlay blobs AND structured records (sessions, tenants, jobs) — lives in Cloudflare R2 (S3-compatible).",
+          "status": "DECIDED — ALL-R2 (supersedes D15+D18)",
+          "children": [
+            {
+              "name": "Drops + supersede",
+              "summary": "DynamoDB DROPPED, AWS S3 DROPPED. SUPERSEDES D15 + D18. User directive 'all r2'."
+            },
+            {
+              "name": "Resolves AWS-IAM friction",
+              "summary": "Resolves the AWS-IAM friction: phanes makes ZERO AWS API calls; the only storage credential is a Cloudflare R2 API token (no AWS IAM user)."
+            },
+            {
+              "name": "S3-compatible SigV4",
+              "summary": "R2 exposes an S3-compatible SigV4 API (service='s3', region='auto', host <acct>.r2.cloudflarestorage.com) — the existing SigV4 signer (stdlib/aws/sigv4.hexa) works unchanged."
+            },
+            {
+              "name": "Object layout",
+              "summary": "Object layout: sessions/<sid>.json · tenants/<name>.json · tenants/<name>/jobs/<reverse-ts>-<id>.json · overlays/<id>.n6; newest-N = ListObjectsV2 + client-side sort. R2 free tier + free egress."
+            },
+            {
+              "name": "HONEST SCOPE",
+              "summary": "HONEST SCOPE: ListObjectsV2 client-side sort is slower than a DynamoDB Query (fine at low volume; a maintained _index.json is the future optimization)."
+            }
+          ]
         },
         {
           "name": "D22 Compute host = 나 Cloudflare Containers, 2-tier (F-D22 PASS)",
-          "summary": "Cloudflare Containers (NOT EC2 — D11 superseded for compute; the AWS account is no longer needed). Topology: TWO container classes (web + worker) DECOUPLED through an R2-backed job queue, with the WORKER class horizontally scalable to N instances. Web requests are ms; an OUROBOROS cycle is minutes+ — co-locating starves web latency / a container cap takes the web tier down / a redeploy kills in-flight jobs. Split + queue = zero-downtime web rolls while workers drain. Single provider with the datastore (D21 R2). FALSIFIER F-D22 RAN + PASSED (measured, not reasoned): a real --rounds 5 kick measured wall=75.0s, peak RSS ≈ 4.02 GiB → standard-1 (4 GiB) is infeasible (OOM), standard-2 (6 GiB) is the WORKER FLOOR. Two binding constraints: (1) worker sizing floor = standard-2 (≥6 GiB), re-measure RSS before raising PHANES_ROUNDS_MAX; (2) worker must set sleepAfter > max job wall-time (containers#162) so a long kick is never sleep-killed. EC2-worker fallback (D22') NOT triggered.",
-          "status": "LOCKED — F-D22 PASS (supersedes D11 for compute)"
+          "summary": "Cloudflare Containers (NOT EC2 — D11 superseded for compute; the AWS account is no longer needed).",
+          "status": "LOCKED — F-D22 PASS (supersedes D11 for compute)",
+          "children": [
+            {
+              "name": "Topology",
+              "summary": "Topology: TWO container classes (web + worker) DECOUPLED through an R2-backed job queue, with the WORKER class horizontally scalable to N instances."
+            },
+            {
+              "name": "Why split + queue",
+              "summary": "Web requests are ms; an OUROBOROS cycle is minutes+ — co-locating starves web latency / a container cap takes the web tier down / a redeploy kills in-flight jobs. Split + queue = zero-downtime web rolls while workers drain. Single provider with the datastore (D21 R2)."
+            },
+            {
+              "name": "Falsifier F-D22 (measured)",
+              "summary": "FALSIFIER F-D22 RAN + PASSED (measured, not reasoned): a real --rounds 5 kick measured wall=75.0s, peak RSS ≈ 4.02 GiB → standard-1 (4 GiB) is infeasible (OOM), standard-2 (6 GiB) is the WORKER FLOOR."
+            },
+            {
+              "name": "Two binding constraints",
+              "summary": "Two binding constraints: (1) worker sizing floor = standard-2 (≥6 GiB), re-measure RSS before raising PHANES_ROUNDS_MAX; (2) worker must set sleepAfter > max job wall-time (containers#162) so a long kick is never sleep-killed."
+            },
+            {
+              "name": "Fallback not triggered",
+              "summary": "EC2-worker fallback (D22') NOT triggered."
+            }
+          ]
         },
         {
           "name": "D23 Job queue = 둘 다 (R2 system-of-record + CF Queues dispatch signal)",
-          "summary": "HYBRID — the two are different LAYERS, not competing stores. Cloudflare R2 = system of record (durable job state + artifacts as R2 objects, per D21). Cloudflare Queues = the dispatch SIGNAL only: on submit the web tier writes the durable job record to R2 THEN sends a tiny {tenant, job_id} pointer message to a CF Queue; workers are queue consumers (woken on demand, no R2 list-poll latency), pull the full record from R2, run kick, write status/overlay back. The queue carries a pointer, never the data. At-least-once + visibility timeout fits the idempotent-per-job_id kick model. FALSIFIER F-D23 (measured end-to-end before B3 locks). HONEST SCOPE: this reshapes the shell substrate (tenants/jobs are owned by jobctl/job_runner, not the clean hexa _kv_ seam) — a worker-tier rearchitecture, its own phase B3. B3 progress: R2 object CLI op landed (PHANES_R2_OP get/put/del/list); get/put/del round-trip exit-correct; LIST FAILED (SigV4 UriEncode/query-canonicalization punted in stdlib/aws/sigv4.hexa) → filed upstream (later resolved-ssot).",
-          "status": "DECIDED — R2 record + CF Queues pointer"
+          "summary": "HYBRID — the two are different LAYERS, not competing stores.",
+          "status": "DECIDED — R2 record + CF Queues pointer",
+          "children": [
+            {
+              "name": "R2 = system of record",
+              "summary": "Cloudflare R2 = system of record (durable job state + artifacts as R2 objects, per D21)."
+            },
+            {
+              "name": "CF Queues = dispatch signal",
+              "summary": "Cloudflare Queues = the dispatch SIGNAL only: on submit the web tier writes the durable job record to R2 THEN sends a tiny {tenant, job_id} pointer message to a CF Queue; workers are queue consumers (woken on demand, no R2 list-poll latency), pull the full record from R2, run kick, write status/overlay back. The queue carries a pointer, never the data."
+            },
+            {
+              "name": "Delivery semantics",
+              "summary": "At-least-once + visibility timeout fits the idempotent-per-job_id kick model. FALSIFIER F-D23 (measured end-to-end before B3 locks)."
+            },
+            {
+              "name": "HONEST SCOPE",
+              "summary": "HONEST SCOPE: this reshapes the shell substrate (tenants/jobs are owned by jobctl/job_runner, not the clean hexa _kv_ seam) — a worker-tier rearchitecture, its own phase B3."
+            },
+            {
+              "name": "B3 progress",
+              "summary": "B3 progress: R2 object CLI op landed (PHANES_R2_OP get/put/del/list); get/put/del round-trip exit-correct; LIST FAILED (SigV4 UriEncode/query-canonicalization punted in stdlib/aws/sigv4.hexa) → filed upstream (later resolved-ssot)."
+            }
+          ]
         },
         {
           "name": "D24 Queue access model = a (CF Queues REST API, F-D23 PASS)",
-          "summary": "CF Queues REST API direct from the hexa-native binary (NOT a Worker sidecar (b), NOT container-in-a-Worker (c)). CF Queues exposes a full HTTP REST API (HTTP-push producer, HTTP-pull consumer, ack) so a non-Worker process does the whole lifecycle over the same signed-curl carrier phanes uses for R2. FALSIFIER F-D23 RAN + PASSED (live CF): create queue → add http_pull consumer → send {tenant,job_id} → pull (body byte-EQ to sent) → ack (ackCount=1) → delete. The pointer message round-trips byte-exact from a non-Worker caller. B3 FULL-CHAIN CLOSURE measured end-to-end on live CF: producer http_phanes.hexa::q_send (3f7f728) · R2 job spec jobctl.sh (96790da) · consumer service/queue_worker.sh (REST pull → R2 GetObject → job_runner.sh one real kick → R2 PutObject terminal status → batch-ack). HONEST SCOPE: F-D23 used the global key; production must use a scoped CF token (pre-launch obligation). LIVE DEPLOY (2026-05-19): linux self-host build SOLVED (4-step from-source chain), container images built, Workers Paid activated, deploy completed, dancinlab.org cut over to the phanes Worker (all routes 200, mail untouched).",
-          "status": "LOCKED — F-D23 PASS · DEPLOYED LIVE"
+          "summary": "CF Queues REST API direct from the hexa-native binary (NOT a Worker sidecar (b), NOT container-in-a-Worker (c)).",
+          "status": "LOCKED — F-D23 PASS · DEPLOYED LIVE",
+          "children": [
+            {
+              "name": "Why direct REST",
+              "summary": "CF Queues exposes a full HTTP REST API (HTTP-push producer, HTTP-pull consumer, ack) so a non-Worker process does the whole lifecycle over the same signed-curl carrier phanes uses for R2."
+            },
+            {
+              "name": "Falsifier F-D23 (measured)",
+              "summary": "FALSIFIER F-D23 RAN + PASSED (live CF): create queue → add http_pull consumer → send {tenant,job_id} → pull (body byte-EQ to sent) → ack (ackCount=1) → delete. The pointer message round-trips byte-exact from a non-Worker caller."
+            },
+            {
+              "name": "B3 full-chain closure",
+              "summary": "B3 FULL-CHAIN CLOSURE measured end-to-end on live CF: producer http_phanes.hexa::q_send (3f7f728) · R2 job spec jobctl.sh (96790da) · consumer service/queue_worker.sh (REST pull → R2 GetObject → job_runner.sh one real kick → R2 PutObject terminal status → batch-ack)."
+            },
+            {
+              "name": "HONEST SCOPE",
+              "summary": "HONEST SCOPE: F-D23 used the global key; production must use a scoped CF token (pre-launch obligation)."
+            },
+            {
+              "name": "LIVE DEPLOY (2026-05-19)",
+              "summary": "LIVE DEPLOY (2026-05-19): linux self-host build SOLVED (4-step from-source chain), container images built, Workers Paid activated, deploy completed, dancinlab.org cut over to the phanes Worker (all routes 200, mail untouched)."
+            }
+          ]
         }
       ]
     },
@@ -167,28 +295,126 @@
         },
         {
           "name": "P1 — Job API substrate (the 나 layer everything sits on)",
-          "summary": "The spine both surfaces consume. POST /job {seed, verifier_ref, rounds_cap} → enqueue → worker spawns hexa kick on the Linux fleet (Mac native forbidden by Axis D) in a per-job $HOME-jail with HEXA_VAL_ARENA=0, seed validated, round/wall capped → capture DrillResult + overlay → GET /job/:id[/result]; auth = API key, per-tenant sandbox = isolation. P1a (measured arm64 macOS): job_runner.sh + jobctl.sh + API.md; cheap-oracle 1-round rc=0, isolation proven, full self-test PASS, wrong-token rc=4. P1b (measured, hexa-native HTTP): http_phanes.hexa over stdlib/net + build.sh (393KB arm64) + web/index.html; smoke 7/7 PASS incl. seed-with-= intact end-to-end; honest fix = form→JSON body pivot (parse_query naive = split → json_parse). Upstream win: phanes-hx-data-dir-per-tenant-isolation RESOLVED SSOT same-day.",
-          "status": "DONE — P1a + P1b measured"
+          "summary": "The spine both surfaces consume.",
+          "status": "DONE — P1a + P1b measured",
+          "children": [
+            {
+              "name": "Job flow",
+              "summary": "POST /job {seed, verifier_ref, rounds_cap} → enqueue → worker spawns hexa kick on the Linux fleet (Mac native forbidden by Axis D) in a per-job $HOME-jail with HEXA_VAL_ARENA=0, seed validated, round/wall capped → capture DrillResult + overlay → GET /job/:id[/result]; auth = API key, per-tenant sandbox = isolation."
+            },
+            {
+              "name": "P1a (measured arm64 macOS)",
+              "summary": "P1a (measured arm64 macOS): job_runner.sh + jobctl.sh + API.md; cheap-oracle 1-round rc=0, isolation proven, full self-test PASS, wrong-token rc=4."
+            },
+            {
+              "name": "P1b (measured, hexa-native HTTP)",
+              "summary": "P1b (measured, hexa-native HTTP): http_phanes.hexa over stdlib/net + build.sh (393KB arm64) + web/index.html; smoke 7/7 PASS incl. seed-with-= intact end-to-end; honest fix = form→JSON body pivot (parse_query naive = split → json_parse)."
+            },
+            {
+              "name": "Upstream win",
+              "summary": "Upstream win: phanes-hx-data-dir-per-tenant-isolation RESOLVED SSOT same-day."
+            }
+          ]
         },
         {
           "name": "P2 — Compute-plane hardening",
-          "summary": "P2.1 ms wall meter DONE (perl Time::HiRes, job.json wall_ms + wall_sec, wall_ms=1312). P2.2 concurrency MEASURED: isolation HOLDS at N=4 but service serialized 4.4/10 (stdlib/net/http_server.hexa sequential accept-loop). P2.x async-submit pivot DONE: instrument-first (concurrent_serve.hexa docstring = single-thread serial, port wouldn't help) → decouple HTTP throughput from kick wall at the dispatcher layer (jobctl submit backgrounds job_runner via nohup+disown + atomic tmp+rename status transitions) → baseline_submit_ms 162 (vs 1530), 4-job end-to-end 2360ms (~2.9× absolute throughput), engine PARTIAL parallel 1.7/10. P2.3 HX_DATA_DIR PENDING upstream binary promote (later promoted, commit 37c66b2). P2.4 post-hoc tenant verifier hook DONE (--verifier PATH in $HOME-jail, env -i + timeout, verifier_rc = sole authority for objective-met). P2.5 production Linux fleet routing DEFERRED (P3-coupled; PHANES_ENGINE_HOST → ssh kick). P2.6 pluggable-verifier-oracle upstream patch (post-hoc hook is the interim).",
-          "status": "DONE — P2.1+P2.2+P2.4+P2.x measured"
+          "summary": "Compute-plane hardening — the P2.x measured records.",
+          "status": "DONE — P2.1+P2.2+P2.4+P2.x measured",
+          "children": [
+            {
+              "name": "P2.1 ms wall meter",
+              "summary": "P2.1 ms wall meter DONE (perl Time::HiRes, job.json wall_ms + wall_sec, wall_ms=1312)."
+            },
+            {
+              "name": "P2.2 concurrency",
+              "summary": "P2.2 concurrency MEASURED: isolation HOLDS at N=4 but service serialized 4.4/10 (stdlib/net/http_server.hexa sequential accept-loop)."
+            },
+            {
+              "name": "P2.x async-submit pivot",
+              "summary": "P2.x async-submit pivot DONE: instrument-first (concurrent_serve.hexa docstring = single-thread serial, port wouldn't help) → decouple HTTP throughput from kick wall at the dispatcher layer (jobctl submit backgrounds job_runner via nohup+disown + atomic tmp+rename status transitions) → baseline_submit_ms 162 (vs 1530), 4-job end-to-end 2360ms (~2.9× absolute throughput), engine PARTIAL parallel 1.7/10."
+            },
+            {
+              "name": "P2.3 HX_DATA_DIR",
+              "summary": "P2.3 HX_DATA_DIR PENDING upstream binary promote (later promoted, commit 37c66b2)."
+            },
+            {
+              "name": "P2.4 post-hoc tenant verifier hook",
+              "summary": "P2.4 post-hoc tenant verifier hook DONE (--verifier PATH in $HOME-jail, env -i + timeout, verifier_rc = sole authority for objective-met)."
+            },
+            {
+              "name": "P2.5 production Linux fleet routing",
+              "summary": "P2.5 production Linux fleet routing DEFERRED (P3-coupled; PHANES_ENGINE_HOST → ssh kick)."
+            },
+            {
+              "name": "P2.6 pluggable-verifier-oracle upstream patch",
+              "summary": "P2.6 pluggable-verifier-oracle upstream patch (post-hoc hook is the interim)."
+            }
+          ]
         },
         {
           "name": "P3 — Dashboard (D3 = 다)",
-          "summary": "Accounts/orgs auth; job-submit UI incl. verifier upload/reference; result browser + per-tenant discovery catalog (their private echoes, exportable); billing/metering console — sits entirely on the P1 API. P3.thin DONE (measured, HTMX server-rendered, D8 LOCKED): GET /dashboard (full HTML page, HTMX 1.9.10) · POST /dashboard/jobs (form-body → urldecode → jobctl submit → <li> job-row with hx-trigger self-poll) · GET /dashboard/jobs/<id> (render <li>, omit hx-trigger on done/failed so HTMX auto-stops polling). Smoke 5/5 PASS (page · submit · poll trail · final row wall_ms=1167/verifier_rc=0 · negative 400). HONEST GAPS: HTMX from unpkg CDN (self-host = P3.x); auth token in HTML query string (production needs HttpOnly cookies / signed handles); single tenant per page (org switcher = P3.x).",
-          "status": "DONE — P3.thin measured"
+          "summary": "Accounts/orgs auth; job-submit UI incl. verifier upload/reference; result browser + per-tenant discovery catalog (their private echoes, exportable); billing/metering console — sits entirely on the P1 API.",
+          "status": "DONE — P3.thin measured",
+          "children": [
+            {
+              "name": "P3.thin (measured, D8 LOCKED)",
+              "summary": "P3.thin DONE (measured, HTMX server-rendered, D8 LOCKED): GET /dashboard (full HTML page, HTMX 1.9.10) · POST /dashboard/jobs (form-body → urldecode → jobctl submit → <li> job-row with hx-trigger self-poll) · GET /dashboard/jobs/<id> (render <li>, omit hx-trigger on done/failed so HTMX auto-stops polling)."
+            },
+            {
+              "name": "Smoke 5/5 PASS",
+              "summary": "Smoke 5/5 PASS (page · submit · poll trail · final row wall_ms=1167/verifier_rc=0 · negative 400)."
+            },
+            {
+              "name": "HONEST GAPS",
+              "summary": "HONEST GAPS: HTMX from unpkg CDN (self-host = P3.x); auth token in HTML query string (production needs HttpOnly cookies / signed handles); single tenant per page (org switcher = P3.x)."
+            }
+          ]
         },
         {
           "name": "P4 — Public demo funnel (D3 = 가)",
-          "summary": "Static landing + preset/curated objective+verifier scenarios only, round-capped, sandboxed (@D g_public_demo_constraint — NO arbitrary verifier on the unauthenticated surface). CTA → dashboard signup. DONE (measured, D10 LOCKED = pre-computed/cached, zero live compute): GET /demo (Palantir Titanium design system; hero · what-this-is · curated presets · honest scope · CTA → /login). 3 curated preset scenarios as constant data (01 σ(6)=12 · 02 σ(28)=56 with no-gap-scan falsifier · 03 Euclid 2^(p-1)(2^p−1) instantiating p=5 → 496); each shows objective + preset verifier + round cap + goal→falsifier→saturation trail + verified result + verifier rc=0. Smoke: GET /demo 200, all 3 scenarios + CTA present, all existing routes still 200. HONEST GAPS: the 3 cached results are representative curated examples hand-authored from known mathematics ('cached preset run'), to be regenerated from real fleet job.json captures when P2.5 is live.",
-          "status": "DONE — measured"
+          "summary": "Static landing + preset/curated objective+verifier scenarios only, round-capped, sandboxed (@D g_public_demo_constraint — NO arbitrary verifier on the unauthenticated surface). CTA → dashboard signup.",
+          "status": "DONE — measured",
+          "children": [
+            {
+              "name": "DONE (measured, D10 LOCKED)",
+              "summary": "DONE (measured, D10 LOCKED = pre-computed/cached, zero live compute): GET /demo (Palantir Titanium design system; hero · what-this-is · curated presets · honest scope · CTA → /login)."
+            },
+            {
+              "name": "3 curated preset scenarios",
+              "summary": "3 curated preset scenarios as constant data (01 σ(6)=12 · 02 σ(28)=56 with no-gap-scan falsifier · 03 Euclid 2^(p-1)(2^p−1) instantiating p=5 → 496); each shows objective + preset verifier + round cap + goal→falsifier→saturation trail + verified result + verifier rc=0."
+            },
+            {
+              "name": "Smoke",
+              "summary": "Smoke: GET /demo 200, all 3 scenarios + CTA present, all existing routes still 200."
+            },
+            {
+              "name": "HONEST GAPS",
+              "summary": "HONEST GAPS: the 3 cached results are representative curated examples hand-authored from known mathematics ('cached preset run'), to be regenerated from real fleet job.json captures when P2.5 is live."
+            }
+          ]
         },
         {
           "name": "P5 — Pre-public-launch gates",
-          "summary": "Trademark clearance — closed as specified: the formal USPTO class-9/42 search needs a registered attorney and cannot run in-repo; fully specified in docs/TRADEMARK.md §Formal Clearance (FC-1…FC-6), a defined external legal engagement gated to public launch via @D g_name_risk. Upstream patch adoption — done: HX_DATA_DIR kick binary promoted + wired into job_runner.sh (37c66b2); pluggable verifier landed; both verified. Honest-scope marketing review — done: C2/C3 audit found all rendered copy within scope (no over-claim, tenant verifier = sole authority); see docs/audit-prelaunch-c2-c3.md. P5 in-repo work complete; the only remaining pre-launch obligation is the external trademark engagement (FC-5 clearance opinion).",
-          "status": "DONE in-repo — external TM engagement owed"
+          "summary": "Pre-public-launch gates — three, each with its disposition.",
+          "status": "DONE in-repo — external TM engagement owed",
+          "children": [
+            {
+              "name": "Trademark clearance — closed as specified",
+              "summary": "Trademark clearance — closed as specified: the formal USPTO class-9/42 search needs a registered attorney and cannot run in-repo; fully specified in docs/TRADEMARK.md §Formal Clearance (FC-1…FC-6), a defined external legal engagement gated to public launch via @D g_name_risk."
+            },
+            {
+              "name": "Upstream patch adoption — done",
+              "summary": "Upstream patch adoption — done: HX_DATA_DIR kick binary promoted + wired into job_runner.sh (37c66b2); pluggable verifier landed; both verified."
+            },
+            {
+              "name": "Honest-scope marketing review — done",
+              "summary": "Honest-scope marketing review — done: C2/C3 audit found all rendered copy within scope (no over-claim, tenant verifier = sole authority); see docs/audit-prelaunch-c2-c3.md."
+            },
+            {
+              "name": "Remaining obligation",
+              "summary": "P5 in-repo work complete; the only remaining pre-launch obligation is the external trademark engagement (FC-5 clearance opinion)."
+            }
+          ]
         },
         {
           "name": "P6 — Post-launch operations follow-ons",
@@ -196,11 +422,47 @@
           "children": [
             {
               "name": "P-A · Deploy / ops follow-ups",
-              "summary": "[ ] Email routing — confirm hello@dancinlab.org lands in the team inbox; add CF Email Routing rule if needed. [ ] www.dancinlab.org — only the apex is bound; add www as a Workers Custom Domain or an apex↔www redirect. [ ] Scoped-token rotation — schedule rotation for cloudflare.deploy.token, cloudflare.queues.token, r2.phanes.*; record cadence. [ ] Worker-tier live smoke — verify end-to-end on live CF (real submit → phanes-phanesworker consumes the queue → R2 status flips)."
+              "summary": "Deploy / ops follow-ups — open checklist.",
+              "children": [
+                {
+                  "name": "[ ] Email routing",
+                  "summary": "[ ] Email routing — confirm hello@dancinlab.org lands in the team inbox; add CF Email Routing rule if needed."
+                },
+                {
+                  "name": "[ ] www.dancinlab.org",
+                  "summary": "[ ] www.dancinlab.org — only the apex is bound; add www as a Workers Custom Domain or an apex↔www redirect."
+                },
+                {
+                  "name": "[ ] Scoped-token rotation",
+                  "summary": "[ ] Scoped-token rotation — schedule rotation for cloudflare.deploy.token, cloudflare.queues.token, r2.phanes.*; record cadence."
+                },
+                {
+                  "name": "[ ] Worker-tier live smoke",
+                  "summary": "[ ] Worker-tier live smoke — verify end-to-end on live CF (real submit → phanes-phanesworker consumes the queue → R2 status flips)."
+                }
+              ]
             },
             {
               "name": "P-B · Datastore — B3 remainder (D21/D23 follow-ons)",
-              "summary": "[ ] overlay.n6 → R2 — queue_worker.sh writes terminal status but not yet the discovery overlay; copy to overlays/<job_id>.n6. [ ] Job records fully on R2 — only the tenant token is migrated; move job.json + status writes to R2 so web+worker share one system-of-record. [ ] handle_get_or_result R2 read-back — the web tier still reads job status from the local filesystem; point it at the R2 record. [ ] Newest-N job listing — r2_list (ListObjectsV2) depends on the upstream SigV4 UriEncode fix (filed + resolved-ssot); adopt once the hexa-lang binary phanes builds against carries it."
+              "summary": "Datastore — B3 remainder (D21/D23 follow-ons) — open checklist.",
+              "children": [
+                {
+                  "name": "[ ] overlay.n6 → R2",
+                  "summary": "[ ] overlay.n6 → R2 — queue_worker.sh writes terminal status but not yet the discovery overlay; copy to overlays/<job_id>.n6."
+                },
+                {
+                  "name": "[ ] Job records fully on R2",
+                  "summary": "[ ] Job records fully on R2 — only the tenant token is migrated; move job.json + status writes to R2 so web+worker share one system-of-record."
+                },
+                {
+                  "name": "[ ] handle_get_or_result R2 read-back",
+                  "summary": "[ ] handle_get_or_result R2 read-back — the web tier still reads job status from the local filesystem; point it at the R2 record."
+                },
+                {
+                  "name": "[ ] Newest-N job listing",
+                  "summary": "[ ] Newest-N job listing — r2_list (ListObjectsV2) depends on the upstream SigV4 UriEncode fix (filed + resolved-ssot); adopt once the hexa-lang binary phanes builds against carries it."
+                }
+              ]
             },
             {
               "name": "P-C · Deferred sub-gates",
@@ -208,11 +470,43 @@
             },
             {
               "name": "P-D · Pre-public-launch obligations (governance)",
-              "summary": "[ ] Trademark clearance — USPTO class-42 search/clearance for 'Phanes' (@D g_name_risk, D2 — user override on record; clearance owed before a public launch push). [ ] Honest-scope marketing review — audit all user-facing copy for over-claim (g3); verifier-as-sole-authority + no-over-claim wording must stay accurate. [ ] Upstream binary adoption — when hexa-lang promotes HX_DATA_DIR + pluggable-verifier, rebuild phanes against it and drop the interim $HOME-jail / post-hoc-verifier shims."
+              "summary": "Pre-public-launch obligations (governance) — open checklist.",
+              "children": [
+                {
+                  "name": "[ ] Trademark clearance",
+                  "summary": "[ ] Trademark clearance — USPTO class-42 search/clearance for 'Phanes' (@D g_name_risk, D2 — user override on record; clearance owed before a public launch push)."
+                },
+                {
+                  "name": "[ ] Honest-scope marketing review",
+                  "summary": "[ ] Honest-scope marketing review — audit all user-facing copy for over-claim (g3); verifier-as-sole-authority + no-over-claim wording must stay accurate."
+                },
+                {
+                  "name": "[ ] Upstream binary adoption",
+                  "summary": "[ ] Upstream binary adoption — when hexa-lang promotes HX_DATA_DIR + pluggable-verifier, rebuild phanes against it and drop the interim $HOME-jail / post-hoc-verifier shims."
+                }
+              ]
             },
             {
               "name": "P-E · Upstream handoffs (filed — track to landed)",
-              "summary": "[x] phanes-aws-sigv4-signer-for-stdlib — resolved-ssot. [x] phanes-sigv4-uriencode-query-canonicalization-for-s3-list — resolved-ssot (SigV4 UriEncode, 25/25; on hexa-lang origin/main). [x] phanes-linux-self-host-build-driver-for-containerization — resolved-ssot (tool/ubu_bootstrap.sh gained the verified bootstrap subcommand; a76637bf / fd6c0a07 / ac11281d). [ ] Confirm the SigV4 + ubu_bootstrap commits reach hexa-lang's pushed default branch, then bump Dockerfile HEXALANG_SHA to pick them up."
+              "summary": "Upstream handoffs (filed — track to landed) — checklist.",
+              "children": [
+                {
+                  "name": "[x] phanes-aws-sigv4-signer-for-stdlib",
+                  "summary": "[x] phanes-aws-sigv4-signer-for-stdlib — resolved-ssot."
+                },
+                {
+                  "name": "[x] phanes-sigv4-uriencode-query-canonicalization-for-s3-list",
+                  "summary": "[x] phanes-sigv4-uriencode-query-canonicalization-for-s3-list — resolved-ssot (SigV4 UriEncode, 25/25; on hexa-lang origin/main)."
+                },
+                {
+                  "name": "[x] phanes-linux-self-host-build-driver-for-containerization",
+                  "summary": "[x] phanes-linux-self-host-build-driver-for-containerization — resolved-ssot (tool/ubu_bootstrap.sh gained the verified bootstrap subcommand; a76637bf / fd6c0a07 / ac11281d)."
+                },
+                {
+                  "name": "[ ] Confirm commits reach hexa-lang default branch",
+                  "summary": "[ ] Confirm the SigV4 + ubu_bootstrap commits reach hexa-lang's pushed default branch, then bump Dockerfile HEXALANG_SHA to pick them up."
+                }
+              ]
             }
           ]
         }
@@ -228,13 +522,37 @@
         },
         {
           "name": "Web tier — phanes-phanesweb (Cloudflare Container std-1 ×3)",
-          "summary": "Stateless hexa-native HTTP server (service/http_phanes.hexa over stdlib/net). Serves a multilingual marketing site (cosmogony · Phanes · Demiurge · hexa-lang · Anima · Demo · Pricing · Contact), the public preset-only /demo (D10), the session-authenticated HTMX /dashboard (D8), and the job API (/v1/*). ms requests; sessions on R2 so instances are interchangeable. On submit: writes the durable job record to R2, then HTTP-pushes a {tenant, job_id} pointer to the CF Queue (q_send).",
-          "path": "service/http_phanes.hexa"
+          "summary": "Stateless hexa-native HTTP server (service/http_phanes.hexa over stdlib/net).",
+          "path": "service/http_phanes.hexa",
+          "children": [
+            {
+              "name": "Served surfaces",
+              "summary": "Serves a multilingual marketing site (cosmogony · Phanes · Demiurge · hexa-lang · Anima · Demo · Pricing · Contact), the public preset-only /demo (D10), the session-authenticated HTMX /dashboard (D8), and the job API (/v1/*)."
+            },
+            {
+              "name": "Statelessness",
+              "summary": "ms requests; sessions on R2 so instances are interchangeable."
+            },
+            {
+              "name": "On submit",
+              "summary": "On submit: writes the durable job record to R2, then HTTP-pushes a {tenant, job_id} pointer to the CF Queue (q_send)."
+            }
+          ]
         },
         {
           "name": "Worker tier — phanes-phanesworker (Cloudflare Container std-2 ×N)",
-          "summary": "Stateless, interchangeable, horizontally scalable (D22 floor = std-2 / ≥6 GiB per F-D22). A CF Queues consumer loop (service/queue_worker.sh): REST pull (scoped Bearer token) → R2 GetObject the full job spec → service/job_runner.sh runs ONE real hexa kick in a per-job $HOME-jail (HEXA_VAL_ARENA=0, seed validated, round/wall capped, optional tenant verifier sandboxed via env -i + timeout) → R2 PutObject terminal status → batch-ack. Must set sleepAfter > max job wall-time (containers#162).",
-          "path": "service/queue_worker.sh · service/job_runner.sh"
+          "summary": "Stateless, interchangeable, horizontally scalable (D22 floor = std-2 / ≥6 GiB per F-D22).",
+          "path": "service/queue_worker.sh · service/job_runner.sh",
+          "children": [
+            {
+              "name": "Consumer loop (service/queue_worker.sh)",
+              "summary": "A CF Queues consumer loop (service/queue_worker.sh): REST pull (scoped Bearer token) → R2 GetObject the full job spec → service/job_runner.sh runs ONE real hexa kick in a per-job $HOME-jail (HEXA_VAL_ARENA=0, seed validated, round/wall capped, optional tenant verifier sandboxed via env -i + timeout) → R2 PutObject terminal status → batch-ack."
+            },
+            {
+              "name": "sleepAfter constraint",
+              "summary": "Must set sleepAfter > max job wall-time (containers#162)."
+            }
+          ]
         },
         {
           "name": "Job queue — phanes-jobs (CF Queue, pointer signal) + R2 record (D23/D24)",
@@ -242,17 +560,99 @@
         },
         {
           "name": "Data plane — Cloudflare R2 (D21)",
-          "summary": "All storage — structured records + overlay blobs — as R2 objects (S3-compatible SigV4 API, service='s3', region='auto'). Layout: sessions/<sid>.json · tenants/<name>.json · tenants/<name>/jobs/<reverse-ts>-<id>.json · overlays/<id>.n6. Reached via the R2 object CLI op (PHANES_R2_OP get/put/del/list) reusing the one measured signer (stdlib/aws/sigv4.hexa) — no downstream signer copy. ZERO AWS API calls; one R2 API token is the only storage credential.",
-          "path": "stdlib/aws/sigv4.hexa (upstream) · http_phanes.hexa r2_* / _kv_*"
+          "summary": "All storage — structured records + overlay blobs — as R2 objects (S3-compatible SigV4 API, service='s3', region='auto').",
+          "path": "stdlib/aws/sigv4.hexa (upstream) · http_phanes.hexa r2_* / _kv_*",
+          "children": [
+            {
+              "name": "Object layout",
+              "summary": "Layout: sessions/<sid>.json · tenants/<name>.json · tenants/<name>/jobs/<reverse-ts>-<id>.json · overlays/<id>.n6."
+            },
+            {
+              "name": "R2 object CLI op",
+              "summary": "Reached via the R2 object CLI op (PHANES_R2_OP get/put/del/list) reusing the one measured signer (stdlib/aws/sigv4.hexa) — no downstream signer copy."
+            },
+            {
+              "name": "Single credential",
+              "summary": "ZERO AWS API calls; one R2 API token is the only storage credential."
+            }
+          ]
         },
         {
           "name": "Build + deploy — linux self-host + Dockerfile + deploy.sh (D14/D24)",
-          "summary": "Dockerfile (pinned-SHA upstream hexa-lang clone, the verified pure-from-source 4-step bootstrap: clang hexa_cc.c+runtime.c → hexa_v2; hexa_v2 main.hexa → driver C; clang → hexa; hexa_v2 module_loader.hexa → build/hexa_module_loader) → a working `hexa build` that flattens phanes' stdlib imports → bin/phanes-http (linux/amd64). wrangler.jsonc (PhanesWeb std-1×3 / PhanesWorker std-2×5), src/worker.js (@cloudflare/containers, envVars role switch + R2/Queue secret copy from Worker env to container envVars), deploy.sh / cutover-domain.sh. Redeploy = bash deploy.sh (colima Docker + cloudflare.deploy.token). Linux self-host was the real wall — SOLVED + measured; resolved-ssot upstream (tool/ubu_bootstrap.sh bootstrap subcommand).",
-          "path": "Dockerfile · wrangler.jsonc · src/worker.js · deploy.sh · cutover-domain.sh"
+          "summary": "Linux self-host build → bin/phanes-http, plus the Cloudflare deploy wiring (D14/D24).",
+          "path": "Dockerfile · wrangler.jsonc · src/worker.js · deploy.sh · cutover-domain.sh",
+          "children": [
+            {
+              "name": "Dockerfile build chain",
+              "summary": "Dockerfile (pinned-SHA upstream hexa-lang clone, the verified pure-from-source 4-step bootstrap: clang hexa_cc.c+runtime.c → hexa_v2; hexa_v2 main.hexa → driver C; clang → hexa; hexa_v2 module_loader.hexa → build/hexa_module_loader) → a working `hexa build` that flattens phanes' stdlib imports → bin/phanes-http (linux/amd64)."
+            },
+            {
+              "name": "Cloudflare wiring",
+              "summary": "wrangler.jsonc (PhanesWeb std-1×3 / PhanesWorker std-2×5), src/worker.js (@cloudflare/containers, envVars role switch + R2/Queue secret copy from Worker env to container envVars), deploy.sh / cutover-domain.sh."
+            },
+            {
+              "name": "Redeploy",
+              "summary": "Redeploy = bash deploy.sh (colima Docker + cloudflare.deploy.token)."
+            },
+            {
+              "name": "The real wall",
+              "summary": "Linux self-host was the real wall — SOLVED + measured; resolved-ssot upstream (tool/ubu_bootstrap.sh bootstrap subcommand)."
+            }
+          ]
         },
         {
           "name": "Repo tree",
-          "summary": "src/ (OUROBOROS loop / hexa kick driver) · service/ (hosted multi-tenant service layer — http_phanes.hexa, jobctl.sh, job_runner.sh, queue_worker.sh, build.sh, API.md) · web/ (tenant-facing surface) · docs/ (design & ops — TRADEMARK.md, audit-prelaunch-c2-c3.md) · PAPER/ (gated papers, one slug per terminal discovery) · archive/ (superseded) · CLAIMS.tape (audit index of verifiable claims) · NEXUS.tape (cross-repo link registry) · ARCHITECTURE.json (this SSOT) + ARCHITECTURE.html (viewer) · CHANGELOG.md · CLAUDE.md · LICENSE."
+          "summary": "Repo tree — top-level directories and files.",
+          "children": [
+            {
+              "name": "src/",
+              "summary": "src/ (OUROBOROS loop / hexa kick driver)"
+            },
+            {
+              "name": "service/",
+              "summary": "· service/ (hosted multi-tenant service layer — http_phanes.hexa, jobctl.sh, job_runner.sh, queue_worker.sh, build.sh, API.md)"
+            },
+            {
+              "name": "web/",
+              "summary": "· web/ (tenant-facing surface)"
+            },
+            {
+              "name": "docs/",
+              "summary": "· docs/ (design & ops — TRADEMARK.md, audit-prelaunch-c2-c3.md)"
+            },
+            {
+              "name": "PAPER/",
+              "summary": "· PAPER/ (gated papers, one slug per terminal discovery)"
+            },
+            {
+              "name": "archive/",
+              "summary": "· archive/ (superseded)"
+            },
+            {
+              "name": "CLAIMS.tape",
+              "summary": "· CLAIMS.tape (audit index of verifiable claims)"
+            },
+            {
+              "name": "NEXUS.tape",
+              "summary": "· NEXUS.tape (cross-repo link registry)"
+            },
+            {
+              "name": "ARCHITECTURE.json + ARCHITECTURE.html",
+              "summary": "· ARCHITECTURE.json (this SSOT) + ARCHITECTURE.html (viewer)"
+            },
+            {
+              "name": "CHANGELOG.md",
+              "summary": "· CHANGELOG.md"
+            },
+            {
+              "name": "CLAUDE.md",
+              "summary": "· CLAUDE.md"
+            },
+            {
+              "name": "LICENSE",
+              "summary": "· LICENSE."
+            }
+          ]
         }
       ]
     },
@@ -262,11 +662,55 @@
       "children": [
         {
           "name": "Engine already implements the absorbed loops",
-          "summary": "open-endedness/novelty-until-exhaustion → drill.hexa 'saturation (round yield = 0) or max-rounds'. novelty-search/QD stop-criterion → round.hexa net_novel == 0 (the C5 novelty-fixpoint signal itself). verifier-driven RL / RLVR / VLM-as-judge → drill.hexa pluggable verifier + _honesty_gate (per-round verdict audit). provenance/discovery-catalog → overlay accumulation (overlay_append_lines; later rounds see the atlas overlay). AI-Scientist tenant-objective → phanes job model {seed, verifier_ref, rounds_cap}."
+          "summary": "Each absorbed paper-loop maps onto an existing hexa-lang engine mechanism.",
+          "children": [
+            {
+              "name": "open-endedness/novelty-until-exhaustion",
+              "summary": "open-endedness/novelty-until-exhaustion → drill.hexa 'saturation (round yield = 0) or max-rounds'."
+            },
+            {
+              "name": "novelty-search/QD stop-criterion",
+              "summary": "novelty-search/QD stop-criterion → round.hexa net_novel == 0 (the C5 novelty-fixpoint signal itself)."
+            },
+            {
+              "name": "verifier-driven RL / RLVR / VLM-as-judge",
+              "summary": "verifier-driven RL / RLVR / VLM-as-judge → drill.hexa pluggable verifier + _honesty_gate (per-round verdict audit)."
+            },
+            {
+              "name": "provenance/discovery-catalog",
+              "summary": "provenance/discovery-catalog → overlay accumulation (overlay_append_lines; later rounds see the atlas overlay)."
+            },
+            {
+              "name": "AI-Scientist tenant-objective",
+              "summary": "AI-Scientist tenant-objective → phanes job model {seed, verifier_ref, rounds_cap}."
+            }
+          ]
         },
         {
           "name": "4-surface paper map",
-          "summary": "OUROBOROS discovery loop ← 2406.04268 Open-Endedness-Essential-for-ASI · 2003.03384 AutoML-Zero · 2511.02864 AlphaEvolve (the DIRECT hosted analog) · 2504.05108 Algorithm-Discovery-with-LLMs. Pluggable verifier gate ← 2405.15568 OMNI-EPIC (verifier-as-code) · 2602.11549 Native-Reasoning-on-Unverifiable-Data (tenant-verifier-as-sole-authority frontier; motivates the P2.6 upstream patch). provenance/catalog ← 2508.15126 aiXiv · 2511.02864 AlphaEvolve (refine audit trail). tenant-objective model ← 2306.01711 OMNI · 2502.14297 Sakana-AI-Scientist-eval (over-claim independent eval = @D g_honest_scope precedent) · 2504.21024 WebEvolver. STRONGEST: AlphaEvolve = phanes is a tenant-pluggable hosted AlphaEvolve (honest-scope citation basis for README/marketing, no over-claim)."
+          "summary": "Which absorbed papers cite onto each of phanes' four surfaces.",
+          "children": [
+            {
+              "name": "OUROBOROS discovery loop",
+              "summary": "OUROBOROS discovery loop ← 2406.04268 Open-Endedness-Essential-for-ASI · 2003.03384 AutoML-Zero · 2511.02864 AlphaEvolve (the DIRECT hosted analog) · 2504.05108 Algorithm-Discovery-with-LLMs."
+            },
+            {
+              "name": "Pluggable verifier gate",
+              "summary": "Pluggable verifier gate ← 2405.15568 OMNI-EPIC (verifier-as-code) · 2602.11549 Native-Reasoning-on-Unverifiable-Data (tenant-verifier-as-sole-authority frontier; motivates the P2.6 upstream patch)."
+            },
+            {
+              "name": "provenance/catalog",
+              "summary": "provenance/catalog ← 2508.15126 aiXiv · 2511.02864 AlphaEvolve (refine audit trail)."
+            },
+            {
+              "name": "tenant-objective model",
+              "summary": "tenant-objective model ← 2306.01711 OMNI · 2502.14297 Sakana-AI-Scientist-eval (over-claim independent eval = @D g_honest_scope precedent) · 2504.21024 WebEvolver."
+            },
+            {
+              "name": "STRONGEST",
+              "summary": "STRONGEST: AlphaEvolve = phanes is a tenant-pluggable hosted AlphaEvolve (honest-scope citation basis for README/marketing, no over-claim)."
+            }
+          ]
         },
         {
           "name": "Future verify-able candidate seed (not 🟢 yet)",
@@ -280,15 +724,57 @@
       "children": [
         {
           "name": "The two lattice usages",
-          "summary": "Native invariant (project uses n=6 as an explicit design invariant, e.g. isa_n6/hexa1/npu_n6) = VALID. Self-imposed ceiling (using 'must be n=6-compatible' as a constraint) = INVALID artificial bottleneck. Anti-patterns (all dishonest): fit-to-convenient-number, arithmetic disguised as a physical limit, tautology (always-passes = zero verification power), external over-claim."
+          "summary": "Two ways a project uses the n=6 lattice, plus the dishonest anti-patterns.",
+          "children": [
+            {
+              "name": "Native invariant = VALID",
+              "summary": "Native invariant (project uses n=6 as an explicit design invariant, e.g. isa_n6/hexa1/npu_n6) = VALID."
+            },
+            {
+              "name": "Self-imposed ceiling = INVALID",
+              "summary": "Self-imposed ceiling (using 'must be n=6-compatible' as a constraint) = INVALID artificial bottleneck."
+            },
+            {
+              "name": "Anti-patterns (all dishonest)",
+              "summary": "Anti-patterns (all dishonest): fit-to-convenient-number, arithmetic disguised as a physical limit, tautology (always-passes = zero verification power), external over-claim."
+            }
+          ]
         },
         {
           "name": "The real ceiling — math · physics · engineering",
-          "summary": "Mathematical: Shannon entropy H=−Σ p log p · Kolmogorov lower bound · computability (Halting/Rice) · Bekenstein bound · statistical power · PAC-learning. Physical: c · ℏ · k (Landauer) · Stefan-Boltzmann · Carnot · Bremermann · Margolus-Levitin · Bekenstein-Hawking. Engineering: fab throughput · grid capacity · launch cost/kg · permit/funding/labor envelopes · patent thicket — each from the entity's OWN published data."
+          "summary": "The real ceiling, by domain of limit.",
+          "children": [
+            {
+              "name": "Mathematical",
+              "summary": "Mathematical: Shannon entropy H=−Σ p log p · Kolmogorov lower bound · computability (Halting/Rice) · Bekenstein bound · statistical power · PAC-learning."
+            },
+            {
+              "name": "Physical",
+              "summary": "Physical: c · ℏ · k (Landauer) · Stefan-Boltzmann · Carnot · Bremermann · Margolus-Levitin · Bekenstein-Hawking."
+            },
+            {
+              "name": "Engineering",
+              "summary": "Engineering: fab throughput · grid capacity · launch cost/kg · permit/funding/labor envelopes · patent thicket — each from the entity's OWN published data."
+            }
+          ]
         },
         {
           "name": "Verification standard + application tiers + operator stance",
-          "summary": "STANDARD: no lattice anchor alone (never a lattice tautology as a sole HARD check); real-limit anchor first (≥1 limit from §2); falsifiers on real thresholds; no external over-claim. TIERS: lattice-native (n=6 is spec) · lattice-acceptor (own domain physics limits) · external envelope (NO lattice HARD check / χ²-falsifier; disclose 'n=6 is our framing'). OPERATOR STANCE: the first question is NOT 'how does this fit n=6?' but 'what is this domain's REAL invariant?'; use the lattice only if it appears naturally."
+          "summary": "The verification standard, the application tiers, and the operator stance.",
+          "children": [
+            {
+              "name": "STANDARD",
+              "summary": "STANDARD: no lattice anchor alone (never a lattice tautology as a sole HARD check); real-limit anchor first (≥1 limit from §2); falsifiers on real thresholds; no external over-claim."
+            },
+            {
+              "name": "TIERS",
+              "summary": "TIERS: lattice-native (n=6 is spec) · lattice-acceptor (own domain physics limits) · external envelope (NO lattice HARD check / χ²-falsifier; disclose 'n=6 is our framing')."
+            },
+            {
+              "name": "OPERATOR STANCE",
+              "summary": "OPERATOR STANCE: the first question is NOT 'how does this fit n=6?' but 'what is this domain's REAL invariant?'; use the lattice only if it appears naturally."
+            }
+          ]
         }
       ]
     }
