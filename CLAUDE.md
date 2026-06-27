@@ -8,7 +8,7 @@ Hosted autonomous-discovery platform (OUROBOROS loop · `hexa kick` engine). Ten
 > 📐 **설계 SSOT** — 아키텍처/결정/로드맵 트리는 [`ARCHITECTURE.json`](ARCHITECTURE.json) (update-in-place;
 > Decisions 1–24 · ROADMAP P0–P6 · 2-tier topology · ARXIV A4 map · LATTICE_POLICY 포함). 사람용 뷰어는
 > `python3 serve.py` → [`ARCHITECTURE.html`](ARCHITECTURE.html) (http; browsers block file:// fetch). 시간순
-> 이력 = [`CHANGELOG.md`](CHANGELOG.md). 이 문서는 거버넌스/워크플로우 규칙만 담는다.
+> 이력 = [`CHANGELOG.jsonl`](CHANGELOG.jsonl). 이 문서는 거버넌스/워크플로우 규칙만 담는다.
 
 ## 거버넌스 (governance)
 
@@ -87,6 +87,6 @@ phanes/
 ├─ ARCHITECTURE.json — 설계 SSOT: 아키텍처·결정(1–24)·로드맵(P0–P6) 트리 (update-in-place)
 ├─ ARCHITECTURE.html — 사람용 뷰어 (`python3 serve.py` 로 서빙)
 ├─ serve.py          — ARCHITECTURE.html 정적 서버 (http; file:// fetch 차단 회피)
-├─ CHANGELOG.md      — change history (append-only; 시간순 결정/로드맵 이력 포함)
+├─ CHANGELOG.jsonl      — change history (append-only; 시간순 결정/로드맵 이력 포함)
 └─ deploy.sh · cutover-domain.sh · Dockerfile · wrangler.jsonc · package.json — deploy/runtime + Node/TS app
 ```

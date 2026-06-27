@@ -1,7 +1,7 @@
 {
   "name": "🥚 phanes · 파네스",
   "summary": "Hosted autonomous-discovery SaaS — a generic autonomous-cycle platform. A tenant brings a measurable objective + a verifier/oracle; phanes drives hexa-lang's OUROBOROS engine `hexa kick` (the loop goal → falsifier → saturation, rounds with a per-round honesty/falsification gate) against it and returns a verified, provenance-tracked result/catalog (their own private echoes). Phanes (Φάνης, φαίνω 'to bring to light') is the Orphic primordial revealer entwined by the OUROBOROS — Ouro = the serpent (mechanism), Phanes = the light it reveals. LIVE at https://dancinlab.org.",
-  "note": "This JSON tree is the architecture SSOT (update-in-place, NOT append-only). Human viewer = ARCHITECTURE.html via `python3 serve.py`. History/decisions narrated chronologically → CHANGELOG.md; governance/identity → CLAUDE.md; verifiable claims → CLAIMS.tape + .verdicts/<slug>/; cross-repo links → NEXUS.tape. This doc points only, never duplicates thresholds. Migrated from scattered domain docs (DESIGN.md/DESIGN.log.md, GOAL.md/GOAL.log.md, ROADMAP.md/ROADMAP.log.md, PHANES.md/PHANES.log.md, INBOX.log.md, LATTICE_POLICY.md) retired 2026-06-18 → this tree + ARCHITECTURE.html viewer (hexa-codex/anima c4 standard).",
+  "note": "This JSON tree is the architecture SSOT (update-in-place, NOT append-only). Human viewer = ARCHITECTURE.html via `python3 serve.py`. History/decisions narrated chronologically → CHANGELOG.jsonl; governance/identity → CLAUDE.md; verifiable claims → CLAIMS.tape + .verdicts/<slug>/; cross-repo links → NEXUS.tape. This doc points only, never duplicates thresholds. Migrated from scattered domain docs (DESIGN.md/DESIGN.log.md, GOAL.md/GOAL.log.md, ROADMAP.md/ROADMAP.log.md, PHANES.md/PHANES.log.md, INBOX.log.md, LATTICE_POLICY.md) retired 2026-06-18 → this tree + ARCHITECTURE.html viewer (hexa-codex/anima c4 standard).",
   "meta": {
     "ssot": "github.com/dancinlab/phanes",
     "parent": "dancinlab",
@@ -641,8 +641,8 @@
               "summary": "· ARCHITECTURE.json (this SSOT) + ARCHITECTURE.html (viewer)"
             },
             {
-              "name": "CHANGELOG.md",
-              "summary": "· CHANGELOG.md"
+              "name": "CHANGELOG.jsonl",
+              "summary": "· CHANGELOG.jsonl"
             },
             {
               "name": "CLAUDE.md",
