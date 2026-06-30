@@ -2,21 +2,21 @@
 
 Hosted autonomous-discovery platform (OUROBOROS loop · `hexa kick` engine). Tenants bring an objective + verifier; phanes drives the loop and returns a verified, provenance-tracked catalog.
 
-> 📍 **거버넌스 SSOT** — 이 문서는 `project.tape` 를 마크다운으로 재설계·단일화한 것이다 (`.tape` 은퇴).
+> 📍 **Governance SSOT** — this document is a markdown redesign and unification of `project.tape` (`.tape` retired).
 > parent: `dancinlab` · ssot: `github.com/dancinlab/phanes` (`hx install phanes`) · siblings: `hexa-lang`
 >
-> 📐 **설계 SSOT** — 아키텍처/결정/로드맵 트리는 [`ARCHITECTURE.json`](ARCHITECTURE.json) (update-in-place;
-> Decisions 1–24 · ROADMAP P0–P6 · 2-tier topology · ARXIV A4 map · LATTICE_POLICY 포함). 사람용 뷰어는
-> `python3 serve.py` → [`ARCHITECTURE.html`](ARCHITECTURE.html) (http; browsers block file:// fetch). 시간순
-> 이력 = [`CHANGELOG.jsonl`](CHANGELOG.jsonl). 이 문서는 거버넌스/워크플로우 규칙만 담는다.
+> 📐 **Design SSOT** — the architecture/decisions/roadmap tree lives in [`ARCHITECTURE.json`](ARCHITECTURE.json) (update-in-place;
+> Decisions 1–24 · ROADMAP P0–P6 · 2-tier topology · ARXIV A4 map · LATTICE_POLICY included). The human-facing viewer is
+> `python3 serve.py` → [`ARCHITECTURE.html`](ARCHITECTURE.html) (http; browsers block file:// fetch). Chronological
+> history = [`CHANGELOG.jsonl`](CHANGELOG.jsonl). This document holds only governance/workflow rules.
 
-## 거버넌스 (governance)
+## Governance
 
 ### downstream discipline — consume `hexa kick`, patch upstream
 - ✅ engine / multi-tenant gap → `hexa-lang/inbox/patches/<slug>.md` (one concept each) → upstream review
 - ⛔ fork the hexa kick engine · inline downstream workaround · mix multiple concepts in one patch file
 
-## 워크플로우 (workflow — CLAIMS · VERIFY · PAPER · DISCOVERY)
+## Workflow (CLAIMS · VERIFY · PAPER · DISCOVERY)
 
 ### CLAIMS.tape — single audit index of verifiable claims
 - ✅ every verifiable claim in root `CLAIMS.tape` — id · text · method · slug · verdict pointer
@@ -72,7 +72,7 @@ Hosted autonomous-discovery platform (OUROBOROS loop · `hexa kick` engine). Ten
 - ✅ log every kick/gap discovery to `.discoveries/<slug>.tape` — id · seed · verdict-tier-target
 - ⛔ discard discovery output · paraphrase findings · skip linking discovery → next-cycle claim
 
-## 구조 (tree)
+## Tree
 
 ```
 phanes/
@@ -84,9 +84,9 @@ phanes/
 ├─ archive/        — superseded material
 ├─ CLAIMS.tape       — single audit index of verifiable claims
 ├─ NEXUS.tape        — cross-repo link registry
-├─ ARCHITECTURE.json — 설계 SSOT: 아키텍처·결정(1–24)·로드맵(P0–P6) 트리 (update-in-place)
-├─ ARCHITECTURE.html — 사람용 뷰어 (`python3 serve.py` 로 서빙)
-├─ serve.py          — ARCHITECTURE.html 정적 서버 (http; file:// fetch 차단 회피)
-├─ CHANGELOG.jsonl      — change history (append-only; 시간순 결정/로드맵 이력 포함)
+├─ ARCHITECTURE.json — design SSOT: architecture · decisions (1–24) · roadmap (P0–P6) tree (update-in-place)
+├─ ARCHITECTURE.html — human-facing viewer (served via `python3 serve.py`)
+├─ serve.py          — ARCHITECTURE.html static server (http; bypasses file:// fetch blocking)
+├─ CHANGELOG.jsonl      — change history (append-only; includes chronological decisions/roadmap history)
 └─ deploy.sh · cutover-domain.sh · Dockerfile · wrangler.jsonc · package.json — deploy/runtime + Node/TS app
 ```
