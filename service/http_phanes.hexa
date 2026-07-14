@@ -33,9 +33,9 @@ fn shquote(s) {
 
 fn header_get(request, key_lower) {
     let headers = request["headers"]
-    if headers == nil { return "" }
+    if type_of(headers) == "void" { return "" }
     let v = headers[key_lower]
-    if v == nil { return "" }
+    if type_of(v) == "void" { return "" }
     return to_string(v)
 }
 
@@ -97,19 +97,19 @@ fn handle_submit(request) {
     // Form-encoded body is not used (stdlib parse_query splits naively on
     // every '=' — measured to truncate seeds containing '=' in P1b smoke).
     let body = request["body"]
-    if body == nil { body = "" }
+    if type_of(body) == "void" { body = "" }
     if len(body) == 0 { return json_error(400, "JSON body required") }
     let m = json_parse(body)
-    if m == nil { return json_error(400, "JSON body did not parse") }
+    if type_of(m) == "void" { return json_error(400, "JSON body did not parse") }
     let seed_v = m["seed"]
-    if seed_v == nil { return json_error(400, "seed (string) required in JSON body") }
+    if type_of(seed_v) == "void" { return json_error(400, "seed (string) required in JSON body") }
     let seed = to_string(seed_v)
     if len(seed) < 10 {
         return json_error(400, "seed required (>=10 chars, substantive problem statement)")
     }
     let mut rounds = "1"
     let r_v = m["rounds"]
-    if r_v != nil { rounds = to_string(r_v) }
+    if type_of(r_v) != "void" { rounds = to_string(r_v) }
     let cmd = jobctl_cmd()
         + " submit --tenant " + shquote(tenant)
         + " --token "        + shquote(token)
@@ -512,15 +512,15 @@ fn _kv_put(key, body) {
     return true
 }
 
-// _kv_get -> the stored string, or nil when the key is absent.
+// _kv_get -> the stored string, or void when the key is absent.
 fn _kv_get(key) {
     if _r2_enabled() {
         let r = r2_get(key)
-        if !r["ok"] { return nil }
+        if !r["ok"] { return void }
         return r["body"]
     }
     let p = _store_root() + "/" + key
-    if !file_exists(p) { return nil }
+    if !file_exists(p) { return void }
     return read_file(p)
 }
 
@@ -540,11 +540,11 @@ fn session_create(tenant, token) {
 }
 
 fn session_load(sid) {
-    if len(sid) == 0 { return nil }
+    if len(sid) == 0 { return void }
     let raw = _kv_get("sessions/" + sid)
-    if raw == nil { return nil }
+    if type_of(raw) == "void" { return void }
     let lines = raw.split("\n")
-    if len(lines) < 2 { return nil }
+    if len(lines) < 2 { return void }
     let r = #{}
     r["tenant"] = lines[0]
     r["token"]  = lines[1]
@@ -678,20 +678,20 @@ fn render_existing_job_row(tenant, token, job_id) {
     let r = exec_with_status(cmd)
     if r[1] != 0 { return "" }
     let m = json_parse(r[0])
-    if m == nil { return "" }
+    if type_of(m) == "void" { return "" }
     let mut status = "?"
-    if m["status"] != nil { status = to_string(m["status"]) }
+    if type_of(m["status"]) != "void" { status = to_string(m["status"]) }
     let mut wall_ms = "-"
-    if m["wall_ms"] != nil { wall_ms = to_string(m["wall_ms"]) }
+    if type_of(m["wall_ms"]) != "void" { wall_ms = to_string(m["wall_ms"]) }
     let mut rounds = "-"
-    if m["rounds"] != nil { rounds = to_string(m["rounds"]) }
+    if type_of(m["rounds"]) != "void" { rounds = to_string(m["rounds"]) }
     let mut total = "-"
     let res = m["result"]
-    if res != nil {
-        if res["total"] != nil { total = to_string(res["total"]) }
+    if type_of(res) != "void" {
+        if type_of(res["total"]) != "void" { total = to_string(res["total"]) }
     }
     let mut verifier_rc = ""
-    if m["verifier_rc"] != nil { verifier_rc = to_string(m["verifier_rc"]) }
+    if type_of(m["verifier_rc"]) != "void" { verifier_rc = to_string(m["verifier_rc"]) }
     return render_job_row(job_id, status, wall_ms, rounds, total, verifier_rc)
 }
 
@@ -711,11 +711,11 @@ fn _detect_lang(request) {
     // selection sticks)  3) Accept-Language header (browser preference)
     // 4) default "en".
     let query = request["query"]
-    if query != nil {
+    if type_of(query) != "void" {
         if len(to_string(query)) > 0 {
             let q = parse_query(to_string(query))
             let l = q["lang"]
-            if l != nil {
+            if type_of(l) != "void" {
                 let ls = to_string(l)
                 if _valid_lang(ls) { return ls }
             }
@@ -1230,7 +1230,7 @@ fn render_product_overview_page(lang, cfg) {
     h = h + "</div>"
     h = h + "</div>"
     let img_slug = cfg["hero_image_slug"]
-    if img_slug != nil && len(img_slug) > 0 {
+    if type_of(img_slug) != "void" && len(img_slug) > 0 {
         h = h + "<picture><source srcset=\"/" + img_slug + ".webp\" type=\"image/webp\">"
         h = h + "<img class=\"hero-img\" src=\"/" + img_slug + ".png\" alt=\"" + mark + "\" loading=\"eager\" decoding=\"async\">"
         h = h + "</picture>"
@@ -2080,10 +2080,10 @@ fn handle_login_get(request) {
 fn handle_login_post(request) {
     let lang = _detect_lang(request)
     let body = request["body"]
-    if body == nil { body = "" }
+    if type_of(body) == "void" { body = "" }
     let q = parse_query(body)
-    let tenant_r = q["tenant"]; if tenant_r == nil { tenant_r = "" }
-    let token_r  = q["token"];  if token_r == nil { token_r = "" }
+    let tenant_r = q["tenant"]; if type_of(tenant_r) == "void" { tenant_r = "" }
+    let token_r  = q["token"];  if type_of(token_r) == "void" { token_r = "" }
     let tenant = urldecode(tenant_r).trim()
     let token  = urldecode(token_r).trim()
     if len(tenant) == 0 || len(token) == 0 {
@@ -2136,11 +2136,11 @@ fn handle_lang_set(request) {
     }
     let mut from = "/"
     let query = request["query"]
-    if query != nil {
+    if type_of(query) != "void" {
         if len(to_string(query)) > 0 {
             let q = parse_query(to_string(query))
             let f = q["from"]
-            if f != nil {
+            if type_of(f) != "void" {
                 let fs = urldecode(to_string(f))
                 if len(fs) > 0 { from = fs }
             }
@@ -2154,7 +2154,7 @@ fn handle_lang_set(request) {
 
 fn handle_dashboard(request) {
     let sess = current_session(request)
-    if sess == nil { return redirect_resp("/login") }
+    if type_of(sess) == "void" { return redirect_resp("/login") }
     let tenant = to_string(sess["tenant"])
     let token  = to_string(sess["token"])
     let lang = _detect_lang(request)
@@ -2171,7 +2171,7 @@ fn handle_dashboard(request) {
 
 fn handle_dash_submit(request) {
     let sess = current_session(request)
-    if sess == nil {
+    if type_of(sess) == "void" {
         return _html_401("<li style=\"color:var(--accent-red)\">session expired — log in again</li>")
     }
     let tenant = to_string(sess["tenant"])
@@ -2183,10 +2183,10 @@ fn handle_dash_submit(request) {
         return _html_429("<li style=\"color:var(--accent-red)\">rate limit — too many submits, wait a moment</li>")
     }
     let body = request["body"]
-    if body == nil { body = "" }
+    if type_of(body) == "void" { body = "" }
     let q = parse_query(body)
-    let seed_r   = q["seed"];   if seed_r == nil { seed_r = "" }
-    let rounds_r = q["rounds"]; if rounds_r == nil { rounds_r = "1" }
+    let seed_r   = q["seed"];   if type_of(seed_r) == "void" { seed_r = "" }
+    let rounds_r = q["rounds"]; if type_of(rounds_r) == "void" { rounds_r = "1" }
     let seed   = urldecode(seed_r)
     let rounds = urldecode(rounds_r)
     if len(seed) < 10 {
@@ -2211,7 +2211,7 @@ fn handle_dash_submit(request) {
 
 fn handle_dash_get_job(request) {
     let sess = current_session(request)
-    if sess == nil {
+    if type_of(sess) == "void" {
         return _html_401("<li>session expired</li>")
     }
     let tenant = to_string(sess["tenant"])
@@ -2297,13 +2297,13 @@ fn r2_selftest_session(stamp) {
     let sid = session_create("selftest-tenant", "selftest-token-" + stamp)
     println("  sess+  -> sid=" + sid.substring(0, 8) + "…")
     let sl = session_load(sid)
-    if sl == nil { println("R2-SELFTEST: FAIL (session_load nil)"); return }
+    if type_of(sl) == "void" { println("R2-SELFTEST: FAIL (session_load nil)"); return }
     if sl["tenant"] != "selftest-tenant" || sl["token"] != "selftest-token-" + stamp {
         println("R2-SELFTEST: FAIL (session roundtrip mismatch)"); return
     }
     println("  sess=  -> tenant=" + sl["tenant"] + " ok")
     session_destroy(sid)
-    if session_load(sid) != nil { println("R2-SELFTEST: FAIL (session_destroy did not take)"); return }
+    if type_of(session_load(sid)) != "void" { println("R2-SELFTEST: FAIL (session_destroy did not take)"); return }
     println("  sess-  -> destroyed ok")
     println("R2-SELFTEST: PASS")
 }
@@ -2325,7 +2325,7 @@ fn r2_op() {
     let key = env("PHANES_R2_KEY")
     if op == "get" {
         let v = _kv_get(key)
-        if v == nil { exit(1) }
+        if type_of(v) == "void" { exit(1) }
         print(v)
         exit(0)
     }
