@@ -18,9 +18,27 @@
     "directory": "./web/static"
   },
 
+  // Custom domain. phanes used to hold the apex dancinlab.org; the apex is now
+  // the main site (dancinlab/www — a container-free static Worker), so that a
+  // container outage can no longer take the front door down.
+  "routes": [
+    {
+      "pattern": "phanes.dancinlab.org",
+      "custom_domain": true
+    }
+  ],
+
   // Two container classes, one image, role switched by PHANES_ROLE
   // (Dockerfile ENTRYPOINT). Worker tier sized to the F-D22 measured
   // floor: kick peak RSS 4.02 GiB ⇒ standard-2 (6 GiB), never std-1.
+  //
+  // ⚠️ The DEPLOYED caps diverge from the ones below: on Cloudflare both
+  // container applications currently sit at max_instances=0 (set during the
+  // container cost cutback), so every page request answers "Failed to start
+  // container: Maximum number of running container instances exceeded".
+  // phanes is switched OFF on purpose — it is not broken. Deploying this file
+  // as-is pushes the caps below back up and RESUMES container billing; raise
+  // them only when phanes is meant to serve again.
   "containers": [
     {
       "class_name": "PhanesWeb",

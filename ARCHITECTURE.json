@@ -2,7 +2,7 @@
   "schemaVersion": "2.0",
   "kind": "architecture-tree",
   "title": "phanes — Architecture (SSOT)",
-  "summary": "Hosted autonomous-discovery SaaS — a generic autonomous-cycle platform: a tenant brings a measurable objective + verifier/oracle, phanes drives hexa-lang's OUROBOROS engine `hexa kick` and returns a verified, provenance-tracked result/catalog. LIVE at https://dancinlab.org.",
+  "summary": "Hosted autonomous-discovery SaaS — a generic autonomous-cycle platform: a tenant brings a measurable objective + verifier/oracle, phanes drives hexa-lang's OUROBOROS engine `hexa kick` and returns a verified, provenance-tracked result/catalog. Bound to https://phanes.dancinlab.org, but currently SERVING NOTHING: both container applications sit at max_instances=0 (container cost cutback), and every page request goes through the container, so all routes answer 'Failed to start container'. Switched off on purpose, not broken.",
   "viewer": "ARCHITECTURE.html",
   "serve": "python3 serve.py  (로컬 서버 + 브라우저 자동 오픈; file:// fetch 차단 우회)",
   "columns": [
@@ -52,7 +52,7 @@
             "name": "Phanes (Φάνης, φαίνω 'to bring to light') is",
             "role": "",
             "id": "phanes-to-bring-to-light-is",
-            "detail": "Phanes (Φάνης, φαίνω 'to bring to light') is the Orphic primordial revealer entwined by the OUROBOROS — Ouro = the serpent (mechanism), Phanes = the light it reveals. LIVE at https://dancinlab.org."
+            "detail": "Phanes (Φάνης, φαίνω 'to bring to light') is the Orphic primordial revealer entwined by the OUROBOROS — Ouro = the serpent (mechanism), Phanes = the light it reveals. Bound to https://phanes.dancinlab.org (containers capped at 0 — see the deploy node)."
           }
         ]
       },
@@ -128,9 +128,9 @@
           },
           {
             "name": "status",
-            "role": "",
+            "role": "OFF — bound to phanes.dancinlab.org, containers capped at max_instances=0",
             "id": "status",
-            "detail": "LIVE — https://dancinlab.org (Cloudflare Containers 2-tier: phanes-phanesweb std-1×3 + phanes-phanesworker std-2×5 · data plane on R2 · dispatch on the phanes-jobs CF Queue · all routes serve 200). Redeploy = `bash deploy.sh` (colima Docker + the cloudflare.deploy.token secret)."
+            "detail": "Bound to https://phanes.dancinlab.org as a Workers Custom Domain (wrangler.jsonc routes[]). NOT serving: on Cloudflare phanes-phanesweb and phanes-phanesworker are both at max_instances=0 (set during the container cost cutback), and assets/ only covers web/static — every page request goes through the container, so all routes answer 'Failed to start container: Maximum number of running container instances exceeded'. The apex dancinlab.org now belongs to the main site (dancinlab/www — a container-free static Worker), so a container outage can no longer take the front door down. Reviving phanes = raise the caps (resumes container billing) then `bash deploy.sh` (colima Docker + the cloudflare.deploy.token secret). 2-tier design when running: phanes-phanesweb std-1 + phanes-phanesworker std-2 · data plane on R2 · dispatch on the phanes-jobs CF Queue."
           },
           {
             "name": "downstream-discipline",
@@ -579,10 +579,10 @@
             ]
           },
           {
-            "name": "D20 Domain & DNS = dancinlab.org on Cloudflare",
-            "role": "DECIDED — dancinlab.org / Cloudflare",
+            "name": "D20 Domain & DNS = phanes.dancinlab.org on Cloudflare",
+            "role": "DECIDED — phanes.dancinlab.org / Cloudflare",
             "id": "d20-domain-dns-dancinlab-org-on-cloudflare",
-            "detail": "Production domain = dancinlab.org, DNS managed at Cloudflare (concretises the D11 front-proxy: CF sits in front of origin, terminating TLS, fronting the CDN, absorbing DDoS).",
+            "detail": "Production domain = phanes.dancinlab.org, DNS managed at Cloudflare (concretises the D11 front-proxy: CF sits in front of origin, terminating TLS, fronting the CDN, absorbing DDoS). The apex dancinlab.org is NOT phanes — it is the main site (dancinlab/www). A product does not own the front door: phanes is container-backed, and a container outage on the apex takes the whole org's front page down.",
             "children": [
               {
                 "name": "CF is $0 for the layer phanes needs",
@@ -999,10 +999,10 @@
                     "detail": "[ ] Email routing — confirm hello@dancinlab.org lands in the team inbox; add CF Email Routing rule if needed."
                   },
                   {
-                    "name": "[ ] www.dancinlab.org",
+                    "name": "[x] www.dancinlab.org",
                     "role": "",
                     "id": "www-dancinlab-org",
-                    "detail": "[ ] www.dancinlab.org — only the apex is bound; add www as a Workers Custom Domain or an apex↔www redirect."
+                    "detail": "[x] Resolved elsewhere — dancinlab.org and www.dancinlab.org are both Custom Domains of the dancinlab/www Worker, not phanes. Nothing for phanes to do."
                   },
                   {
                     "name": "[ ] Scoped-token rotation",
